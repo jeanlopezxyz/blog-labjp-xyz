@@ -2,25 +2,33 @@
 import { Icon } from "astro-icon/components";
 import { NAV_ITEMS, CATEGORIES, RSS_URL } from "@/lib/constants";
 import { getLangFromUrl, useTranslations, getLocalizedPath, languages, defaultLang } from "@/i18n";
+import FlagES from "@/components/icons/FlagES.astro";
+import FlagUS from "@/components/icons/FlagUS.astro";
 
-// Configuración de idiomas con iconos de banderas
-const LANG_ICONS: Record<string, string> = {
-  es: 'circle-flags:es',
-  en: 'circle-flags:us',
+// Componentes de banderas nativas
+const FLAG_COMPONENTS = {
+  es: FlagES,
+  en: FlagUS,
 };
 
-// Función para obtener URL del idioma alternativo
+// Función para obtener URL del idioma alternativo (mantiene la página actual)
 function getLangSwitchUrl(targetLang: string, currentLang: string, pathname: string): string {
+  // Normalizar pathname (quitar trailing slash excepto para root)
+  const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
+
   if (targetLang === defaultLang) {
-    // Si el target es el idioma por defecto, quitar prefijo de idioma
-    return pathname.replace(new RegExp(`^/${currentLang}`), '') || '/';
+    // Cambiando a español (idioma por defecto): quitar prefijo de idioma
+    const newPath = normalizedPath.replace(new RegExp(`^/${currentLang}`), '');
+    return newPath || '/';
   }
+
   if (currentLang === defaultLang) {
-    // Si el actual es el por defecto, agregar prefijo
-    return `/${targetLang}${pathname}`;
+    // Cambiando desde español: agregar prefijo del nuevo idioma
+    return `/${targetLang}${normalizedPath}`;
   }
-  // Cambiar de un idioma a otro
-  return pathname.replace(new RegExp(`^/${currentLang}`), `/${targetLang}`);
+
+  // Cambiando entre idiomas no-default (ej: en -> fr)
+  return normalizedPath.replace(new RegExp(`^/${currentLang}`), `/${targetLang}`);
 }
 
 interface Props {
@@ -157,19 +165,22 @@ const getNavLabel = (key: string) => t(key as any);
             class="hidden absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg py-1 z-50"
             role="menu"
           >
-            {Object.entries(languages).map(([langCode, langName]) => (
-              <a
-                href={getLangSwitchUrl(langCode, lang, pathname)}
-                class:list={[
-                  "flex items-center gap-2 px-4 py-2 text-sm transition-colors",
-                  lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                ]}
-                role="menuitem"
-              >
-                <Icon name={LANG_ICONS[langCode]} class="w-5 h-5 rounded-full" aria-hidden="true" />
-                {langName}
-              </a>
-            ))}
+            {Object.entries(languages).map(([langCode, langName]) => {
+              const FlagComponent = FLAG_COMPONENTS[langCode as keyof typeof FLAG_COMPONENTS];
+              return (
+                <a
+                  href={getLangSwitchUrl(langCode, lang, pathname)}
+                  class:list={[
+                    "flex items-center gap-2 px-4 py-2 text-sm transition-colors",
+                    lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  ]}
+                  role="menuitem"
+                >
+                  <FlagComponent class="w-5 h-5 rounded-full" />
+                  {langName}
+                </a>
+              );
+            })}
           </div>
         </div>
 
