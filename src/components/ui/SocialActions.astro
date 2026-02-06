@@ -1,0 +1,500 @@
+---
+/**
+ * SocialActions Component
+ * Reusable like, comment, and share buttons for blog posts
+ * Shows counts and includes comment modal
+ *
+ * Variants:
+ * - inline: compact, for list items (default)
+ * - centered: centered layout for featured posts
+ * - spread: full width, spread between items
+ */
+import { Icon } from "astro-icon/components";
+import { getTwitterShareUrl, getLinkedInShareUrl, getFullBlogPostUrl } from "@/lib/utils";
+import { useTranslations, defaultLang } from "@/i18n";
+import type { SocialActionsProps } from "@/lib/types";
+
+type Props = SocialActionsProps;
+
+const {
+  postId,
+  postTitle,
+  postSlug,
+  lang = defaultLang,
+  showComments = true,
+  size = 'md',
+  variant = 'inline',
+  class: className = ''
+} = Astro.props;
+
+const t = useTranslations(lang);
+const postUrl = getFullBlogPostUrl(postSlug, lang);
+const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-5 h-5';
+const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
+const gap = size === 'sm' ? 'gap-1' : 'gap-1.5';
+
+// Layout classes based on variant
+const containerClasses = {
+  inline: 'flex items-center gap-4',
+  centered: 'flex items-center justify-center gap-6',
+  spread: 'flex items-center justify-between w-full',
+};
+---
+
+<div
+  class:list={["social-actions", containerClasses[variant], className]}
+  data-post-id={postId}
+  data-post-title={postTitle}
+  data-post-url={postUrl}
+  role="toolbar"
+  aria-label={t('post.share')}
+>
+  <!-- Like Button (Left) -->
+  <button
+    type="button"
+    class:list={[
+      "like-btn inline-flex items-center transition-colors",
+      gap, textSize,
+      "text-muted-foreground hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-background rounded"
+    ]}
+    data-post-id={postId}
+    aria-label={t('post.like')}
+    aria-pressed="false"
+  >
+    <Icon name="mdi:heart-outline" class:list={[iconSize, "like-icon-outline"]} aria-hidden="true" />
+    <Icon name="mdi:heart" class:list={[iconSize, "like-icon-filled hidden text-red-500"]} aria-hidden="true" />
+    <span class:list={["like-count", textSize]}>0</span>
+  </button>
+
+  <!-- Comments Button (Center) -->
+  {showComments && (
+    <button
+      type="button"
+      class:list={[
+        "comment-btn inline-flex items-center transition-colors",
+        gap, textSize,
+        "text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+      ]}
+      data-post-id={postId}
+      aria-label={t('post.comments')}
+    >
+      <Icon name="mdi:comment-outline" class={iconSize} aria-hidden="true" />
+      <span class:list={["comment-count", textSize]}>0</span>
+    </button>
+  )}
+
+  <!-- Share Button (Right) -->
+  <div class="relative" data-share-menu>
+    <button
+      type="button"
+      class:list={[
+        "share-btn inline-flex items-center transition-colors",
+        gap, textSize,
+        "text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+      ]}
+      data-share-toggle
+      aria-label={t('post.share')}
+      aria-expanded="false"
+      aria-haspopup="menu"
+    >
+      <Icon name="mdi:share-outline" class={iconSize} aria-hidden="true" />
+    </button>
+
+    <div
+      class="share-dropdown absolute left-0 bottom-full mb-2 w-44 rounded-lg bg-card border border-border/50 shadow-lg z-20 hidden"
+      data-share-dropdown
+      role="menu"
+      aria-label={t('post.share')}
+    >
+      <div class="py-1">
+        <a
+          href={getTwitterShareUrl(postTitle, postUrl)}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors focus:bg-muted/50 focus:outline-none"
+          role="menuitem"
+        >
+          <Icon name="mdi:twitter" class="w-4 h-4" aria-hidden="true" />
+          {t('post.twitter')}
+        </a>
+        <a
+          href={getLinkedInShareUrl(postUrl)}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors focus:bg-muted/50 focus:outline-none"
+          role="menuitem"
+        >
+          <Icon name="mdi:linkedin" class="w-4 h-4" aria-hidden="true" />
+          {t('post.linkedin')}
+        </a>
+        <button
+          type="button"
+          class="copy-link-btn flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors w-full text-left focus:bg-muted/50 focus:outline-none"
+          data-url={postUrl}
+          role="menuitem"
+        >
+          <Icon name="mdi:link-variant" class="w-4 h-4" aria-hidden="true" />
+          <span class="copy-text">{t('post.copyLink')}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Comment Modal (one per page, reused) -->
+<div
+  id="comment-modal"
+  class="comment-modal fixed inset-0 z-50 hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="comment-modal-title"
+>
+  <!-- Backdrop -->
+  <div class="comment-modal-backdrop absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <!-- Modal Content -->
+  <div class="comment-modal-content absolute bottom-0 left-0 right-0 max-h-[80vh] bg-card border-t border-border rounded-t-2xl shadow-2xl transform translate-y-full transition-transform duration-300 ease-out">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-border">
+      <h2 id="comment-modal-title" class="text-lg font-semibold text-foreground">
+        <span class="modal-comment-count">0</span> {t('comments.title')}
+      </h2>
+      <button
+        type="button"
+        class="comment-modal-close p-2 rounded-full hover:bg-muted/50 transition-colors"
+        aria-label={t('modal.close')}
+      >
+        <Icon name="mdi:close" class="w-5 h-5" />
+      </button>
+    </div>
+
+    <!-- Comment Form -->
+    <div class="p-4 border-b border-border">
+      <form class="comment-form flex gap-3" data-post-id={postId}>
+        <div class="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+          <Icon name="mdi:account" class="w-6 h-6 text-muted-foreground" />
+        </div>
+        <div class="flex-1">
+          <input
+            type="text"
+            name="author"
+            placeholder={t('comments.name')}
+            class="w-full px-3 py-2 mb-2 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            required
+          />
+          <textarea
+            name="content"
+            placeholder={t('comments.placeholder')}
+            rows="2"
+            class="w-full px-3 py-2 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+            required
+          ></textarea>
+          <div class="flex justify-end mt-2">
+            <button
+              type="submit"
+              class="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {t('comments.submit')}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Comments List -->
+    <div class="comments-list overflow-y-auto max-h-[50vh] p-4 space-y-4">
+      <div class="comments-loading text-center py-8 text-muted-foreground">
+        <Icon name="mdi:loading" class="w-6 h-6 animate-spin mx-auto mb-2" />
+        {t('comments.loading')}
+      </div>
+      <div class="comments-empty hidden text-center py-8 text-muted-foreground">
+        <Icon name="mdi:comment-outline" class="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <p>{t('comments.noComments')}</p>
+      </div>
+      <div class="comments-content hidden">
+        <!-- Comments will be inserted here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { isPostLiked, toggleLike, updateLikeUI } from '@/scripts/likes';
+  import { initShareMenus, initCopyLinks, setupGlobalShareHandlers } from '@/scripts/share';
+  import { escapeHtml, formatRelativeDate } from '@/scripts/utils';
+  import { API_ENDPOINTS } from '@/lib/types';
+
+  // Track initialized elements to avoid duplicate handlers
+  const initializedLikes = new WeakSet<HTMLElement>();
+  const initializedComments = new WeakSet<HTMLElement>();
+  let modalInitialized = false;
+  let currentPostId: string | null = null;
+
+  async function loadStats(postId: string, container: HTMLElement) {
+    try {
+      const res = await fetch(`${API_ENDPOINTS.STATS}/${postId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const likeCount = container.querySelector('.like-count');
+        const commentCount = container.querySelector('.comment-count');
+        if (likeCount) likeCount.textContent = String(data.likes || 0);
+        if (commentCount) commentCount.textContent = String(data.comments || 0);
+      }
+    } catch {
+      // Silently fail - counts will show 0
+    }
+  }
+
+  async function loadComments(postId: string) {
+    const modal = document.getElementById('comment-modal');
+    if (!modal) return;
+
+    const { t } = window.__i18n || { t: {} };
+    const loading = modal.querySelector('.comments-loading');
+    const empty = modal.querySelector('.comments-empty');
+    const content = modal.querySelector('.comments-content');
+    const countEl = modal.querySelector('.modal-comment-count');
+
+    if (loading) loading.classList.remove('hidden');
+    if (empty) empty.classList.add('hidden');
+    if (content) {
+      content.classList.add('hidden');
+      content.innerHTML = '';
+    }
+
+    try {
+      const res = await fetch(`${API_ENDPOINTS.COMMENTS}/${postId}`);
+      if (res.ok) {
+        const comments = await res.json();
+        if (loading) loading.classList.add('hidden');
+
+        if (comments.length === 0) {
+          if (empty) empty.classList.remove('hidden');
+          if (countEl) countEl.textContent = '0';
+        } else {
+          if (content) {
+            content.classList.remove('hidden');
+            content.innerHTML = comments.map((comment: { author: string; created_at: string; content: string }) => `
+              <div class="comment flex gap-3">
+                <div class="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 4a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4z"/>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-medium text-foreground">${escapeHtml(comment.author)}</span>
+                    <span class="text-xs text-muted-foreground">${formatRelativeDate(comment.created_at)}</span>
+                  </div>
+                  <p class="text-sm text-foreground/90">${escapeHtml(comment.content)}</p>
+                </div>
+              </div>
+            `).join('');
+          }
+          if (countEl) countEl.textContent = String(comments.length);
+        }
+      }
+    } catch {
+      if (loading) loading.classList.add('hidden');
+      if (empty) {
+        empty.classList.remove('hidden');
+        const p = empty.querySelector('p');
+        if (p) p.textContent = t['comments.error'] || 'Error al cargar comentarios';
+      }
+    }
+  }
+
+  function openCommentModal(postId: string) {
+    const modal = document.getElementById('comment-modal');
+    if (!modal) return;
+
+    currentPostId = postId;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Update form post ID
+    const form = modal.querySelector('.comment-form') as HTMLFormElement;
+    if (form) form.dataset.postId = postId;
+
+    // Animate in
+    requestAnimationFrame(() => {
+      const content = modal.querySelector('.comment-modal-content');
+      if (content) content.classList.remove('translate-y-full');
+    });
+
+    loadComments(postId);
+  }
+
+  function closeCommentModal() {
+    const modal = document.getElementById('comment-modal');
+    if (!modal) return;
+
+    const content = modal.querySelector('.comment-modal-content');
+    if (content) content.classList.add('translate-y-full');
+
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+      currentPostId = null;
+    }, 300);
+  }
+
+  function initCommentModal() {
+    if (modalInitialized) return;
+
+    const modal = document.getElementById('comment-modal');
+    if (!modal) return;
+
+    modalInitialized = true;
+
+    // Close button
+    const closeBtn = modal.querySelector('.comment-modal-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeCommentModal);
+    }
+
+    // Click backdrop to close
+    const backdrop = modal.querySelector('.comment-modal-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', closeCommentModal);
+    }
+
+    // Escape key to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeCommentModal();
+      }
+    });
+
+    // Form submission
+    const form = modal.querySelector('.comment-form') as HTMLFormElement;
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const postId = form.dataset.postId;
+        if (!postId) return;
+
+        const { t } = window.__i18n || { t: {} };
+        const formData = new FormData(form);
+        const author = formData.get('author') as string;
+        const content = formData.get('content') as string;
+
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        const originalText = submitBtn?.textContent || t['comments.submit'] || 'Enviar';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = t['comments.sending'] || 'Enviando...';
+        }
+
+        try {
+          const res = await fetch(`${API_ENDPOINTS.COMMENTS}/${postId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ author, content })
+          });
+
+          if (res.ok) {
+            form.reset();
+            loadComments(postId);
+
+            // Update comment counts on the page
+            document.querySelectorAll(`[data-post-id="${postId}"] .comment-count, .comment-btn[data-post-id="${postId}"] + .comment-count`).forEach(el => {
+              const current = parseInt(el.textContent || '0', 10);
+              el.textContent = String(current + 1);
+            });
+          }
+        } catch {
+          // Silent fail - user can retry
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        }
+      });
+    }
+  }
+
+  function initSocialActions() {
+    // Initialize comment modal (only once)
+    initCommentModal();
+
+    // Initialize like buttons
+    document.querySelectorAll<HTMLElement>('.like-btn').forEach((btn) => {
+      if (initializedLikes.has(btn)) return;
+      initializedLikes.add(btn);
+
+      const postId = btn.dataset.postId;
+      if (!postId) return;
+
+      // Set initial state
+      updateLikeUI(btn, isPostLiked(postId));
+
+      // Add click handler
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const countEl = btn.querySelector('.like-count');
+        const currentCount = parseInt(countEl?.textContent || '0', 10);
+        const isLiked = toggleLike(postId);
+        const newCount = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+        if (countEl) countEl.textContent = String(newCount);
+        updateLikeUI(btn, isLiked);
+
+        // Send to API
+        try {
+          await fetch(`${API_ENDPOINTS.LIKES}/${postId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: isLiked ? 'like' : 'unlike' })
+          });
+        } catch (e) {
+          // Silently fail
+        }
+      });
+    });
+
+    // Initialize comment buttons
+    document.querySelectorAll<HTMLElement>('.comment-btn').forEach((btn) => {
+      if (initializedComments.has(btn)) return;
+      initializedComments.add(btn);
+
+      const postId = btn.dataset.postId;
+      if (!postId) return;
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openCommentModal(postId);
+      });
+    });
+
+    // Load stats for all social action containers
+    document.querySelectorAll<HTMLElement>('.social-actions').forEach((container) => {
+      const postId = container.dataset.postId;
+      if (postId) {
+        loadStats(postId, container);
+      }
+    });
+
+    // Initialize share menus and copy links
+    initShareMenus();
+    initCopyLinks();
+    setupGlobalShareHandlers();
+  }
+
+  // Initialize on page load and after Astro navigation
+  initSocialActions();
+  document.addEventListener('astro:after-swap', () => {
+    modalInitialized = false;
+    initSocialActions();
+  });
+</script>
+
+<style>
+  .comment-modal-content {
+    will-change: transform;
+  }
+</style>

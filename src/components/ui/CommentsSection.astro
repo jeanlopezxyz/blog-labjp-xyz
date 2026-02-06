@@ -1,0 +1,189 @@
+---
+/**
+ * CommentsSection Component
+ * Display and add comments with GSAP animations
+ */
+import { useTranslations, defaultLang, normalizeSlug, type Lang } from "@/i18n";
+
+interface Props {
+  slug: string;
+  lang?: Lang;
+}
+
+const { slug, lang = defaultLang } = Astro.props;
+const t = useTranslations(lang);
+const cleanSlug = normalizeSlug(slug);
+---
+
+<section class="comments-section mt-12 pt-8 border-t border-border" data-slug={cleanSlug}>
+  <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+    {t('comments.title')}
+    <span class="comments-count text-sm font-normal text-muted-foreground">(0)</span>
+  </h3>
+
+  <form class="comment-form mb-8 space-y-4">
+    <input
+      type="text"
+      name="author"
+      placeholder={t('comments.name')}
+      required
+      maxlength="100"
+      class="w-full px-4 py-2 rounded-lg bg-muted/50 border border-border focus:border-primary focus:outline-none transition-colors"
+    />
+    <textarea
+      name="content"
+      placeholder={t('comments.placeholder')}
+      required
+      maxlength="2000"
+      rows="3"
+      class="w-full px-4 py-3 rounded-lg bg-muted/50 border border-border focus:border-primary focus:outline-none transition-colors resize-none"
+    ></textarea>
+    <div class="flex justify-between items-center">
+      <span class="form-message text-sm"></span>
+      <button
+        type="submit"
+        class="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+      >
+        {t('comments.submit')}
+      </button>
+    </div>
+  </form>
+
+  <div class="comments-loading text-center py-8 text-muted-foreground">
+    {t('comments.loading')}
+  </div>
+  <div class="comments-list space-y-4 hidden"></div>
+  <div class="comments-empty hidden text-center py-8 text-muted-foreground">
+    {t('comments.noComments')}
+  </div>
+  <div class="comments-error hidden text-center py-8 text-red-500">
+    {t('comments.error')}
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { API_ENDPOINTS } from '@/lib/types';
+  import { escapeHtml, formatDateFull } from '@/scripts/utils';
+
+  interface Comment {
+    id: number;
+    author: string;
+    content: string;
+    created_at: string;
+  }
+
+  function initComments() {
+    document.querySelectorAll('.comments-section').forEach(section => {
+      const slug = section.getAttribute('data-slug');
+      const form = section.querySelector('.comment-form') as HTMLFormElement;
+      const loadingEl = section.querySelector('.comments-loading') as HTMLElement;
+      const listEl = section.querySelector('.comments-list') as HTMLElement;
+      const emptyEl = section.querySelector('.comments-empty') as HTMLElement;
+      const errorEl = section.querySelector('.comments-error') as HTMLElement;
+      const countEl = section.querySelector('.comments-count') as HTMLElement;
+      const messageEl = section.querySelector('.form-message') as HTMLElement;
+
+      if (!slug || !form) return;
+
+      const { t } = window.__i18n || { t: {} };
+
+      function renderComments(comments: Comment[]) {
+        listEl.innerHTML = comments.map(c => `
+          <article class="comment p-4 rounded-lg bg-muted/30 border border-border/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-medium text-foreground">${escapeHtml(c.author)}</span>
+              <time class="text-xs text-muted-foreground">${formatDateFull(c.created_at)}</time>
+            </div>
+            <p class="text-muted-foreground whitespace-pre-wrap">${escapeHtml(c.content)}</p>
+          </article>
+        `).join('');
+
+        gsap.fromTo(listEl.querySelectorAll('.comment'),
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: 'power2.out' }
+        );
+      }
+
+      // Load comments
+      fetch(`${API_ENDPOINTS.COMMENTS}?slug=${encodeURIComponent(slug)}`)
+        .then(res => res.json())
+        .then((comments: Comment[]) => {
+          loadingEl.classList.add('hidden');
+          if (comments.length === 0) {
+            emptyEl.classList.remove('hidden');
+          } else {
+            listEl.classList.remove('hidden');
+            countEl.textContent = `(${comments.length})`;
+            renderComments(comments);
+          }
+        })
+        .catch(() => {
+          loadingEl.classList.add('hidden');
+          errorEl.classList.remove('hidden');
+        });
+
+      // Handle submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const authorInput = form.querySelector('input[name="author"]') as HTMLInputElement;
+        const contentInput = form.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+        const author = authorInput.value.trim();
+        const content = contentInput.value.trim();
+        if (!author || !content) return;
+
+        submitBtn.disabled = true;
+        messageEl.textContent = '';
+        messageEl.className = 'form-message text-sm';
+
+        try {
+          const res = await fetch(API_ENDPOINTS.COMMENTS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug, author, content })
+          });
+          if (!res.ok) throw new Error('Failed');
+
+          const data = await res.json();
+          contentInput.value = '';
+          messageEl.textContent = t['comments.success'];
+          messageEl.classList.add('text-green-500');
+
+          emptyEl.classList.add('hidden');
+          listEl.classList.remove('hidden');
+
+          const newComment = document.createElement('article');
+          newComment.className = 'comment p-4 rounded-lg bg-muted/30 border border-primary/30';
+          newComment.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-medium text-foreground">${escapeHtml(data.comment.author)}</span>
+              <time class="text-xs text-muted-foreground">${formatDateFull(data.comment.created_at)}</time>
+            </div>
+            <p class="text-muted-foreground whitespace-pre-wrap">${escapeHtml(data.comment.content)}</p>
+          `;
+          listEl.insertBefore(newComment, listEl.firstChild);
+          gsap.fromTo(newComment,
+            { opacity: 0, y: -20, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.7)' }
+          );
+
+          const count = parseInt(countEl.textContent?.match(/\d+/)?.[0] || '0');
+          countEl.textContent = `(${count + 1})`;
+        } catch {
+          messageEl.textContent = t['comments.errorSubmit'];
+          messageEl.classList.add('text-red-500');
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+    });
+  }
+
+  initComments();
+  document.addEventListener('astro:after-swap', initComments);
+</script>

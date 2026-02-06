@@ -1,0 +1,31 @@
+---
+import { getLocalizedPath, defaultLang, type Lang } from "@/i18n";
+
+interface Props {
+  tags: string[];
+  class?: string;
+  linked?: boolean;
+  lang?: Lang;
+}
+
+const { tags, class: className, linked = false, lang = defaultLang } = Astro.props;
+---
+
+<div class:list={["flex flex-wrap gap-2", className]}>
+  {
+    tags.map((tag) =>
+      linked ? (
+        <a
+          href={getLocalizedPath(`/blog/tags/${tag}`, lang)}
+          class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+        >
+          #{tag}
+        </a>
+      ) : (
+        <span class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+          #{tag}
+        </span>
+      )
+    )
+  }
+</div>

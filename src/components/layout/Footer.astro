@@ -1,0 +1,52 @@
+---
+import { Icon } from "astro-icon/components";
+import { SITE, SOCIAL, RSS_URL } from "@/lib/constants";
+import { useTranslations, defaultLang, getLocalizedPath, type Lang } from "@/i18n";
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = defaultLang } = Astro.props;
+const t = useTranslations(lang);
+const currentYear = new Date().getFullYear();
+
+const socialLinks = [
+  { href: SOCIAL.github, icon: "mdi:github", label: t('social.github') },
+  { href: SOCIAL.linkedin, icon: "mdi:linkedin", label: t('social.linkedin') },
+  { href: SOCIAL.twitter, icon: "mdi:twitter", label: t('social.twitter') },
+  { href: RSS_URL, icon: "mdi:rss", label: t('sidebar.rssFeed') },
+];
+---
+
+<footer class="border-t border-border bg-card/50 py-6" role="contentinfo">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href={getLocalizedPath("/", lang)} class="flex items-center gap-1.5" aria-label={t('footer.goHome')}>
+          <span class="font-mono font-bold text-primary">&gt;_</span>
+          <span class="font-semibold text-foreground text-sm">{SITE.name}</span>
+        </a>
+        <span class="text-muted-foreground text-sm">© {currentYear}</span>
+      </div>
+
+      <nav aria-label={t('footer.social')}>
+        <ul class="flex items-center gap-1" role="list">
+          {socialLinks.map(({ href, icon, label }) => (
+            <li>
+              <a
+                href={href}
+                target={href.startsWith("http") ? "_blank" : undefined}
+                rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                class="flex items-center justify-center w-10 h-10 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                aria-label={label}
+              >
+                <Icon name={icon} class="w-5 h-5" aria-hidden="true" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</footer>

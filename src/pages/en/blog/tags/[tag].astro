@@ -1,0 +1,26 @@
+---
+import TagPage from "@/components/views/TagPage.astro";
+import { getCollection } from "astro:content";
+import { isPostForLang } from "@/i18n";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ id, data }) =>
+    !data.draft && isPostForLang(id, 'en')
+  );
+  const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts
+        .filter((post) => post.data.tags.includes(tag))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<TagPage lang="en" tag={tag} posts={posts} />

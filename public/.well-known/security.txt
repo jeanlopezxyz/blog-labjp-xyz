@@ -1,0 +1,15 @@
+# Security Policy for blog.labjp.xyz
+# https://securitytxt.org/
+
+Contact: mailto:contact@labjp.xyz
+Contact: https://github.com/jeanlopezxyz
+Expires: 2027-01-21T00:00:00.000Z
+Preferred-Languages: es, en
+Canonical: https://blog.labjp.xyz/.well-known/security.txt
+Policy: https://blog.labjp.xyz/security-policy
+
+# Acknowledgments
+# We appreciate security researchers who help keep our users safe.
+
+# Hiring
+Hiring: https://linkedin.com/in/jean-paul-lopez

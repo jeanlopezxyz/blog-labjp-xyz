@@ -1,0 +1,38 @@
+---
+/**
+ * SocialLinks Component
+ * Displays social media links with accessible labels
+ */
+import { Icon } from "astro-icon/components";
+import { socialLinks } from "@/data/social";
+
+interface Props {
+  class?: string;
+  iconSize?: 16 | 20 | 24;
+}
+
+const { class: className, iconSize = 20 } = Astro.props;
+
+// Map size to Tailwind classes (predefined to work with purging)
+const sizeClasses: Record<number, string> = {
+  16: 'w-4 h-4',
+  20: 'w-5 h-5',
+  24: 'w-6 h-6',
+};
+
+const iconClass = sizeClasses[iconSize] || 'w-5 h-5';
+---
+
+<nav class:list={["flex items-center gap-4", className]} aria-label="Social media links">
+  {socialLinks.map((link) => (
+    <a
+      href={link.url}
+      target={link.url.startsWith("mailto:") ? undefined : "_blank"}
+      rel={link.url.startsWith("mailto:") ? undefined : "noopener noreferrer"}
+      class="text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded"
+      aria-label={link.name}
+    >
+      <Icon name={link.icon} class={iconClass} aria-hidden="true" />
+    </a>
+  ))}
+</nav>

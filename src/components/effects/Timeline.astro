@@ -1,0 +1,134 @@
+---
+/**
+ * Timeline Component
+ * GSAP-powered animated timeline for career/experience
+ */
+interface TimelineItem {
+  year: string;
+  title: string;
+  company: string;
+  description?: string;
+  current?: boolean;
+}
+
+interface Props {
+  items: TimelineItem[];
+  class?: string;
+}
+
+const { items, class: className = '' } = Astro.props;
+---
+
+<div class:list={["timeline-container relative", className]}>
+  <!-- Vertical line -->
+  <div class="timeline-line absolute left-4 top-0 bottom-0 w-0.5 bg-border"></div>
+  <div class="timeline-progress absolute left-4 top-0 w-0.5 bg-primary origin-top" style="height: 0;"></div>
+
+  <!-- Items -->
+  <div class="timeline-items space-y-8">
+    {items.map((item, index) => (
+      <div
+        class="timeline-item relative pl-12 opacity-0"
+        data-index={index}
+      >
+        <!-- Dot -->
+        <div class:list={[
+          "timeline-dot absolute left-2.5 top-1 w-3 h-3 rounded-full border-2 transform -translate-x-1/2",
+          item.current
+            ? "bg-primary border-primary shadow-lg shadow-primary/50"
+            : "bg-background border-muted-foreground"
+        ]}></div>
+
+        <!-- Content -->
+        <div class="timeline-content">
+          <span class="text-xs font-mono text-primary tracking-wider">{item.year}</span>
+          <h4 class="text-lg font-semibold text-foreground mt-1">{item.title}</h4>
+          <p class="text-sm text-muted-foreground">{item.company}</p>
+          {item.description && (
+            <p class="text-sm text-muted-foreground/80 mt-2">{item.description}</p>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initTimelines() {
+    const containers = document.querySelectorAll('.timeline-container:not(.initialized)');
+
+    containers.forEach(container => {
+      container.classList.add('initialized');
+
+      const progressLine = container.querySelector('.timeline-progress') as HTMLElement;
+      const items = container.querySelectorAll('.timeline-item');
+
+      if (!progressLine || items.length === 0) return;
+
+      // Animate progress line
+      gsap.to(progressLine, {
+        height: '100%',
+        duration: 1.5,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: container,
+          start: 'top 80%',
+          end: 'bottom 20%',
+          scrub: 1
+        }
+      });
+
+      // Animate each item
+      items.forEach((item) => {
+        const dot = item.querySelector('.timeline-dot');
+
+        gsap.fromTo(item,
+          {
+            opacity: 0,
+            x: -30
+          },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.6,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 85%',
+              toggleActions: 'play none none none'
+            }
+          }
+        );
+
+        // Dot pulse animation
+        if (dot) {
+          gsap.fromTo(dot,
+            { scale: 0 },
+            {
+              scale: 1,
+              duration: 0.4,
+              delay: 0.2,
+              ease: 'back.out(1.7)',
+              scrollTrigger: {
+                trigger: item,
+                start: 'top 85%',
+                toggleActions: 'play none none none'
+              }
+            }
+          );
+        }
+      });
+    });
+  }
+
+  initTimelines();
+  document.addEventListener('astro:after-swap', () => {
+    ScrollTrigger.refresh();
+    initTimelines();
+  });
+</script>

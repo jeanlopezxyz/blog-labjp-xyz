@@ -1,0 +1,12 @@
+title: "Astro Blog Template"
+description: "Template minimalista para blogs personales construido con Astro, TailwindCSS y MDX. Incluye dark mode, RSS feed y SEO optimizado."
+repo: "https://github.com/jeanpaullopez/astro-blog-template"
+demo: "https://astro-blog-template.vercel.app"
+tech:
+  - Astro
+  - TailwindCSS
+  - MDX
+  - TypeScript
+category: "web"
+featured: true
+order: 1

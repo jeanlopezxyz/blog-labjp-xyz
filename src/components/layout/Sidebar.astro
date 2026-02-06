@@ -1,0 +1,20 @@
+---
+/**
+ * Sidebar Component
+ * Shows popular posts
+ */
+import { defaultLang, type Lang } from "@/i18n";
+import PopularPosts from "@/components/ui/PopularPosts.astro";
+
+interface Props {
+  lang?: Lang;
+  currentCategory?: string;
+}
+
+const { lang = defaultLang } = Astro.props;
+---
+
+<aside class="space-y-8">
+  <!-- Popular Posts (Dynamic) -->
+  <PopularPosts lang={lang} limit={4} />
+</aside>

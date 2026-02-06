@@ -1,0 +1,10 @@
+title: "ts-utils"
+description: "Colección de utilidades TypeScript para desarrollo web. Incluye helpers para fechas, strings, arrays y más con soporte completo de tipos."
+repo: "https://github.com/jeanpaullopez/ts-utils"
+tech:
+  - TypeScript
+  - Vitest
+  - npm
+category: "library"
+featured: true
+order: 2

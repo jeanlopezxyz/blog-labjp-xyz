@@ -1,0 +1,12 @@
+---
+import CategoryPage from "@/components/views/CategoryPage.astro";
+import { CATEGORIES } from "@/lib/constants";
+
+export function getStaticPaths() {
+  return CATEGORIES.map((cat) => ({ params: { category: cat.id } }));
+}
+
+const { category } = Astro.params;
+---
+
+<CategoryPage lang="es" category={category!} />

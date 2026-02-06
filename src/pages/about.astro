@@ -1,0 +1,136 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Icon } from "astro-icon/components";
+import { SITE, SOCIAL } from "@/lib/constants";
+
+const lang = 'es';
+---
+
+<BaseLayout
+  title="Sobre mí"
+  description={`Conoce más sobre ${SITE.author} y el blog blog1.labjp.xyz`}
+  lang={lang}
+>
+  <article class="max-w-2xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
+
+    <!-- Title -->
+    <h1 class="text-3xl lg:text-4xl font-bold tracking-tight mb-8">
+      Sobre <em class="not-italic text-primary">blog1.labjp.xyz</em>
+    </h1>
+
+    <!-- About the publication -->
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>
+        <em class="text-primary">blog1.labjp.xyz</em> documenta cómo evoluciona la arquitectura cloud native en entornos empresariales.
+      </p>
+
+      <p>
+        No es un feed de noticias ni un showcase de frameworks.
+        Es un mapa creciente de patrones que ayudan a sistemas grandes a evolucionar sin romperse.
+      </p>
+
+      <p>El enfoque está en:</p>
+
+      <ul class="space-y-2">
+        <li>Kubernetes y OpenShift para entornos enterprise</li>
+        <li>Arquitecturas cloud native y decisiones de diseño pragmáticas</li>
+        <li>Sistemas de IA integrados con Java</li>
+        <li>Developer experience como restricción de diseño</li>
+      </ul>
+
+      <p>
+        Escribo para personas que diseñan sistemas que deben sobrevivir presión real de producción.
+      </p>
+    </div>
+
+    <!-- About Me -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">Sobre mí</h3>
+
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>
+        Soy Jean Paul López.
+        Senior Consultant en Red Hat con más de 8 años en software empresarial.
+      </p>
+
+      <p>
+        Trabajo ayudando a empresas a adoptar Kubernetes, OpenShift y arquitecturas cloud native.
+        Todo lo que comparto aquí es a título personal.
+      </p>
+
+      <p>
+        Este blog no es un outlet de opiniones.
+        Es mi cuaderno de trabajo para arquitectura moderna.
+      </p>
+    </div>
+
+    <!-- What You Will Find -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">Lo que encontrarás</h3>
+
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>No encontrarás contenido que persigue tendencias.</p>
+
+      <p>Encontrarás:</p>
+
+      <ul class="space-y-2">
+        <li>Patrones de arquitectura que escalan más allá de tutoriales</li>
+        <li>Guías prácticas para modernizar sistemas Java grandes</li>
+        <li>Deep dives en Kubernetes, OpenShift, GitOps e IA</li>
+        <li>Análisis de trade-offs reales en plataformas</li>
+      </ul>
+
+      <p>
+        Cada artículo está conectado con otros a través de conceptos y patrones compartidos.
+      </p>
+    </div>
+
+    <!-- Why Subscribe -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">Por qué suscribirse</h3>
+
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>Porque el código solo no moderniza sistemas.</p>
+
+      <p>Los suscriptores obtienen:</p>
+
+      <ul class="space-y-2">
+        <li>Escritura enfocada en lo que realmente importa en arquitectura enterprise</li>
+        <li>Acceso al archivo completo de tutoriales y ensayos</li>
+        <li>Un flujo constante de pensamiento arquitectónico, no ruido semanal</li>
+      </ul>
+
+      <p class="font-semibold">
+        Escribe código aburrido. Despliega sistemas emocionantes.
+      </p>
+    </div>
+
+    <!-- Stay Connected -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">Conecta</h3>
+
+    <ul class="space-y-3 text-base">
+      <li>
+        <strong>GitHub:</strong>{" "}
+        <a href={SOCIAL.github} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+          @jeanlopezxyz
+        </a>
+      </li>
+      <li>
+        <strong>LinkedIn:</strong>{" "}
+        <a href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+          linkedin.com/in/jean-paul-lopez
+        </a>
+      </li>
+      <li>
+        <strong>Twitter:</strong>{" "}
+        <a href={SOCIAL.twitter} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+          @jeanpaulvgc
+        </a>
+      </li>
+      <li>
+        <strong>RSS:</strong>{" "}
+        <a href="/rss.xml" class="text-primary hover:underline">
+          blog1.labjp.xyz/rss.xml
+        </a>
+      </li>
+    </ul>
+
+  </article>
+</BaseLayout>

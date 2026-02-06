@@ -1,0 +1,121 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import PostHeader from "@/components/blog/PostHeader.astro";
+import TableOfContents from "@/components/blog/TableOfContents.astro";
+import ViewTracker from "@/components/effects/ViewTracker.astro";
+import ReadingProgress from "@/components/effects/ReadingProgress.astro";
+import CommentsSection from "@/components/ui/CommentsSection.astro";
+import type { CollectionEntry } from "astro:content";
+import { SITE } from "@/lib/constants";
+
+import { defaultLang, normalizeSlug, type Lang } from "@/i18n";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  readingTime: number;
+  lang?: Lang;
+}
+
+const { post, readingTime, lang = defaultLang } = Astro.props;
+const { title, description, pubDate, tags, image } = post.data;
+const { headings } = await post.render();
+const hasToC = headings.length > 0;
+
+// Normalize slug for tracking (remove any language prefix)
+const cleanSlug = normalizeSlug(post.slug);
+
+// JSON-LD Structured Data for SEO
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": title,
+  "description": description,
+  "image": image ? new URL(image, SITE.url).href : undefined,
+  "datePublished": pubDate.toISOString(),
+  "dateModified": pubDate.toISOString(),
+  "author": {
+    "@type": "Person",
+    "name": SITE.author,
+    "url": SITE.url
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": SITE.name,
+    "url": SITE.url,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${SITE.url}/favicon.svg`
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": `${SITE.url}/blog/${cleanSlug}`
+  },
+  "keywords": tags?.join(", "),
+  "wordCount": readingTime * 200, // Approximate based on reading time
+  "inLanguage": lang
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  image={image}
+  type="article"
+  publishedTime={pubDate.toISOString()}
+  showCategories={false}
+  lang={lang}
+>
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" />
+
+  <!-- Reading Progress Bar -->
+  <ReadingProgress />
+
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <div class:list={[
+      "grid gap-8",
+      hasToC ? "lg:grid-cols-[1fr_220px]" : ""
+    ]}>
+      <article>
+        <PostHeader
+          title={title}
+          description={description}
+          pubDate={pubDate}
+          tags={tags}
+          readingTime={readingTime}
+          slug={cleanSlug}
+          lang={lang}
+        />
+
+        {image && (
+          <div class="mt-8 mb-8 rounded-xl overflow-hidden">
+            <img
+              src={image}
+              alt={title}
+              class="w-full h-auto object-cover"
+            />
+          </div>
+        )}
+
+        <div class="prose prose-lg max-w-none mt-8">
+          <slot />
+        </div>
+
+        <!-- Comments Section -->
+        <CommentsSection slug={cleanSlug} lang={lang} />
+
+        <!-- Track page view -->
+        <ViewTracker slug={cleanSlug} />
+      </article>
+
+      {hasToC && (
+        <aside class="hidden lg:block">
+          <div class="sticky top-24">
+            <TableOfContents headings={headings} lang={lang} />
+          </div>
+        </aside>
+      )}
+    </div>
+  </div>
+</BaseLayout>

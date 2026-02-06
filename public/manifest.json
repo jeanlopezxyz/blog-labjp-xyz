@@ -1,0 +1,69 @@
+{
+  "name": "blog1.labjp.xyz - Kubernetes, OpenShift y Cloud Native",
+  "short_name": "blog1.labjp.xyz",
+  "description": "Blog técnico sobre Kubernetes, OpenShift, DevOps y arquitecturas Cloud Native. Por Jean Paul López, Senior Consultant @ Red Hat.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["technology", "education", "developer tools"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Kubernetes",
+      "short_name": "K8s",
+      "url": "/category/kubernetes",
+      "description": "Artículos sobre Kubernetes"
+    },
+    {
+      "name": "OpenShift",
+      "short_name": "OCP",
+      "url": "/category/openshift",
+      "description": "Artículos sobre OpenShift"
+    },
+    {
+      "name": "Cloud Native",
+      "short_name": "Cloud",
+      "url": "/category/cloud-native",
+      "description": "Artículos sobre Cloud Native"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

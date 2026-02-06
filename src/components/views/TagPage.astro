@@ -1,0 +1,56 @@
+---
+/**
+ * TagPage Component
+ * Shared tag listing page for both languages
+ */
+import PageLayout from "@/layouts/PageLayout.astro";
+import PostCard from "@/components/blog/PostCard.astro";
+import { Icon } from "astro-icon/components";
+import { calculateReadingTime } from "@/lib/utils";
+import { useTranslations, defaultLang, type Lang } from "@/i18n";
+import type { BlogCollectionEntry } from "@/lib/types";
+
+interface Props {
+  lang: Lang;
+  tag: string;
+  posts: BlogCollectionEntry[];
+}
+
+const { lang, tag, posts } = Astro.props;
+const t = useTranslations(lang);
+const isDefault = lang === defaultLang;
+const blogPath = isDefault ? '/blog' : `/${lang}/blog`;
+---
+
+<PageLayout
+  title={`${t('tags.title')} "${tag}"`}
+  description={`${t('tags.title')} ${tag}.`}
+  lang={lang}
+>
+  <header class="mb-8">
+    <a href={blogPath} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
+      <Icon name="mdi:chevron-left" class="w-4 h-4" />
+      {t('tags.backToBlog')}
+    </a>
+    <h1 class="text-2xl font-bold text-foreground mb-2">
+      <span class="text-muted-foreground">#</span>{tag}
+    </h1>
+    <p class="text-muted-foreground">
+      {posts.length} {posts.length === 1 ? t('tags.article') : t('tags.articles')} {t('tags.found')}
+    </p>
+  </header>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {posts.map((post) => (
+      <PostCard
+        title={post.data.title}
+        description={post.data.description}
+        pubDate={post.data.pubDate}
+        slug={post.slug}
+        categories={post.data.categories}
+        readingTime={calculateReadingTime(post.body || "")}
+        lang={lang}
+      />
+    ))}
+  </div>
+</PageLayout>

@@ -1,0 +1,494 @@
+---
+import { Icon } from "astro-icon/components";
+import { NAV_ITEMS, CATEGORIES, RSS_URL } from "@/lib/constants";
+import { getLangFromUrl, useTranslations, getLocalizedPath, languages, defaultLang } from "@/i18n";
+
+// Configuración de idiomas con banderas
+const LANG_FLAGS: Record<string, string> = {
+  es: '🇪🇸',
+  en: '🇺🇸',
+};
+
+// Función para obtener URL del idioma alternativo
+function getLangSwitchUrl(targetLang: string, currentLang: string, pathname: string): string {
+  if (targetLang === defaultLang) {
+    // Si el target es el idioma por defecto, quitar prefijo de idioma
+    return pathname.replace(new RegExp(`^/${currentLang}`), '') || '/';
+  }
+  if (currentLang === defaultLang) {
+    // Si el actual es el por defecto, agregar prefijo
+    return `/${targetLang}${pathname}`;
+  }
+  // Cambiar de un idioma a otro
+  return pathname.replace(new RegExp(`^/${currentLang}`), `/${targetLang}`);
+}
+
+interface Props {
+  currentCategory?: string;
+}
+
+const { currentCategory } = Astro.props;
+const pathname = Astro.url.pathname;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const isNavActive = (href: string) => {
+  const localizedHref = getLocalizedPath(href, lang);
+
+  // For home page, only exact match (with or without trailing slash)
+  if (href === '/') {
+    const normalizedPathname = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    const normalizedHref = localizedHref.endsWith('/') ? localizedHref.slice(0, -1) : localizedHref;
+    return normalizedPathname === normalizedHref || normalizedPathname === '';
+  }
+
+  // For other pages, check exact match or if it starts with the href
+  return pathname === localizedHref || pathname.startsWith(localizedHref + '/');
+};
+
+const getNavLabel = (key: string) => t(key as any);
+---
+
+<header class="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" role="banner">
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-14 lg:h-16">
+
+      <!-- Logo -->
+      <a href="/" class="flex items-center gap-2 shrink-0" aria-label={`labjp.xyz - ${t('a11y.goToHome')}`}>
+        <span class="font-mono font-bold text-lg text-primary">&gt;_</span>
+        <span class="font-semibold text-foreground hidden sm:inline">labjp.xyz</span>
+      </a>
+
+      <!-- Center: Navigation (hidden on mobile/tablet, only show on xl screens) -->
+      <nav class="hidden xl:flex items-center" aria-label={t('nav.mainNav')}>
+        <!-- Primary Nav: Home, Notes -->
+        <ul class="flex items-center" role="list">
+          {NAV_ITEMS.filter(item => ['/', '/notes'].includes(item.href)).map((item) => (
+            <li>
+              <a
+                href={getLocalizedPath(item.href, lang)}
+                class:list={[
+                  "px-2 py-1.5 text-sm whitespace-nowrap transition-colors",
+                  isNavActive(item.href)
+                    ? "font-medium text-foreground border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground",
+                ]}
+              >
+                {getNavLabel(item.key)}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <!-- All Categories -->
+        <ul class="flex items-center" role="list">
+          {CATEGORIES.map((cat) => {
+            const isActive = currentCategory === cat.id;
+            return (
+              <li>
+                <a
+                  href={getLocalizedPath(`/category/${cat.id}`, lang)}
+                  class:list={[
+                    "px-2 py-1.5 text-sm whitespace-nowrap transition-colors",
+                    isActive
+                      ? "font-medium text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground",
+                  ]}
+                >
+                  {cat.label}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+
+        <!-- Secondary Nav: Archive, About -->
+        <ul class="flex items-center" role="list">
+          {NAV_ITEMS.filter(item => ['/blog', '/about'].includes(item.href)).map((item) => (
+            <li>
+              <a
+                href={getLocalizedPath(item.href, lang)}
+                class:list={[
+                  "px-2 py-1.5 text-sm whitespace-nowrap transition-colors",
+                  isNavActive(item.href)
+                    ? "font-medium text-foreground border-b-2 border-primary"
+                    : "text-muted-foreground hover:text-foreground",
+                ]}
+              >
+                {getNavLabel(item.key)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <!-- Right: Actions -->
+      <div class="flex items-center gap-0.5 sm:gap-1">
+        <button
+          id="search-button"
+          class="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+          aria-label={t('nav.search')}
+        >
+          <Icon name="mdi:magnify" class="w-5 h-5" aria-hidden="true" />
+        </button>
+
+        <button
+          id="theme-toggle"
+          class="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+          aria-label={t('nav.theme')}
+        >
+          <Icon name="mdi:weather-sunny" class="w-5 h-5 hidden dark:block" aria-hidden="true" />
+          <Icon name="mdi:weather-night" class="w-5 h-5 block dark:hidden" aria-hidden="true" />
+        </button>
+
+        <!-- Language Switcher Dropdown -->
+        <div class="relative" id="lang-dropdown-container">
+          <button
+            id="lang-toggle"
+            class="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+            aria-label={t('nav.langToggle')}
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            <Icon name="mdi:translate" class="w-5 h-5" aria-hidden="true" />
+          </button>
+          <div
+            id="lang-dropdown"
+            class="hidden absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg py-1 z-50"
+            role="menu"
+          >
+            {Object.entries(languages).map(([langCode, langName]) => (
+              <a
+                href={getLangSwitchUrl(langCode, lang, pathname)}
+                class:list={[
+                  "flex items-center gap-2 px-4 py-2 text-sm transition-colors",
+                  lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                ]}
+                role="menuitem"
+              >
+                <span class="text-base">{LANG_FLAGS[langCode]}</span>
+                {langName}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <a
+          href="#subscribe"
+          class="hidden md:inline-flex items-center gap-2 ml-1 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          <Icon name="mdi:email-outline" class="w-4 h-4" aria-hidden="true" />
+          <span class="hidden xl:inline">{t('nav.subscribe')}</span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile/Tablet Category Bar -->
+  <div class="xl:hidden border-t border-border/50 bg-card/80">
+    <div class="max-w-screen-2xl mx-auto">
+      <nav class="overflow-x-auto scrollbar-hide" aria-label={t('nav.navigation')}>
+        <ul class="flex items-center justify-center gap-1.5 px-4 py-2" role="list">
+          <li>
+            <a
+              href={getLocalizedPath('/', lang)}
+              class:list={[
+                "inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                isNavActive('/')
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+              ]}
+            >
+              {t('nav.home')}
+            </a>
+          </li>
+          <li>
+            <a
+              href={getLocalizedPath('/notes', lang)}
+              class:list={[
+                "inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                isNavActive('/notes')
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+              ]}
+            >
+              {t('nav.notes')}
+            </a>
+          </li>
+          {CATEGORIES.map((cat) => {
+            const isActive = currentCategory === cat.id;
+            return (
+              <li>
+                <a
+                  href={getLocalizedPath(`/category/${cat.id}`, lang)}
+                  class:list={[
+                    "inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ]}
+                >
+                  {cat.label}
+                </a>
+              </li>
+            );
+          })}
+          <li>
+            <a
+              href={getLocalizedPath('/blog', lang)}
+              class:list={[
+                "inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                isNavActive('/blog')
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+              ]}
+            >
+              {t('nav.archive')}
+            </a>
+          </li>
+          <li>
+            <a
+              href={getLocalizedPath('/about', lang)}
+              class:list={[
+                "inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
+                isNavActive('/about')
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+              ]}
+            >
+              {t('nav.about')}
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+</header>
+
+<!-- Search Modal -->
+<div id="search-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-title" aria-hidden="true">
+  <div class="relative bg-card border border-border rounded-2xl p-6 max-w-xl w-full mx-4 shadow-2xl">
+    <button id="close-search" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={t('search.close')}>
+      <Icon name="mdi:close" class="w-5 h-5" aria-hidden="true" />
+    </button>
+    <h2 id="search-title" class="text-lg font-semibold text-foreground mb-4">{t('search.title')}</h2>
+    <div class="relative">
+      <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
+      <input
+        type="search"
+        id="search-input"
+        placeholder={t('search.placeholder')}
+        class="w-full pl-10 pr-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        autocomplete="off"
+      />
+    </div>
+    <div id="search-results" class="mt-4 max-h-80 overflow-y-auto" role="listbox">
+      <p class="text-sm text-muted-foreground text-center py-8">{t('search.typing')}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Subscribe Modal -->
+<div id="subscribe-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="subscribe-title" aria-hidden="true">
+  <div class="relative bg-card border border-border rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+    <button id="close-modal" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={t('subscribe.close')}>
+      <Icon name="mdi:close" class="w-5 h-5" aria-hidden="true" />
+    </button>
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+        <Icon name="mdi:email-outline" class="w-6 h-6 text-primary" aria-hidden="true" />
+      </div>
+      <h2 id="subscribe-title" class="text-xl font-bold text-foreground mb-2">{t('subscribe.title')}</h2>
+      <p class="text-muted-foreground text-sm">{t('subscribe.description')}</p>
+    </div>
+    <form class="space-y-4">
+      <label for="subscribe-email" class="sr-only">Email</label>
+      <input
+        type="email"
+        id="subscribe-email"
+        placeholder={t('sidebar.email')}
+        class="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+        required
+      />
+      <button
+        type="submit"
+        class="w-full py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      >
+        {t('subscribe.button')}
+      </button>
+    </form>
+    <p class="text-xs text-muted-foreground mt-4 text-center">
+      {t('subscribe.orFollow')} <a href={RSS_URL} class="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded">RSS</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  import { STORAGE_KEYS } from '@/lib/types';
+
+  function initHeader() {
+    const themeToggle = document.getElementById("theme-toggle");
+    const subscribeLinks = document.querySelectorAll('a[href="#subscribe"]');
+    const subscribeModal = document.getElementById("subscribe-modal");
+    const closeSubscribe = document.getElementById("close-modal");
+    const searchButton = document.getElementById("search-button");
+    const searchModal = document.getElementById("search-modal");
+    const closeSearch = document.getElementById("close-search");
+    const searchInput = document.getElementById("search-input") as HTMLInputElement;
+    const searchResults = document.getElementById("search-results");
+    const langToggle = document.getElementById("lang-toggle");
+    const langDropdown = document.getElementById("lang-dropdown");
+
+    const toggleModal = (modal: HTMLElement | null, show: boolean): void => {
+      if (!modal) return;
+      modal.classList.toggle("hidden", !show);
+      modal.classList.toggle("flex", show);
+      modal.setAttribute("aria-hidden", String(!show));
+
+      // Manage body scroll and focus trap
+      if (show) {
+        document.body.style.overflow = "hidden";
+        const firstFocusable = modal.querySelector<HTMLElement>('input, button, a');
+        firstFocusable?.focus();
+      } else {
+        document.body.style.overflow = "";
+      }
+    };
+
+    // Theme toggle
+    themeToggle?.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      document.documentElement.classList.toggle("dark", !isDark);
+      localStorage.setItem(STORAGE_KEYS.THEME, isDark ? "light" : "dark");
+    });
+
+    // Language dropdown
+    langToggle?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isExpanded = langToggle.getAttribute("aria-expanded") === "true";
+      langToggle.setAttribute("aria-expanded", String(!isExpanded));
+      langDropdown?.classList.toggle("hidden");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (langDropdown && !langDropdown.classList.contains("hidden")) {
+        const container = document.getElementById("lang-dropdown-container");
+        if (container && !container.contains(e.target as Node)) {
+          langDropdown.classList.add("hidden");
+          langToggle?.setAttribute("aria-expanded", "false");
+        }
+      }
+    });
+
+    // Subscribe modal
+    subscribeLinks.forEach(link => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleModal(subscribeModal, true);
+      });
+    });
+
+    closeSubscribe?.addEventListener("click", () => toggleModal(subscribeModal, false));
+    subscribeModal?.addEventListener("click", (e) => {
+      if (e.target === subscribeModal) toggleModal(subscribeModal, false);
+    });
+
+    // Search modal
+    searchButton?.addEventListener("click", () => {
+      toggleModal(searchModal, true);
+      searchInput?.focus();
+    });
+
+    closeSearch?.addEventListener("click", () => toggleModal(searchModal, false));
+    searchModal?.addEventListener("click", (e) => {
+      if (e.target === searchModal) toggleModal(searchModal, false);
+    });
+
+    // Search functionality
+    interface SearchPost {
+      title: string;
+      description: string;
+      slug: string;
+      categories?: string[];
+    }
+
+    let posts: SearchPost[] = [];
+    const { t } = window.__i18n;
+
+    fetch('/search.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch search data');
+        return res.json() as Promise<SearchPost[]>;
+      })
+      .then((data) => { posts = data; })
+      .catch(() => {
+        // Silent fail - search will show no results
+      });
+
+    searchInput?.addEventListener("input", (e) => {
+      const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+
+      if (!query) {
+        if (searchResults) {
+          searchResults.innerHTML = `<p class="text-sm text-muted-foreground text-center py-8">${t['search.typing']}</p>`;
+        }
+        return;
+      }
+
+      const filtered = posts.filter(post =>
+        post.title.toLowerCase().includes(query) ||
+        post.description.toLowerCase().includes(query) ||
+        post.categories?.some(cat => cat.toLowerCase().includes(query))
+      );
+
+      if (searchResults) {
+        if (filtered.length === 0) {
+          searchResults.innerHTML = `<p class="text-sm text-muted-foreground text-center py-8">${t['search.noResults']}</p>`;
+        } else {
+          // Use textContent to prevent XSS
+          searchResults.innerHTML = '';
+          filtered.forEach(post => {
+            const link = document.createElement('a');
+            link.href = `/blog/${post.slug}`;
+            link.className = 'block p-3 rounded-lg hover:bg-muted focus:bg-muted focus:outline-none transition-colors';
+            link.setAttribute('role', 'option');
+
+            const title = document.createElement('h3');
+            title.className = 'font-medium text-foreground';
+            title.textContent = post.title;
+
+            const desc = document.createElement('p');
+            desc.className = 'text-sm text-muted-foreground line-clamp-1';
+            desc.textContent = post.description;
+
+            link.appendChild(title);
+            link.appendChild(desc);
+            searchResults.appendChild(link);
+          });
+        }
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        toggleModal(searchModal, true);
+        searchInput?.focus();
+      }
+      if (e.key === "Escape") {
+        toggleModal(searchModal, false);
+        toggleModal(subscribeModal, false);
+        // Close language dropdown
+        langDropdown?.classList.add("hidden");
+        langToggle?.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  initHeader();
+  document.addEventListener("astro:after-swap", initHeader);
+</script>

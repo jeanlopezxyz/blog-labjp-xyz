@@ -1,0 +1,73 @@
+---
+/**
+ * AnimatedCounter Component
+ * GSAP-powered number counter animation with ScrollTrigger
+ */
+interface Props {
+  value: number;
+  suffix?: string;
+  prefix?: string;
+  duration?: number;
+  class?: string;
+}
+
+const { value, suffix = '', prefix = '', duration = 2, class: className = '' } = Astro.props;
+---
+
+<span
+  class:list={["animated-counter inline-block", className]}
+  data-value={value}
+  data-suffix={suffix}
+  data-prefix={prefix}
+  data-duration={duration}
+>
+  <span class="counter-prefix">{prefix}</span>
+  <span class="counter-value">0</span>
+  <span class="counter-suffix">{suffix}</span>
+</span>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initCounters() {
+    const counters = document.querySelectorAll('.animated-counter:not(.initialized)');
+
+    counters.forEach(counter => {
+      counter.classList.add('initialized');
+
+      const value = parseInt(counter.getAttribute('data-value') || '0');
+      const duration = parseFloat(counter.getAttribute('data-duration') || '2');
+      const valueEl = counter.querySelector('.counter-value') as HTMLElement;
+
+      if (!valueEl) return;
+
+      const obj = { val: 0 };
+
+      gsap.to(obj, {
+        val: value,
+        duration: duration,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: counter,
+          start: 'top 85%',
+          toggleActions: 'play none none none'
+        },
+        onUpdate: () => {
+          valueEl.textContent = Math.floor(obj.val).toLocaleString();
+        },
+        onComplete: () => {
+          valueEl.textContent = value.toLocaleString();
+        }
+      });
+    });
+  }
+
+  initCounters();
+  document.addEventListener('astro:after-swap', () => {
+    ScrollTrigger.refresh();
+    initCounters();
+  });
+</script>

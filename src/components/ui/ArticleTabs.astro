@@ -1,0 +1,105 @@
+---
+import { Icon } from "astro-icon/components";
+import { useTranslations, defaultLang, type Lang } from "@/i18n";
+
+interface Props {
+  activeTab?: "latest" | "top";
+  lang?: Lang;
+}
+
+const { activeTab = "latest", lang = defaultLang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-4" id="article-tabs">
+    <button
+      data-tab="latest"
+      class:list={[
+        "text-sm font-medium transition-colors pb-1 border-b-2",
+        activeTab === "latest"
+          ? "text-foreground border-primary"
+          : "text-muted-foreground hover:text-foreground border-transparent"
+      ]}
+    >
+      {t('home.latest')}
+    </button>
+    <button
+      data-tab="top"
+      class:list={[
+        "text-sm font-medium transition-colors pb-1 border-b-2",
+        activeTab === "top"
+          ? "text-foreground border-primary"
+          : "text-muted-foreground hover:text-foreground border-transparent"
+      ]}
+    >
+      {t('home.popular')}
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="text-muted-foreground hover:text-foreground transition-colors"
+    aria-label={t('nav.search')}
+    id="search-toggle"
+  >
+    <Icon name="mdi:magnify" class="w-5 h-5" />
+  </button>
+</div>
+
+<script>
+  function initArticleTabs() {
+    const tabs = document.getElementById("article-tabs");
+    const articles = document.getElementById("articles-list");
+    const searchToggle = document.getElementById("search-toggle");
+    const searchModal = document.getElementById("search-modal");
+    const searchInput = document.getElementById("search-input") as HTMLInputElement;
+
+    // Connect search button to global search modal
+    searchToggle?.addEventListener("click", () => {
+      searchModal?.classList.remove("hidden");
+      searchModal?.classList.add("flex");
+      searchInput?.focus();
+    });
+
+    tabs?.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName !== "BUTTON" || !target.dataset.tab) return;
+
+      const tab = target.dataset.tab;
+
+      // Update active tab styles
+      tabs.querySelectorAll("button[data-tab]").forEach((btn) => {
+        if ((btn as HTMLElement).dataset.tab === tab) {
+          btn.classList.remove("text-muted-foreground", "border-transparent");
+          btn.classList.add("text-foreground", "border-primary");
+        } else {
+          btn.classList.remove("text-foreground", "border-primary");
+          btn.classList.add("text-muted-foreground", "border-transparent");
+        }
+      });
+
+      // Sort articles
+      if (articles) {
+        const articleElements = Array.from(articles.children) as HTMLElement[];
+
+        articleElements.sort((a, b) => {
+          if (tab === "top") {
+            const timeA = parseInt(a.dataset.readingTime || "0");
+            const timeB = parseInt(b.dataset.readingTime || "0");
+            return timeB - timeA;
+          } else {
+            const dateA = new Date(a.dataset.date || "").getTime();
+            const dateB = new Date(b.dataset.date || "").getTime();
+            return dateB - dateA;
+          }
+        });
+
+        articleElements.forEach((el) => articles.appendChild(el));
+      }
+    });
+  }
+
+  initArticleTabs();
+  document.addEventListener("astro:after-swap", initArticleTabs);
+</script>

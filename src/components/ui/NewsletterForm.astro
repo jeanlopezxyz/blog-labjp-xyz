@@ -1,0 +1,102 @@
+---
+/**
+ * NewsletterForm Component
+ * Email subscription form with D1 persistence
+ */
+import { useTranslations, defaultLang, type Lang } from "@/i18n";
+
+interface Props {
+  lang?: Lang;
+  class?: string;
+}
+
+const { lang = defaultLang, class: className = '' } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div class:list={["newsletter-form", className]}>
+  <div class="p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+    <h3 class="text-lg font-bold mb-2">{t('subscribe.title')}</h3>
+    <p class="text-sm text-muted-foreground mb-4">{t('subscribe.description')}</p>
+
+    <form class="newsletter-form-inner flex flex-col sm:flex-row gap-3">
+      <input
+        type="email"
+        name="email"
+        placeholder={t('subscribe.placeholder')}
+        required
+        class="flex-1 px-4 py-2.5 rounded-lg bg-background border border-border focus:border-primary focus:outline-none transition-colors"
+      />
+      <button
+        type="submit"
+        class="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-all disabled:opacity-50 whitespace-nowrap"
+      >
+        {t('subscribe.button')}
+      </button>
+    </form>
+
+    <div class="newsletter-message mt-3 text-sm hidden"></div>
+  </div>
+</div>
+
+<script>
+  import { gsap } from 'gsap';
+  import { API_ENDPOINTS } from '@/lib/types';
+
+  function initNewsletterForms() {
+    document.querySelectorAll('.newsletter-form:not(.initialized)').forEach(container => {
+      container.classList.add('initialized');
+
+      const form = container.querySelector('.newsletter-form-inner') as HTMLFormElement;
+      const messageEl = container.querySelector('.newsletter-message') as HTMLElement;
+      const emailInput = form?.querySelector('input[type="email"]') as HTMLInputElement;
+      const submitBtn = form?.querySelector('button[type="submit"]') as HTMLButtonElement;
+
+      if (!form || !messageEl || !emailInput || !submitBtn) return;
+
+      const { t } = window.__i18n;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showMessage(t['subscribe.invalid'], 'error');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        messageEl.classList.add('hidden');
+
+        try {
+          const res = await fetch(API_ENDPOINTS.NEWSLETTER, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          if (!res.ok) throw new Error('Failed');
+
+          emailInput.value = '';
+          showMessage(t['subscribe.success'], 'success');
+          gsap.fromTo(messageEl,
+            { opacity: 0, y: -10 },
+            { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+          );
+        } catch {
+          showMessage(t['subscribe.error'], 'error');
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+
+      function showMessage(text: string, type: 'success' | 'error') {
+        messageEl.textContent = text;
+        messageEl.className = `newsletter-message mt-3 text-sm ${type === 'success' ? 'text-green-500' : 'text-red-500'}`;
+        messageEl.classList.remove('hidden');
+      }
+    });
+  }
+
+  initNewsletterForms();
+  document.addEventListener('astro:after-swap', initNewsletterForms);
+</script>

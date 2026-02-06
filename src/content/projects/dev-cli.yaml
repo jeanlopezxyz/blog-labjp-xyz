@@ -1,0 +1,11 @@
+title: "dev-cli"
+description: "CLI para automatizar tareas comunes de desarrollo. Generación de boilerplate, configuración de proyectos y más."
+repo: "https://github.com/jeanpaullopez/dev-cli"
+tech:
+  - Node.js
+  - Commander.js
+  - Chalk
+  - TypeScript
+category: "cli"
+featured: true
+order: 3

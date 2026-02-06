@@ -1,0 +1,143 @@
+---
+/**
+ * ScrollAnimations Component
+ * Adds smooth scroll-reveal animations to blog content using GSAP
+ */
+---
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initScrollAnimations() {
+    // Animate prose elements (paragraphs, headings, lists, code blocks)
+    const proseElements = document.querySelectorAll('.prose > *:not(pre)');
+
+    proseElements.forEach((el) => {
+      // Skip if already animated
+      if (el.hasAttribute('data-animated')) return;
+      el.setAttribute('data-animated', 'true');
+
+      gsap.fromTo(el,
+        {
+          opacity: 0,
+          y: 20
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 90%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+    });
+
+    // Animate code blocks with a different effect
+    const codeBlocks = document.querySelectorAll('.prose pre');
+    codeBlocks.forEach((el) => {
+      if (el.hasAttribute('data-animated')) return;
+      el.setAttribute('data-animated', 'true');
+
+      gsap.fromTo(el,
+        {
+          opacity: 0,
+          x: -20,
+          scale: 0.98
+        },
+        {
+          opacity: 1,
+          x: 0,
+          scale: 1,
+          duration: 0.7,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+    });
+
+    // Animate images with scale effect
+    const images = document.querySelectorAll('.prose img, article > div > img');
+    images.forEach((el) => {
+      if (el.hasAttribute('data-animated')) return;
+      el.setAttribute('data-animated', 'true');
+
+      gsap.fromTo(el,
+        {
+          opacity: 0,
+          scale: 0.95
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%',
+            toggleActions: 'play none none none'
+          }
+        }
+      );
+    });
+
+    // Animate TOC links with stagger
+    const tocLinks = document.querySelectorAll('[data-toc-link]');
+    if (tocLinks.length > 0) {
+      gsap.fromTo(tocLinks,
+        {
+          opacity: 0,
+          x: 10
+        },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.4,
+          stagger: 0.05,
+          ease: 'power2.out',
+          delay: 0.3
+        }
+      );
+    }
+
+    // Animate sidebar sections
+    const sidebarSections = document.querySelectorAll('aside > div');
+    sidebarSections.forEach((el, index) => {
+      if (el.hasAttribute('data-animated')) return;
+      el.setAttribute('data-animated', 'true');
+
+      gsap.fromTo(el,
+        {
+          opacity: 0,
+          y: 20
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          delay: 0.2 + (index * 0.1),
+          ease: 'power2.out'
+        }
+      );
+    });
+  }
+
+  // Initialize on page load
+  initScrollAnimations();
+
+  // Re-initialize after Astro page transitions
+  document.addEventListener('astro:after-swap', () => {
+    ScrollTrigger.refresh();
+    initScrollAnimations();
+  });
+</script>

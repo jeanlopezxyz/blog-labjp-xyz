@@ -1,0 +1,244 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Icon } from "astro-icon/components";
+import { getCollection } from "astro:content";
+import { getRelativeTime, formatShortDate, getBlogPostUrl } from "@/lib/utils";
+import { SITE } from "@/lib/constants";
+import { useTranslations, getLocalizedPath, slugToPostId, isPostForLang, normalizeSlug, type Lang } from "@/i18n";
+import SocialActions from "@/components/ui/SocialActions.astro";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Get posts for current language
+const allPosts = (await getCollection("blog", ({ id, data }) => {
+  if (data.draft) return false;
+  return isPostForLang(id, lang);
+})).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
+const recentPosts = allPosts.filter((post) => post.slug !== featuredPost?.slug).slice(0, 4);
+const latestPosts = allPosts.slice(5, 11);
+
+// Helper to get the correct blog URL
+function getBlogUrl(slug: string): string {
+  return getBlogPostUrl(slug, lang);
+}
+
+// Helper to get post ID for interactions
+function getPostId(slug: string): string {
+  return slugToPostId(slug);
+}
+
+const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
+---
+
+<BaseLayout lang={lang}>
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+
+    {allPosts.length > 0 ? (
+      <>
+        <!-- Hero Section: Featured + Recent -->
+        <section class="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-16">
+
+          <!-- Featured Post (Left) -->
+          {featuredPost && (
+            <article class="group" data-post-id={featuredPostId}>
+              <a href={getBlogUrl(featuredPost.slug)} class="block">
+                {featuredPost.data.image && (
+                  <div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-muted">
+                    <img
+                      src={featuredPost.data.image}
+                      alt={featuredPost.data.title}
+                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                )}
+              </a>
+
+              <div class="text-center">
+                <a href={getBlogUrl(featuredPost.slug)} class="block">
+                  <h1 class="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors mb-3 leading-tight">
+                    {featuredPost.data.title}
+                  </h1>
+                  <p class="text-muted-foreground leading-relaxed mb-4 max-w-lg mx-auto">
+                    {featuredPost.data.description}
+                  </p>
+                </a>
+
+                <div class="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-4">
+                  <time datetime={featuredPost.data.pubDate.toISOString()}>
+                    {getRelativeTime(featuredPost.data.pubDate, lang)}
+                  </time>
+                  <span class="text-muted-foreground/40">•</span>
+                  <span class="uppercase tracking-wide text-xs">{SITE.author}</span>
+                </div>
+
+                <!-- Social Actions on hover -->
+                <div class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                  <SocialActions
+                    postId={featuredPostId}
+                    postTitle={featuredPost.data.title}
+                    postSlug={normalizeSlug(featuredPost.slug)}
+                    lang={lang}
+                    showComments={true}
+                    size="sm"
+                    variant="centered"
+                  />
+                </div>
+              </div>
+            </article>
+          )}
+
+          <!-- Recent Posts (Right) -->
+          <div class="flex flex-col justify-between gap-4">
+            {recentPosts.map((post) => {
+              const postId = getPostId(post.slug);
+              const cleanSlug = normalizeSlug(post.slug);
+              return (
+                <article class="group">
+                  <div class="flex gap-4 items-start">
+                    <div class="flex-1 min-w-0">
+                      <a href={getBlogUrl(post.slug)} class="block">
+                        <h2 class="font-bold text-foreground group-hover:text-primary transition-colors mb-2 leading-snug text-lg">
+                          {post.data.title}
+                        </h2>
+                        <p class="text-sm text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+                          {post.data.description}
+                        </p>
+                        <div class="flex items-center gap-3 text-xs text-muted-foreground">
+                          <time datetime={post.data.pubDate.toISOString()} class="uppercase tracking-wide">
+                            {formatShortDate(post.data.pubDate, lang)}
+                          </time>
+                          <span class="text-muted-foreground/40">•</span>
+                          <span class="uppercase tracking-wide">{SITE.author}</span>
+                        </div>
+                      </a>
+                      <!-- Social actions on hover - inside text column -->
+                      <div class="mt-2 w-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                        <SocialActions
+                          postId={postId}
+                          postTitle={post.data.title}
+                          postSlug={cleanSlug}
+                          lang={lang}
+                          showComments={true}
+                          size="sm"
+                          variant="spread"
+                        />
+                      </div>
+                    </div>
+                    {post.data.image && (
+                      <a href={getBlogUrl(post.slug)} class="flex-shrink-0">
+                        <div class="w-28 h-28 rounded-lg overflow-hidden bg-muted">
+                          <img
+                            src={post.data.image}
+                            alt=""
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        </div>
+                      </a>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <!-- More Articles Section -->
+        {latestPosts.length > 0 && (
+          <section class="border-t border-border/30 pt-12">
+            <div class="flex items-center justify-between mb-8">
+              <h2 class="text-xl font-bold text-foreground">{t('home.latest')}</h2>
+              <a
+                href={getLocalizedPath('/blog', lang)}
+                class="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+              >
+                {t('home.viewAll')}
+                <Icon name="mdi:arrow-right" class="w-4 h-4" />
+              </a>
+            </div>
+
+            <!-- Grid of Posts -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {latestPosts.map((post) => {
+                const postId = getPostId(post.slug);
+                const cleanSlug = normalizeSlug(post.slug);
+                return (
+                  <article class="group h-full flex flex-col">
+                    <a href={getBlogUrl(post.slug)} class="block flex-1 flex flex-col">
+                      <!-- Always show image area for consistent layout -->
+                      <div class="aspect-[16/10] rounded-lg overflow-hidden mb-4 bg-muted flex-shrink-0">
+                        {post.data.image ? (
+                          <img
+                            src={post.data.image}
+                            alt=""
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                            <Icon name="mdi:file-document-outline" class="w-12 h-12 text-primary/30" />
+                          </div>
+                        )}
+                      </div>
+                      <h3 class="font-bold text-foreground group-hover:text-primary transition-colors mb-2 leading-snug">
+                        {post.data.title}
+                      </h3>
+                      <p class="text-sm text-muted-foreground line-clamp-2 flex-1">
+                        {post.data.description}
+                      </p>
+                    </a>
+                    <div class="flex items-center gap-2 text-xs text-muted-foreground mt-3">
+                      <time datetime={post.data.pubDate.toISOString()} class="uppercase tracking-wide">
+                        {formatShortDate(post.data.pubDate, lang)}
+                      </time>
+                      <span class="text-muted-foreground/40">•</span>
+                      <span class="uppercase tracking-wide">{SITE.author}</span>
+                    </div>
+                    <!-- Social actions on hover -->
+                    <div class="mt-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                      <SocialActions
+                        postId={postId}
+                        postTitle={post.data.title}
+                        postSlug={cleanSlug}
+                        lang={lang}
+                        showComments={true}
+                        size="sm"
+                        variant="spread"
+                      />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <!-- View All Link -->
+            <div class="mt-12 text-center">
+              <a
+                href={getLocalizedPath('/blog', lang)}
+                class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium border border-border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                {t('home.viewAllArticles')}
+                <Icon name="mdi:arrow-right" class="w-4 h-4" />
+              </a>
+            </div>
+          </section>
+        )}
+      </>
+    ) : (
+      <div class="text-center py-16">
+        <Icon name="mdi:file-document-outline" class="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h2 class="text-lg font-semibold text-foreground mb-2">{t('home.noArticles')}</h2>
+        <p class="text-sm text-muted-foreground">{t('home.articlesWillAppear')}</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<!-- SocialActions component handles its own initialization -->

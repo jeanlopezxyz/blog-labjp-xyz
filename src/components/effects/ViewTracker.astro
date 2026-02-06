@@ -1,0 +1,30 @@
+---
+/**
+ * ViewTracker Component
+ * Tracks page views when a blog post is loaded
+ */
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+<script define:vars={{ slug }}>
+  // Only track in production and once per session per page
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    const sessionKey = `viewed_${slug}`;
+
+    if (!sessionStorage.getItem(sessionKey)) {
+      fetch('/api/views', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug })
+      })
+      .then(() => sessionStorage.setItem(sessionKey, 'true'))
+      .catch(() => {
+        // Silently fail - view tracking is non-critical
+      });
+    }
+  }
+</script>

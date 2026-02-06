@@ -1,0 +1,92 @@
+---
+/**
+ * PostCardHorizontal Component
+ * Horizontal post card with image and social actions
+ * Accessible with proper alt text and keyboard support
+ */
+import { getRelativeTime, getBlogPostUrl } from "@/lib/utils";
+import { useTranslations, defaultLang, normalizeSlug, slugToPostId, type Lang } from "@/i18n";
+import SocialActions from "@/components/ui/SocialActions.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  slug: string;
+  image?: string;
+  readingTime?: number;
+  lang?: Lang;
+  showSocialActions?: boolean;
+}
+
+const {
+  title,
+  description,
+  pubDate,
+  slug,
+  image,
+  readingTime,
+  lang = defaultLang,
+  showSocialActions = true
+} = Astro.props;
+
+const t = useTranslations(lang);
+const cleanSlug = normalizeSlug(slug);
+const postUrl = getBlogPostUrl(slug, lang);
+const postId = slugToPostId(slug);
+---
+
+<article
+  class="group py-6 focus-within:ring-2 focus-within:ring-primary/20 rounded-lg -mx-2 px-2"
+  data-date={pubDate.toISOString()}
+  data-reading-time={readingTime}
+  data-post-id={postId}
+>
+  <div class="flex gap-5">
+    <div class="flex-1 min-w-0">
+      <a href={postUrl} class="block">
+        <h2 class="text-base font-semibold text-foreground group-hover:text-primary transition-colors mb-2 line-clamp-2">
+          {title}
+        </h2>
+        <p class="text-muted-foreground text-sm leading-relaxed mb-3 line-clamp-2">
+          {description}
+        </p>
+        <div class="flex items-center gap-2 text-xs text-muted-foreground/80">
+          <time datetime={pubDate.toISOString()}>
+            {getRelativeTime(pubDate, lang)}
+          </time>
+          {readingTime && (
+            <>
+              <span class="text-muted-foreground/40" aria-hidden="true">·</span>
+              <span>{readingTime} {t('blog.min')}</span>
+            </>
+          )}
+        </div>
+      </a>
+      {showSocialActions && (
+        <div class="mt-3 w-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+          <SocialActions
+            postId={postId}
+            postTitle={title}
+            postSlug={cleanSlug}
+            lang={lang}
+            showComments={true}
+            size="sm"
+            variant="spread"
+          />
+        </div>
+      )}
+    </div>
+
+    {image && (
+      <a href={postUrl} class="flex-shrink-0 w-28 h-20 sm:w-32 sm:h-22 rounded-lg overflow-hidden bg-muted">
+        <img
+          src={image}
+          alt={title}
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+      </a>
+    )}
+  </div>
+</article>

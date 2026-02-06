@@ -1,0 +1,46 @@
+# robots.txt for blog.labjp.xyz
+# Technical blog about Kubernetes, OpenShift, DevOps and Cloud Native
+
+User-agent: *
+Allow: /
+
+# Block API endpoints and internal paths
+Disallow: /api/
+Disallow: /_astro/
+Disallow: /search.json
+
+# Allow important crawlers full access
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Block AI training crawlers (optional - remove if you want AI indexing)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# Crawl delay for less aggressive crawlers
+User-agent: *
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://blog.labjp.xyz/sitemap-index.xml
+
+# Host directive
+Host: https://blog.labjp.xyz

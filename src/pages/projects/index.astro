@@ -1,0 +1,99 @@
+---
+import PageLayout from "@/layouts/PageLayout.astro";
+import ProjectCard from "@/components/projects/ProjectCard.astro";
+import { getCollection } from "astro:content";
+
+const projects = (await getCollection("projects")).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const categories = [...new Set(projects.map((p) => p.data.category))];
+---
+
+<PageLayout
+  title="Proyectos"
+  description="Explora mis proyectos open source y herramientas de desarrollo."
+>
+  <header class="mb-8">
+    <h1 class="text-2xl font-bold text-foreground mb-2">Proyectos</h1>
+    <p class="text-muted-foreground max-w-2xl">
+      Una colección de proyectos open source en los que he trabajado. Desde
+      librerías y herramientas hasta aplicaciones web completas.
+    </p>
+  </header>
+
+  <div class="mb-8">
+    <div class="flex flex-wrap gap-2" id="category-filters">
+      <button
+        data-category="all"
+        class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors bg-primary text-primary-foreground"
+      >
+        Todos
+      </button>
+      {
+        categories.map((category) => (
+          <button
+            data-category={category}
+            class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+          >
+            {category === "library" && "Librerías"}
+            {category === "tool" && "Herramientas"}
+            {category === "cli" && "CLI"}
+            {category === "web" && "Web"}
+            {category === "other" && "Otros"}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2" id="projects-grid">
+    {
+      projects.map((project) => (
+        <div data-category={project.data.category}>
+          <ProjectCard
+            title={project.data.title}
+            description={project.data.description}
+            repo={project.data.repo}
+            demo={project.data.demo}
+            tech={project.data.tech}
+            category={project.data.category}
+          />
+        </div>
+      ))
+    }
+  </div>
+</PageLayout>
+
+<script>
+  const filters = document.getElementById("category-filters");
+  const grid = document.getElementById("projects-grid");
+
+  filters?.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName !== "BUTTON") return;
+
+    const category = target.dataset.category;
+
+    // Update active button
+    filters.querySelectorAll("button").forEach((btn) => {
+      if (btn.dataset.category === category) {
+        btn.classList.remove("bg-secondary", "text-secondary-foreground");
+        btn.classList.add("bg-primary", "text-primary-foreground");
+      } else {
+        btn.classList.remove("bg-primary", "text-primary-foreground");
+        btn.classList.add("bg-secondary", "text-secondary-foreground");
+      }
+    });
+
+    // Filter projects
+    grid?.querySelectorAll("[data-category]").forEach((project) => {
+      const el = project as HTMLElement;
+      if (category === "all" || el.dataset.category === category) {
+        el.style.display = "block";
+      } else {
+        el.style.display = "none";
+      }
+    });
+  });
+</script>

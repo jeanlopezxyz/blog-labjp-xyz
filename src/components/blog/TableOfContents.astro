@@ -1,0 +1,177 @@
+---
+/**
+ * TableOfContents Component
+ * Displays article headings for navigation with scroll spy
+ * Accessible with proper ARIA attributes
+ */
+import { useTranslations, defaultLang, type Lang } from "@/i18n";
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  lang?: Lang;
+}
+
+const { headings, lang = defaultLang } = Astro.props;
+const t = useTranslations(lang);
+
+// Filter only h2 headings (main sections only for cleaner TOC)
+const filteredHeadings = headings
+  .filter((h) => h.depth === 2)
+  .map((h) => ({
+    ...h,
+    // Truncate long headings and remove extra whitespace
+    text: h.text.trim().slice(0, 60) + (h.text.length > 60 ? '...' : '')
+  }))
+  // Filter out headings that look like paragraphs (too long or contain certain patterns)
+  .filter((h) => {
+    const text = h.text.toLowerCase();
+    // Skip if it looks like a paragraph (starts with common words that aren't heading-like)
+    if (text.length > 80) return false;
+    return true;
+  });
+---
+
+{
+  filteredHeadings.length > 0 && (
+    <nav class="text-sm" aria-labelledby="toc-heading" id="toc-nav">
+      <h4 id="toc-heading" class="font-semibold mb-3 text-foreground">
+        {t('toc.title')}
+      </h4>
+      <ul class="space-y-1" role="list">
+        {filteredHeadings.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              data-toc-link={heading.slug}
+              class:list={[
+                "toc-link block py-1.5 border-l-2 pl-3 -ml-px transition-all duration-200",
+                "text-muted-foreground border-transparent",
+                "hover:text-foreground hover:border-muted-foreground/50",
+                "focus:outline-none focus:text-primary focus:border-primary"
+              ]}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  function initScrollSpy() {
+    const tocLinks = document.querySelectorAll('[data-toc-link]');
+    if (tocLinks.length === 0) return;
+
+    // Get all heading IDs from TOC links
+    const headingIds = Array.from(tocLinks).map(link =>
+      (link as HTMLElement).dataset.tocLink
+    );
+
+    // Find all corresponding headings in the document
+    const headings = headingIds
+      .map(id => document.getElementById(id!))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (headings.length === 0) return;
+
+    let currentActiveId: string | null = null;
+
+    function updateActiveLink(id: string | null) {
+      if (currentActiveId === id) return;
+
+      // Remove active state from all links
+      tocLinks.forEach(link => {
+        link.classList.remove('text-primary', 'border-primary', 'font-medium');
+        link.classList.add('text-muted-foreground', 'border-transparent');
+      });
+
+      // Add active state to current link
+      if (id) {
+        const activeLink = document.querySelector(`[data-toc-link="${id}"]`);
+        if (activeLink) {
+          activeLink.classList.remove('text-muted-foreground', 'border-transparent');
+          activeLink.classList.add('text-primary', 'border-primary', 'font-medium');
+        }
+      }
+
+      currentActiveId = id;
+    }
+
+    // Scroll-based detection - simpler and more reliable
+    function detectActiveHeading() {
+      const headerOffset = 100; // Account for fixed header
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollY = window.scrollY;
+
+      // Check if we're at the bottom of the page
+      const isAtBottom = scrollY + windowHeight >= documentHeight - 50;
+
+      if (isAtBottom && headings.length > 0) {
+        updateActiveLink(headings[headings.length - 1].id);
+        return;
+      }
+
+      // Find the heading that's currently in view
+      // We want the last heading whose top is above or at the threshold
+      let activeHeading: HTMLElement | null = null;
+
+      for (const heading of headings) {
+        const rect = heading.getBoundingClientRect();
+        // Check if heading top is above or at the threshold from viewport top
+        if (rect.top <= headerOffset) {
+          activeHeading = heading;
+        } else {
+          // Since headings are in DOM order, once we find one below threshold, stop
+          break;
+        }
+      }
+
+      if (activeHeading) {
+        updateActiveLink(activeHeading.id);
+      } else if (headings.length > 0) {
+        // If no heading has passed the threshold yet, use the first one
+        const firstRect = headings[0].getBoundingClientRect();
+        if (firstRect.top <= windowHeight / 2) {
+          updateActiveLink(headings[0].id);
+        }
+      }
+    }
+
+    // Throttled scroll handler
+    let ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          detectActiveHeading();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Initial check
+    detectActiveHeading();
+
+    // Cleanup on page navigation (for Astro view transitions)
+    document.addEventListener('astro:before-swap', () => {
+      window.removeEventListener('scroll', onScroll);
+    }, { once: true });
+  }
+
+  // Initialize on page load
+  initScrollSpy();
+
+  // Re-initialize after Astro page transitions
+  document.addEventListener('astro:after-swap', initScrollSpy);
+</script>

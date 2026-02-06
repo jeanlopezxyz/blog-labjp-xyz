@@ -1,0 +1,129 @@
+---
+/**
+ * BlogListPage Component
+ * Shared blog listing page for both languages
+ */
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ArticleTabs from "@/components/ui/ArticleTabs.astro";
+import PostCardHorizontal from "@/components/blog/PostCardHorizontal.astro";
+import Sidebar from "@/components/layout/Sidebar.astro";
+import SocialActions from "@/components/ui/SocialActions.astro";
+import { Icon } from "astro-icon/components";
+import { getCollection } from "astro:content";
+import { calculateReadingTime, getRelativeTime } from "@/lib/utils";
+import { useTranslations, defaultLang, normalizeSlug, slugToPostId, isPostForLang, type Lang } from "@/i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const isDefault = lang === defaultLang;
+const basePath = isDefault ? '/blog' : `/${lang}/blog`;
+
+const allPosts = (await getCollection("blog", ({ id, data }) => {
+  if (data.draft) return false;
+  return isPostForLang(id, lang);
+})).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const featuredPost = allPosts[0];
+const otherPosts = allPosts.slice(1);
+
+function getPostUrl(slug: string) {
+  return `${basePath}/${normalizeSlug(slug)}`;
+}
+---
+
+<BaseLayout title={t('nav.blog')} description={t('blog.description')} lang={lang}>
+  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <div class="lg:grid lg:grid-cols-[1fr_280px] lg:gap-16">
+      <div>
+        <header class="mb-8">
+          <h1 class="text-2xl font-bold text-foreground mb-1">{t('nav.blog')}</h1>
+          <p class="text-sm text-muted-foreground">
+            {allPosts.length} {allPosts.length === 1 ? t('blog.article') : t('blog.articles')}
+          </p>
+        </header>
+
+        {allPosts.length > 0 ? (
+          <>
+            {featuredPost && (
+              <section class="mb-8">
+                <article class="group">
+                  <a href={getPostUrl(featuredPost.slug)} class="block">
+                    {featuredPost.data.image && (
+                      <div class="aspect-[2/1] rounded-xl overflow-hidden mb-5 bg-muted">
+                        <img
+                          src={featuredPost.data.image}
+                          alt={featuredPost.data.title}
+                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <h2 class="text-xl md:text-2xl font-bold text-foreground group-hover:text-primary transition-colors mb-3">
+                      {featuredPost.data.title}
+                    </h2>
+                    <p class="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">
+                      {featuredPost.data.description}
+                    </p>
+                    <div class="flex items-center gap-2 text-xs text-muted-foreground/70">
+                      <time datetime={featuredPost.data.pubDate.toISOString()}>
+                        {getRelativeTime(featuredPost.data.pubDate, lang)}
+                      </time>
+                      <span class="text-muted-foreground/40">·</span>
+                      <span>{calculateReadingTime(featuredPost.body ?? "")} {t('blog.min')}</span>
+                    </div>
+                  </a>
+                  <!-- Social actions on hover -->
+                  <div class="mt-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+                    <SocialActions
+                      postId={slugToPostId(featuredPost.slug)}
+                      postTitle={featuredPost.data.title}
+                      postSlug={normalizeSlug(featuredPost.slug)}
+                      lang={lang}
+                      showComments={true}
+                      size="sm"
+                      variant="centered"
+                    />
+                  </div>
+                </article>
+              </section>
+            )}
+
+            {otherPosts.length > 0 && (
+              <section class="pt-8 border-t border-border/30">
+                <ArticleTabs activeTab="latest" lang={lang} />
+                <div id="articles-list" class="divide-y divide-border/20">
+                  {otherPosts.map((post) => (
+                    <PostCardHorizontal
+                      title={post.data.title}
+                      description={post.data.description}
+                      pubDate={post.data.pubDate}
+                      slug={post.slug}
+                      image={post.data.image}
+                      readingTime={calculateReadingTime(post.body ?? "")}
+                      lang={lang}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        ) : (
+          <div class="text-center py-16">
+            <Icon name="mdi:file-document-outline" class="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h2 class="text-lg font-semibold text-foreground mb-2">{t('home.noArticles')}</h2>
+            <p class="text-sm text-muted-foreground">{t('home.articlesWillAppear')}</p>
+          </div>
+        )}
+      </div>
+
+      <div class="hidden lg:block">
+        <div class="sticky top-24">
+          <Sidebar lang={lang} />
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

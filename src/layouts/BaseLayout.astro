@@ -1,0 +1,340 @@
+---
+import "@/styles/global.css";
+import { SITE, SOCIAL } from "@/lib/constants";
+import Header from "@/components/layout/Header.astro";
+import Footer from "@/components/layout/Footer.astro";
+import { getLangFromUrl, useTranslations, getClientI18n, type Lang } from "@/i18n";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonicalUrl?: string;
+  type?: "website" | "article";
+  publishedTime?: string;
+  currentCategory?: string;
+  showCategories?: boolean;
+  lang?: Lang;
+  keywords?: string[];
+}
+
+const urlLang = getLangFromUrl(Astro.url);
+const {
+  title,
+  description,
+  image = "/og-image.png",
+  canonicalUrl = Astro.url.href,
+  type = "website",
+  publishedTime,
+  currentCategory,
+  lang = urlLang,
+  keywords = ["Kubernetes", "OpenShift", "Cloud Native", "DevOps", "Java", "Red Hat"],
+} = Astro.props;
+
+const t = useTranslations(lang);
+const i18n = getClientI18n(lang);
+const siteLocale = SITE.locales[lang];
+const defaultTitle = siteLocale.title;
+const defaultDescription = siteLocale.description;
+const finalTitle = title || defaultTitle;
+const finalDescription = description || defaultDescription;
+const fullTitle = finalTitle === defaultTitle ? finalTitle : `${finalTitle} | ${SITE.name}`;
+
+// JSON-LD Schema for Organization
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": SITE.name,
+  "url": SITE.url,
+  "logo": `${SITE.url}/favicon.svg`,
+  "description": defaultDescription,
+  "founder": {
+    "@type": "Person",
+    "name": SITE.author,
+    "jobTitle": "Senior Consultant",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Red Hat"
+    }
+  },
+  "sameAs": [
+    SOCIAL.github,
+    SOCIAL.linkedin,
+    SOCIAL.twitter
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": SITE.email,
+    "contactType": "customer service"
+  }
+};
+
+// JSON-LD Schema for WebSite with SearchAction
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": SITE.name,
+  "url": SITE.url,
+  "description": defaultDescription,
+  "inLanguage": ["es", "en"],
+  "author": {
+    "@type": "Person",
+    "name": SITE.author
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": `${SITE.url}/blog?q={search_term_string}`
+    },
+    "query-input": "required name=search_term_string"
+  }
+};
+
+// Breadcrumb schema
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+const breadcrumbItems = pathSegments.map((segment, index) => {
+  const path = '/' + pathSegments.slice(0, index + 1).join('/');
+  return {
+    "@type": "ListItem",
+    "position": index + 2,
+    "name": segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' '),
+    "item": `${SITE.url}${path}`
+  };
+});
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": SITE.url
+    },
+    ...breadcrumbItems
+  ]
+};
+
+// Person schema for author (helps with Google Knowledge Panel)
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": SITE.author,
+  "url": SITE.url,
+  "image": `${SITE.url}/author.jpg`,
+  "jobTitle": "Senior Consultant",
+  "worksFor": {
+    "@type": "Organization",
+    "name": "Red Hat",
+    "url": "https://www.redhat.com"
+  },
+  "alumniOf": {
+    "@type": "Organization",
+    "name": "Universidad Nacional de Ingeniería"
+  },
+  "knowsAbout": ["Kubernetes", "OpenShift", "Cloud Native", "DevOps", "Java", "Microservices", "GitOps"],
+  "sameAs": [
+    SOCIAL.github,
+    SOCIAL.linkedin,
+    SOCIAL.twitter
+  ],
+  "description": "Senior Consultant at Red Hat specializing in Kubernetes, OpenShift, and Cloud Native architectures."
+};
+
+// FAQ Schema for common questions (boosts SEO significantly)
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué es Kubernetes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Kubernetes es una plataforma de código abierto para automatizar la implementación, el escalado y la gestión de aplicaciones en contenedores."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es OpenShift?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "OpenShift es la plataforma de Kubernetes empresarial de Red Hat que añade herramientas de desarrollador, seguridad mejorada y soporte empresarial."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es Cloud Native?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cloud Native es un enfoque de desarrollo de software que aprovecha al máximo el modelo de computación en la nube, usando contenedores, microservicios y entrega continua."
+      }
+    }
+  ]
+};
+
+// Check if we're on homepage to show FAQ
+const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' || Astro.url.pathname === '/en';
+---
+
+<!doctype html>
+<html lang={lang} class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- DNS Prefetch & Preconnect for performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Fonts with display=swap for better CLS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Sitemap & Feeds -->
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+
+    <!-- Hreflang for multilingual SEO -->
+    <link rel="alternate" hreflang="es" href={`${SITE.url}${Astro.url.pathname.replace(/^\/en/, '')}`} />
+    <link rel="alternate" hreflang="en" href={`${SITE.url}/en${Astro.url.pathname.replace(/^\/en/, '')}`} />
+    <link rel="alternate" hreflang="x-default" href={`${SITE.url}${Astro.url.pathname.replace(/^\/en/, '')}`} />
+
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Search Engine Verification (replace with your actual codes) -->
+    <!-- <meta name="google-site-verification" content="YOUR_GOOGLE_VERIFICATION_CODE" /> -->
+    <!-- <meta name="msvalidate.01" content="YOUR_BING_VERIFICATION_CODE" /> -->
+    <!-- <meta name="yandex-verification" content="YOUR_YANDEX_CODE" /> -->
+
+    <!-- Primary Meta Tags -->
+    <title>{fullTitle}</title>
+    <meta name="title" content={fullTitle} />
+    <meta name="description" content={finalDescription} />
+    <meta name="author" content={SITE.author} />
+    <meta name="creator" content={SITE.author} />
+    <meta name="publisher" content={SITE.name} />
+    <meta name="keywords" content={keywords.join(", ")} />
+    <meta name="subject" content="Kubernetes, OpenShift, Cloud Native, DevOps" />
+    <meta name="language" content={lang} />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="distribution" content="global" />
+    <meta name="rating" content="general" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Mobile & PWA Meta Tags -->
+    <meta name="theme-color" content="#22c55e" />
+    <meta name="msapplication-TileColor" content="#22c55e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content={SITE.name} />
+    <meta name="application-name" content={SITE.name} />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={finalDescription} />
+    <meta property="og:image" content={new URL(image, SITE.url).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={finalTitle} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content={siteLocale.locale} />
+    <meta property="og:locale:alternate" content={lang === 'es' ? 'en_US' : 'es_ES'} />
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {publishedTime && <meta property="article:author" content={SITE.author} />}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@jeanpaulvgc" />
+    <meta name="twitter:creator" content="@jeanpaulvgc" />
+    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={finalDescription} />
+    <meta name="twitter:image" content={new URL(image, SITE.url).href} />
+    <meta name="twitter:image:alt" content={finalTitle} />
+
+    <!-- JSON-LD Structured Data for Rich Results -->
+    <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+    {breadcrumbItems.length > 0 && (
+      <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    )}
+    {isHomepage && (
+      <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+    )}
+
+    <!-- Theme script -->
+    <script is:inline>
+      const theme = localStorage.getItem("theme");
+      if (theme === "light") {
+        document.documentElement.classList.remove("dark");
+      } else {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+
+    <!-- i18n for client scripts -->
+    <script is:inline define:vars={{ i18n }}>
+      window.__i18n = i18n;
+    </script>
+
+    <!-- View Transitions -->
+    <meta name="view-transition" content="same-origin" />
+
+    <!-- Slot for additional head content (e.g., page-specific JSON-LD) -->
+    <slot name="head" />
+  </head>
+  <body class="min-h-screen bg-background flex flex-col">
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">
+      {t('a11y.skipToContent')}
+    </a>
+
+    <Header currentCategory={currentCategory} />
+    <main id="main-content" class="flex-1" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>
+
+<style>
+  @view-transition {
+    navigation: auto;
+  }
+
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--color-primary);
+    color: white;
+    padding: 8px 16px;
+    z-index: 100;
+    transition: top 0.3s;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
+</style>

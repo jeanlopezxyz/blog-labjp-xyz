@@ -1,0 +1,180 @@
+---
+/**
+ * PostHeader Component
+ * Header section for blog posts with title, meta, and social actions
+ */
+import { Icon } from "astro-icon/components";
+import { formatDate, getTwitterShareUrl, getLinkedInShareUrl, getFullBlogPostUrl } from "@/lib/utils";
+import { SITE } from "@/lib/constants";
+import { useTranslations, defaultLang } from "@/i18n";
+import type { WithLang } from "@/lib/types";
+
+interface Props extends WithLang {
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags: string[];
+  readingTime: number;
+  slug: string;
+}
+
+const { title, description, pubDate, tags: _tags, readingTime: _readingTime, slug, lang = defaultLang } = Astro.props;
+void _tags; void _readingTime; // Available for future use
+const t = useTranslations(lang);
+const postUrl = getFullBlogPostUrl(slug, lang);
+---
+
+<header class="mb-8" role="banner" aria-labelledby="post-title">
+  <!-- Title -->
+  <h1 id="post-title" class="text-3xl md:text-4xl font-bold tracking-tight mb-3">
+    {title}
+  </h1>
+
+  <!-- Description -->
+  <p class="text-muted-foreground text-lg mb-6">
+    {description}
+  </p>
+
+  <!-- Author Row -->
+  <div class="flex items-center gap-3 mb-4">
+    <div class="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-border" aria-hidden="true">
+      <span class="font-mono text-sm font-bold text-primary">>_</span>
+    </div>
+    <div>
+      <p class="font-medium text-foreground text-sm">{SITE.author}</p>
+      <time datetime={pubDate.toISOString()} class="text-xs text-muted-foreground">
+        {formatDate(pubDate, lang)}
+      </time>
+    </div>
+  </div>
+
+  <!-- Divider Top -->
+  <hr class="border-border mb-4" aria-hidden="true" />
+
+  <!-- Social Actions -->
+  <nav class="flex items-center gap-6 text-muted-foreground" aria-label={t('post.articleActions')} data-post-header-stats={slug}>
+    <button
+      type="button"
+      class="like-btn inline-flex items-center gap-1.5 hover:text-red-500 transition-colors text-sm"
+      data-post-id={slug}
+      aria-label={t('post.like')}
+      aria-pressed="false"
+    >
+      <Icon name="mdi:heart-outline" class="w-5 h-5 like-icon-outline" aria-hidden="true" />
+      <Icon name="mdi:heart" class="w-5 h-5 like-icon-filled hidden text-red-500" aria-hidden="true" />
+      <span class="like-count" aria-live="polite">0</span>
+    </button>
+
+    <a
+      href="#comments"
+      class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors text-sm"
+    >
+      <Icon name="mdi:comment-outline" class="w-5 h-5" aria-hidden="true" />
+      <span class="comment-count" aria-live="polite">0</span>
+      <span class="sr-only">{t('post.commentsCount')}</span>
+    </a>
+
+    <div class="flex-1"></div>
+
+    <div class="relative" data-share-menu>
+      <button
+        type="button"
+        class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors text-sm"
+        aria-label={t('post.shareArticle')}
+        aria-expanded="false"
+        aria-haspopup="menu"
+        data-share-toggle
+      >
+        <Icon name="mdi:share-outline" class="w-5 h-5" aria-hidden="true" />
+        <span>{t('post.share')}</span>
+      </button>
+
+      <div
+        class="absolute right-0 bottom-full mb-2 w-44 rounded-lg bg-card border border-border/50 shadow-lg z-20 hidden"
+        role="menu"
+        aria-label={t('post.shareOptions')}
+        data-share-dropdown
+      >
+        <div class="py-1">
+          <a
+            href={getTwitterShareUrl(title, postUrl)}
+            target="_blank"
+            rel="noopener noreferrer"
+            role="menuitem"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors"
+          >
+            <Icon name="mdi:twitter" class="w-4 h-4" aria-hidden="true" />
+            <span>{t('post.shareOnTwitter')}</span>
+          </a>
+          <a
+            href={getLinkedInShareUrl(postUrl)}
+            target="_blank"
+            rel="noopener noreferrer"
+            role="menuitem"
+            class="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors"
+          >
+            <Icon name="mdi:linkedin" class="w-4 h-4" aria-hidden="true" />
+            <span>{t('post.shareOnLinkedIn')}</span>
+          </a>
+          <button
+            type="button"
+            role="menuitem"
+            class="copy-link-btn flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors w-full text-left"
+            data-url={postUrl}
+          >
+            <Icon name="mdi:link-variant" class="w-4 h-4" aria-hidden="true" />
+            <span class="copy-text">{t('post.copyLink')}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Divider Bottom -->
+  <hr class="border-border mt-4" aria-hidden="true" />
+</header>
+
+<script>
+  import { isPostLiked, toggleLike, updateLikeUI } from '@/scripts/likes';
+  import { sendLikeToAPI } from '@/scripts/visitor';
+  import { initShareMenus, initCopyLinks, setupGlobalShareHandlers } from '@/scripts/share';
+  import { initPostStats } from '@/scripts/stats';
+
+  function initPostHeader() {
+    // Initialize like buttons in header
+    document.querySelectorAll<HTMLElement>('header .like-btn').forEach((btn) => {
+      const postId = btn.dataset.postId;
+      if (!postId) return;
+
+      // Set initial state
+      updateLikeUI(btn, isPostLiked(postId));
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const countEl = btn.querySelector('.like-count');
+        const currentCount = parseInt(countEl?.textContent || '0', 10);
+        const isLiked = toggleLike(postId);
+        const newCount = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+
+        if (countEl) countEl.textContent = String(newCount);
+        updateLikeUI(btn, isLiked);
+
+        // Send to API
+        sendLikeToAPI(postId);
+      });
+    });
+
+    // Initialize share menus and copy links (scoped to header)
+    initShareMenus(document.querySelector('header') || document);
+    initCopyLinks(document.querySelector('header') || document);
+    setupGlobalShareHandlers();
+
+    // Load stats using centralized function
+    initPostStats({ singleSelector: '[data-post-header-stats]' });
+  }
+
+  initPostHeader();
+  document.addEventListener('astro:after-swap', initPostHeader);
+</script>
