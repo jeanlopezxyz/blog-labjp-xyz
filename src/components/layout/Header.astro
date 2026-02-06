@@ -16,19 +16,14 @@ function getLangSwitchUrl(targetLang: string, currentLang: string, pathname: str
   // Normalizar pathname (quitar trailing slash excepto para root)
   const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
 
-  if (targetLang === defaultLang) {
-    // Cambiando a español (idioma por defecto): quitar prefijo de idioma
-    const newPath = normalizedPath.replace(new RegExp(`^/${currentLang}`), '');
-    return newPath || '/';
+  // Si estamos en la raíz, ir a /{targetLang}/
+  if (normalizedPath === '/') {
+    return `/${targetLang}/`;
   }
 
-  if (currentLang === defaultLang) {
-    // Cambiando desde español: agregar prefijo del nuevo idioma
-    return `/${targetLang}${normalizedPath}`;
-  }
-
-  // Cambiando entre idiomas no-default (ej: en -> fr)
-  return normalizedPath.replace(new RegExp(`^/${currentLang}`), `/${targetLang}`);
+  // Reemplazar el prefijo de idioma actual con el nuevo
+  const pathWithoutLang = normalizedPath.replace(new RegExp(`^/(${Object.keys(languages).join('|')})`), '');
+  return `/${targetLang}${pathWithoutLang || ''}`;
 }
 
 interface Props {
@@ -62,7 +57,7 @@ const getNavLabel = (key: string) => t(key as any);
     <div class="flex items-center justify-between h-14 lg:h-16">
 
       <!-- Logo -->
-      <a href="/" class="flex items-center gap-2 shrink-0" aria-label={`labjp.xyz - ${t('a11y.goToHome')}`}>
+      <a href={getLocalizedPath('/', lang)} class="flex items-center gap-2 shrink-0" aria-label={`labjp.xyz - ${t('a11y.goToHome')}`}>
         <span class="font-mono font-bold text-lg text-primary">&gt;_</span>
         <span class="font-semibold text-foreground hidden sm:inline">labjp.xyz</span>
       </a>

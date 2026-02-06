@@ -49,10 +49,9 @@ export function getClientI18n(lang: keyof typeof ui) {
 }
 
 export function getLocalizedPath(path: string, lang: keyof typeof ui) {
-  if (lang === defaultLang) {
-    return path;
-  }
-  return `/${lang}${path}`;
+  // Always use language prefix for all languages (including default)
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `/${lang}${cleanPath === '/' ? '' : cleanPath}`;
 }
 
 export function getAlternateLinks(currentPath: string) {
