@@ -105,7 +105,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify(stats), {
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog1.labjp.xyz',
+        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
         'Cache-Control': 'public, max-age=60'
       }
     });
@@ -121,7 +121,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': 'https://blog1.labjp.xyz',
+      'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'
     }

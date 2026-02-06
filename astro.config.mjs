@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 import icon from 'astro-icon';
 
 export default defineConfig({
-  site: 'https://blog1.labjp.xyz',
+  site: 'https://blog.labjp.xyz',
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en'],
@@ -31,7 +31,7 @@ export default defineConfig({
       filter: (page) => !page.includes('/api/'),
       serialize: (item) => {
         // Boost priority for important pages
-        if (item.url === 'https://blog1.labjp.xyz/') {
+        if (item.url === 'https://blog.labjp.xyz/') {
           item.priority = 1.0;
           item.changefreq = 'daily';
         } else if (item.url.includes('/blog/') && !item.url.includes('/tags/')) {

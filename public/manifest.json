@@ -1,6 +1,6 @@
 {
-  "name": "blog1.labjp.xyz - Kubernetes, OpenShift y Cloud Native",
-  "short_name": "blog1.labjp.xyz",
+  "name": "blog.labjp.xyz - Kubernetes, OpenShift y Cloud Native",
+  "short_name": "blog.labjp.xyz",
   "description": "Blog técnico sobre Kubernetes, OpenShift, DevOps y arquitecturas Cloud Native. Por Jean Paul López, Senior Consultant @ Red Hat.",
   "start_url": "/",
   "display": "standalone",

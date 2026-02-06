@@ -3,10 +3,10 @@ import { Icon } from "astro-icon/components";
 import { NAV_ITEMS, CATEGORIES, RSS_URL } from "@/lib/constants";
 import { getLangFromUrl, useTranslations, getLocalizedPath, languages, defaultLang } from "@/i18n";
 
-// Configuración de idiomas con banderas
-const LANG_FLAGS: Record<string, string> = {
-  es: '🇪🇸',
-  en: '🇺🇸',
+// Configuración de idiomas con iconos de banderas
+const LANG_ICONS: Record<string, string> = {
+  es: 'circle-flags:es',
+  en: 'circle-flags:us',
 };
 
 // Función para obtener URL del idioma alternativo
@@ -166,7 +166,7 @@ const getNavLabel = (key: string) => t(key as any);
                 ]}
                 role="menuitem"
               >
-                <span class="text-base">{LANG_FLAGS[langCode]}</span>
+                <Icon name={LANG_ICONS[langCode]} class="w-5 h-5 rounded-full" aria-hidden="true" />
                 {langName}
               </a>
             ))}

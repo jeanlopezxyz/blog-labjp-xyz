@@ -1,18 +1,18 @@
 import { locales } from "@/i18n/ui";
 
 export const SITE = {
-  name: "blog1.labjp.xyz",
-  url: "https://blog1.labjp.xyz",
+  name: "blog.labjp.xyz",
+  url: "https://blog.labjp.xyz",
   author: "Jean Paul López",
   email: "contact@labjp.xyz",
   locales: {
     es: {
-      title: "blog1.labjp.xyz - Blog sobre Kubernetes, OpenShift y Cloud Native",
+      title: "blog.labjp.xyz - Blog sobre Kubernetes, OpenShift y Cloud Native",
       description: "Blog técnico sobre Kubernetes, OpenShift, DevOps y arquitecturas Cloud Native. Por Jean Paul López, Senior Consultant @ Red Hat.",
       locale: locales.es,
     },
     en: {
-      title: "blog1.labjp.xyz - Blog about Kubernetes, OpenShift and Cloud Native",
+      title: "blog.labjp.xyz - Blog about Kubernetes, OpenShift and Cloud Native",
       description: "Technical blog about Kubernetes, OpenShift, DevOps and Cloud Native architectures. By Jean Paul López, Senior Consultant @ Red Hat.",
       locale: locales.en,
     },

@@ -71,7 +71,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify(finalResults), {
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog1.labjp.xyz',
+        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
         'Cache-Control': 'public, max-age=60'
       }
     });
@@ -136,7 +136,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }), {
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog1.labjp.xyz'
+        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz'
       }
     });
   } catch (error) {
@@ -152,7 +152,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, {
     headers: {
-      'Access-Control-Allow-Origin': 'https://blog1.labjp.xyz',
+      'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'
     }

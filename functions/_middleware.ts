@@ -9,7 +9,7 @@ interface Env {
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
-  'https://blog1.labjp.xyz',
+  'https://blog.labjp.xyz',
   'https://labjp.xyz',
 ];
 
@@ -20,7 +20,7 @@ const CSP_DIRECTIVES = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: https: blob:",
-  "connect-src 'self' https://blog1.labjp.xyz https://fonts.googleapis.com",
+  "connect-src 'self' https://blog.labjp.xyz https://fonts.googleapis.com",
   "frame-ancestors 'self'",
   "form-action 'self'",
   "base-uri 'self'",
