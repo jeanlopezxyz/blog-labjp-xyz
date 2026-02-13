@@ -2,7 +2,7 @@
 title: "eBPF + IA + Kubernetes: Detección de Amenazas en Tiempo Real para Cloud Native"
 description: "Combina eBPF para observabilidad a nivel kernel con Inteligencia Artificial para detectar ataques DDoS, escaneos de puertos y amenazas en tiempo real sin impactar el rendimiento."
 pubDate: 2025-08-22
-image: "/images/blog/ebpf-ia-kubernetes.webp"
+image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=630&fit=crop"
 tags: ["ebpf", "ia", "kubernetes", "seguridad", "cloud-native", "observability"]
 categories: ["kubernetes", "cloud-native", "ia"]
 featured: true
