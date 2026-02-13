@@ -2,14 +2,12 @@
 import { Icon } from "astro-icon/components";
 import { NAV_ITEMS, CATEGORIES, RSS_URL } from "@/lib/constants";
 import { getLangFromUrl, useTranslations, getLocalizedPath, languages, defaultLang } from "@/i18n";
-import FlagES from "@/components/icons/FlagES.astro";
-import FlagUS from "@/components/icons/FlagUS.astro";
 
-// Componentes de banderas nativas
-const FLAG_COMPONENTS = {
-  es: FlagES,
-  en: FlagUS,
-};
+// Language display names (short codes)
+const LANG_CODES = {
+  es: "ES",
+  en: "EN",
+} as const;
 
 // Función para obtener URL del idioma alternativo (mantiene la página actual)
 function getLangSwitchUrl(targetLang: string, currentLang: string, pathname: string): string {
@@ -148,34 +146,32 @@ const getNavLabel = (key: string) => t(key as any);
         <div class="relative" id="lang-dropdown-container">
           <button
             id="lang-toggle"
-            class="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+            class="flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
             aria-label={t('nav.langToggle')}
             aria-expanded="false"
             aria-haspopup="true"
           >
-            <Icon name="mdi:translate" class="w-5 h-5" aria-hidden="true" />
+            <span>{LANG_CODES[lang as keyof typeof LANG_CODES]}</span>
+            <Icon name="mdi:chevron-down" class="w-4 h-4" aria-hidden="true" />
           </button>
           <div
             id="lang-dropdown"
-            class="hidden absolute right-0 mt-2 w-36 bg-card border border-border rounded-lg shadow-lg py-1 z-50"
+            class="hidden absolute right-0 mt-2 w-32 bg-card border border-border rounded-lg shadow-lg py-1 z-50"
             role="menu"
           >
-            {Object.entries(languages).map(([langCode, langName]) => {
-              const FlagComponent = FLAG_COMPONENTS[langCode as keyof typeof FLAG_COMPONENTS];
-              return (
-                <a
-                  href={getLangSwitchUrl(langCode, lang, pathname)}
-                  class:list={[
-                    "flex items-center gap-2 px-4 py-2 text-sm transition-colors",
-                    lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                  ]}
-                  role="menuitem"
-                >
-                  <FlagComponent class="w-5 h-5 rounded-full" />
-                  {langName}
-                </a>
-              );
-            })}
+            {Object.entries(languages).map(([langCode, langName]) => (
+              <a
+                href={getLangSwitchUrl(langCode, lang, pathname)}
+                class:list={[
+                  "flex items-center justify-between px-4 py-2 text-sm transition-colors",
+                  lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                ]}
+                role="menuitem"
+              >
+                <span>{langName}</span>
+                <span class="text-xs opacity-60">{LANG_CODES[langCode as keyof typeof LANG_CODES]}</span>
+              </a>
+            ))}
           </div>
         </div>
 
