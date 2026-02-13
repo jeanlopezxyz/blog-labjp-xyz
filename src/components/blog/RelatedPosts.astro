@@ -1,0 +1,99 @@
+---
+/**
+ * RelatedPosts Component
+ * Shows related posts based on matching categories/tags
+ */
+import { getCollection } from "astro:content";
+import { Icon } from "astro-icon/components";
+import { calculateReadingTime, getRelativeTime } from "@/lib/utils";
+import { useTranslations, normalizeSlug, isPostForLang, type Lang } from "@/i18n";
+
+interface Props {
+  currentSlug: string;
+  categories: string[];
+  tags?: string[];
+  lang: Lang;
+  limit?: number;
+}
+
+const { currentSlug, categories, tags = [], lang, limit = 3 } = Astro.props;
+const t = useTranslations(lang);
+const basePath = lang === 'es' ? '/es/blog' : '/en/blog';
+
+// Get all posts for the current language
+const allPosts = await getCollection("blog", ({ id, data }) => {
+  if (data.draft) return false;
+  return isPostForLang(id, lang);
+});
+
+// Score posts by relevance
+const scoredPosts = allPosts
+  .filter(post => normalizeSlug(post.slug) !== normalizeSlug(currentSlug))
+  .map(post => {
+    let score = 0;
+
+    // Category matches (higher weight)
+    const postCategories = post.data.categories || [];
+    for (const cat of categories) {
+      if (postCategories.includes(cat)) score += 3;
+    }
+
+    // Tag matches
+    const postTags = post.data.tags || [];
+    for (const tag of tags) {
+      if (postTags.includes(tag)) score += 1;
+    }
+
+    return { post, score };
+  })
+  .filter(({ score }) => score > 0)
+  .sort((a, b) => {
+    // Sort by score first, then by date
+    if (b.score !== a.score) return b.score - a.score;
+    return b.post.data.pubDate.valueOf() - a.post.data.pubDate.valueOf();
+  })
+  .slice(0, limit);
+
+const relatedPosts = scoredPosts.map(({ post }) => post);
+---
+
+{relatedPosts.length > 0 && (
+  <section class="mt-12 pt-8 border-t border-border">
+    <h2 class="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+      <Icon name="mdi:post-outline" class="w-5 h-5 text-primary" />
+      {lang === 'es' ? 'Artículos relacionados' : 'Related articles'}
+    </h2>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {relatedPosts.map((post) => (
+        <a
+          href={`${basePath}/${normalizeSlug(post.slug)}`}
+          class="group block p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/50 transition-all"
+        >
+          {post.data.image && (
+            <div class="aspect-video rounded-lg overflow-hidden mb-3 bg-muted">
+              <img
+                src={post.data.image}
+                alt={post.data.title}
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            </div>
+          )}
+
+          <h3 class="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
+            {post.data.title}
+          </h3>
+
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <time datetime={post.data.pubDate.toISOString()}>
+              {getRelativeTime(post.data.pubDate, lang)}
+            </time>
+            <span>·</span>
+            <span>{calculateReadingTime(post.body ?? "")} min</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}

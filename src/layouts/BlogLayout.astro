@@ -5,6 +5,7 @@ import TableOfContents from "@/components/blog/TableOfContents.astro";
 import ViewTracker from "@/components/effects/ViewTracker.astro";
 import ReadingProgress from "@/components/effects/ReadingProgress.astro";
 import CommentsSection from "@/components/ui/CommentsSection.astro";
+import RelatedPosts from "@/components/blog/RelatedPosts.astro";
 import type { CollectionEntry } from "astro:content";
 import { SITE } from "@/lib/constants";
 
@@ -17,12 +18,15 @@ interface Props {
 }
 
 const { post, readingTime, lang = defaultLang } = Astro.props;
-const { title, description, pubDate, tags, image } = post.data;
+const { title, description, pubDate, updatedDate, tags, categories, image } = post.data;
 const { headings } = await post.render();
 const hasToC = headings.length > 0;
 
 // Normalize slug for tracking (remove any language prefix)
 const cleanSlug = normalizeSlug(post.slug);
+
+// Use updatedDate if available, otherwise use pubDate
+const modifiedDate = updatedDate || pubDate;
 
 // JSON-LD Structured Data for SEO
 const jsonLd = {
@@ -32,7 +36,7 @@ const jsonLd = {
   "description": description,
   "image": image ? new URL(image, SITE.url).href : undefined,
   "datePublished": pubDate.toISOString(),
-  "dateModified": pubDate.toISOString(),
+  "dateModified": modifiedDate.toISOString(),
   "author": {
     "@type": "Person",
     "name": SITE.author,
@@ -82,6 +86,7 @@ const jsonLd = {
           title={title}
           description={description}
           pubDate={pubDate}
+          updatedDate={updatedDate}
           tags={tags}
           readingTime={readingTime}
           slug={cleanSlug}
@@ -101,6 +106,14 @@ const jsonLd = {
         <div class="prose prose-lg max-w-none mt-8">
           <slot />
         </div>
+
+        <!-- Related Posts -->
+        <RelatedPosts
+          currentSlug={cleanSlug}
+          categories={categories || []}
+          tags={tags || []}
+          lang={lang}
+        />
 
         <!-- Comments Section -->
         <CommentsSection slug={cleanSlug} lang={lang} />

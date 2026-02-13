@@ -405,6 +405,8 @@ const getNavLabel = (key: string) => t(key as any);
     }
 
     let posts: SearchPost[] = [];
+    let selectedIndex = -1;
+    let debounceTimer: ReturnType<typeof setTimeout>;
     const { t } = window.__i18n;
 
     fetch('/search.json')
@@ -417,13 +419,13 @@ const getNavLabel = (key: string) => t(key as any);
         // Silent fail - search will show no results
       });
 
-    searchInput?.addEventListener("input", (e) => {
-      const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
-
+    // Debounced search function
+    function performSearch(query: string) {
       if (!query) {
         if (searchResults) {
           searchResults.innerHTML = `<p class="text-sm text-muted-foreground text-center py-8">${t['search.typing']}</p>`;
         }
+        selectedIndex = -1;
         return;
       }
 
@@ -434,16 +436,24 @@ const getNavLabel = (key: string) => t(key as any);
       );
 
       if (searchResults) {
+        selectedIndex = -1;
         if (filtered.length === 0) {
           searchResults.innerHTML = `<p class="text-sm text-muted-foreground text-center py-8">${t['search.noResults']}</p>`;
         } else {
-          // Use textContent to prevent XSS
           searchResults.innerHTML = '';
-          filtered.forEach(post => {
+
+          // Result count
+          const countDiv = document.createElement('div');
+          countDiv.className = 'text-xs text-muted-foreground px-3 py-2 border-b border-border';
+          countDiv.textContent = `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`;
+          searchResults.appendChild(countDiv);
+
+          filtered.slice(0, 10).forEach((post, index) => {
             const link = document.createElement('a');
             link.href = `/blog/${post.slug}`;
-            link.className = 'block p-3 rounded-lg hover:bg-muted focus:bg-muted focus:outline-none transition-colors';
+            link.className = 'search-result block p-3 rounded-lg hover:bg-muted focus:bg-muted focus:outline-none transition-colors';
             link.setAttribute('role', 'option');
+            link.setAttribute('data-index', String(index));
 
             const title = document.createElement('h3');
             title.className = 'font-medium text-foreground';
@@ -458,6 +468,45 @@ const getNavLabel = (key: string) => t(key as any);
             searchResults.appendChild(link);
           });
         }
+      }
+    }
+
+    // Update selected result styling
+    function updateSelection() {
+      const results = searchResults?.querySelectorAll('.search-result');
+      results?.forEach((el, i) => {
+        if (i === selectedIndex) {
+          el.classList.add('bg-muted');
+          el.scrollIntoView({ block: 'nearest' });
+        } else {
+          el.classList.remove('bg-muted');
+        }
+      });
+    }
+
+    searchInput?.addEventListener("input", (e) => {
+      const query = (e.target as HTMLInputElement).value.toLowerCase().trim();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => performSearch(query), 150);
+    });
+
+    // Keyboard navigation for search results
+    searchInput?.addEventListener("keydown", (e) => {
+      const results = searchResults?.querySelectorAll('.search-result');
+      if (!results || results.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+        updateSelection();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, 0);
+        updateSelection();
+      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        const selectedLink = results[selectedIndex] as HTMLAnchorElement;
+        if (selectedLink) window.location.href = selectedLink.href;
       }
     });
 

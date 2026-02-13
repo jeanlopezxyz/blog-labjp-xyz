@@ -3,6 +3,7 @@ import "@/styles/global.css";
 import { SITE, SOCIAL } from "@/lib/constants";
 import Header from "@/components/layout/Header.astro";
 import Footer from "@/components/layout/Footer.astro";
+import ScrollToTop from "@/components/ui/ScrollToTop.astro";
 import { getLangFromUrl, useTranslations, getClientI18n, type Lang } from "@/i18n";
 
 interface Props {
@@ -264,8 +265,8 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@jeanpaulvgc" />
-    <meta name="twitter:creator" content="@jeanpaulvgc" />
+    <meta name="twitter:site" content="@jeanlopezxyz" />
+    <meta name="twitter:creator" content="@jeanlopezxyz" />
     <meta name="twitter:url" content={canonicalUrl} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={finalDescription} />
@@ -315,6 +316,7 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
       <slot />
     </main>
     <Footer lang={lang} />
+    <ScrollToTop />
   </body>
 </html>
 

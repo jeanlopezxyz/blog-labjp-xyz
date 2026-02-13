@@ -1,0 +1,72 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Icon } from "astro-icon/components";
+import { getLangFromUrl, useTranslations, getLocalizedPath } from "@/i18n";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<BaseLayout title="404 - Página no encontrada" description="La página que buscas no existe" lang={lang}>
+  <div class="min-h-[60vh] flex items-center justify-center px-4">
+    <div class="text-center max-w-md">
+      <div class="mb-8">
+        <span class="text-8xl font-bold text-primary/20">404</span>
+      </div>
+
+      <h1 class="text-2xl font-bold text-foreground mb-4">
+        {lang === 'es' ? 'Página no encontrada' : 'Page not found'}
+      </h1>
+
+      <p class="text-muted-foreground mb-8">
+        {lang === 'es'
+          ? 'Lo sentimos, la página que buscas no existe o ha sido movida.'
+          : 'Sorry, the page you are looking for does not exist or has been moved.'}
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a
+          href={getLocalizedPath('/', lang)}
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors"
+        >
+          <Icon name="mdi:home" class="w-5 h-5" />
+          {lang === 'es' ? 'Ir al inicio' : 'Go home'}
+        </a>
+
+        <a
+          href={getLocalizedPath('/blog', lang)}
+          class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-muted text-foreground font-medium rounded-lg hover:bg-muted/80 transition-colors"
+        >
+          <Icon name="mdi:post-outline" class="w-5 h-5" />
+          {lang === 'es' ? 'Ver artículos' : 'View articles'}
+        </a>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-border">
+        <p class="text-sm text-muted-foreground mb-4">
+          {lang === 'es' ? '¿Buscas algo específico?' : 'Looking for something specific?'}
+        </p>
+        <button
+          id="open-search-404"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+        >
+          <Icon name="mdi:magnify" class="w-4 h-4" />
+          {lang === 'es' ? 'Buscar en el blog' : 'Search the blog'}
+          <kbd class="hidden sm:inline-flex px-2 py-0.5 text-xs bg-muted rounded">⌘K</kbd>
+        </button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  document.getElementById('open-search-404')?.addEventListener('click', () => {
+    const searchModal = document.getElementById('search-modal');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    if (searchModal) {
+      searchModal.classList.remove('hidden');
+      searchModal.classList.add('flex');
+      searchInput?.focus();
+    }
+  });
+</script>
