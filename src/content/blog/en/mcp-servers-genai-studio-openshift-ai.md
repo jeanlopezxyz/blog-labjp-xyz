@@ -2,7 +2,7 @@
 title: "My Experience Building an Operations Agent with MCP Servers and Gen AI Studio on OpenShift AI 3.2"
 description: "How I built an operations assistant with 4 MCP Servers (Prometheus, Alertmanager, Kubernetes, Red Hat KB) using the new Tech Preview features from Red Hat OpenShift AI 3.2 and Gen AI Studio."
 pubDate: 2026-02-13
-image: "/images/blog/mcp-genai-studio/gen-ai-mcp-servers.png"
+image: "/images/blog/mcp-genai-studio/cover.webp"
 tags: ["openshift-ai", "mcp", "genai-studio", "llama", "kubernetes", "prometheus", "alertmanager", "agentic-ai", "tech-preview"]
 categories: ["ia", "openshift", "kubernetes"]
 featured: true
