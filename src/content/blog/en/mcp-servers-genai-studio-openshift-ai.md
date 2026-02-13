@@ -4,7 +4,7 @@ description: "How I built an operations assistant with 4 MCP Servers (Prometheus
 pubDate: 2026-02-13
 image: "/images/blog/mcp-genai-studio/cover.webp"
 tags: ["openshift-ai", "mcp", "genai-studio", "llama", "kubernetes", "prometheus", "alertmanager", "agentic-ai", "tech-preview"]
-categories: ["ia", "openshift", "kubernetes"]
+categories: ["ia", "openshift"]
 featured: true
 lang: "en"
 ---
