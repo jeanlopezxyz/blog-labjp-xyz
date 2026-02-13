@@ -1,9 +1,21 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Icon } from "astro-icon/components";
-import { SITE, SOCIAL } from "@/lib/constants";
+import { SITE, SOCIAL, CERTIFICATIONS, COMMUNITIES, STATS } from "@/lib/constants";
 
 const lang = 'en';
+
+const socialLinks = [
+  { href: SOCIAL.github, icon: "mdi:github", label: "GitHub", handle: "@jeanlopezxyz" },
+  { href: SOCIAL.linkedin, icon: "mdi:linkedin", label: "LinkedIn", handle: "jean-paul-lopez" },
+  { href: SOCIAL.twitter, icon: "mdi:twitter", label: "X", handle: "@jeanlopezxyz" },
+];
+
+// English translations for communities
+const communitiesEn = COMMUNITIES.map(c => ({
+  ...c,
+  role: c.role === 'Co-Organizador' ? 'Co-Organizer' : 'Program Manager'
+}));
 ---
 
 <BaseLayout
@@ -11,126 +23,167 @@ const lang = 'en';
   description={`Learn more about ${SITE.author} and the blog blog.labjp.xyz`}
   lang={lang}
 >
-  <article class="max-w-2xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
 
-    <!-- Title -->
-    <h1 class="text-3xl lg:text-4xl font-bold tracking-tight mb-8">
-      About <em class="not-italic text-primary">blog.labjp.xyz</em>
-    </h1>
-
-    <!-- About the publication -->
-    <div class="prose prose-lg max-w-none space-y-4 mb-12">
-      <p>
-        <em class="text-primary">blog.labjp.xyz</em> documents how cloud native architecture evolves in enterprise environments.
+    <!-- Hero Section -->
+    <header class="text-center mb-12">
+      <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center ring-2 ring-primary/20">
+        <Icon name="mdi:account" class="w-12 h-12 text-primary" />
+      </div>
+      <h1 class="text-3xl lg:text-4xl font-bold tracking-tight mb-2">
+        {SITE.author}
+      </h1>
+      <p class="text-lg text-muted-foreground">
+        Senior Consultant @ <span class="text-[#EE0000] font-medium">Red Hat</span>
       </p>
-
-      <p>
-        It's not a news feed or a framework showcase.
-        It's a growing map of patterns that help large systems evolve without breaking.
+      <p class="text-sm text-muted-foreground mt-1">
+        Peru
       </p>
+    </header>
 
-      <p>The focus is on:</p>
-
-      <ul class="space-y-2">
-        <li>Kubernetes and OpenShift for enterprise environments</li>
-        <li>Cloud native architectures and pragmatic design decisions</li>
-        <li>AI systems integrated with Java</li>
-        <li>Developer experience as a design constraint</li>
-      </ul>
-
-      <p>
-        I write for people who design systems that must survive real production pressure.
-      </p>
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div class="text-center p-4 rounded-xl bg-card/50 border border-border/50">
+        <div class="text-2xl font-bold text-primary">{STATS.yearsExperience}+</div>
+        <div class="text-xs text-muted-foreground uppercase tracking-wide">Years Experience</div>
+      </div>
+      <div class="text-center p-4 rounded-xl bg-card/50 border border-border/50">
+        <div class="text-2xl font-bold text-primary">{STATS.certifications}</div>
+        <div class="text-xs text-muted-foreground uppercase tracking-wide">Certifications</div>
+      </div>
+      <div class="text-center p-4 rounded-xl bg-card/50 border border-border/50">
+        <div class="text-2xl font-bold text-primary">{STATS.projectsDelivered}+</div>
+        <div class="text-xs text-muted-foreground uppercase tracking-wide">Projects</div>
+      </div>
+      <div class="text-center p-4 rounded-xl bg-card/50 border border-border/50">
+        <div class="text-2xl font-bold text-primary">{STATS.communitySpeaks}+</div>
+        <div class="text-xs text-muted-foreground uppercase tracking-wide">Talks</div>
+      </div>
     </div>
 
-    <!-- About Me -->
-    <h3 class="text-xl font-bold tracking-tight mb-4">About Me</h3>
+    <!-- About Section -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <Icon name="mdi:account-outline" class="w-5 h-5 text-primary" />
+        About Me
+      </h2>
+      <div class="prose prose-lg max-w-none text-muted-foreground space-y-4">
+        <p>
+          I'm Jean Paul Lopez, Senior Consultant at Red Hat with over 8 years in enterprise software.
+          I help companies adopt Kubernetes, OpenShift, and cloud native architectures.
+        </p>
+        <p>
+          Everything I share here is in a personal capacity. This blog is my working notebook for modern architecture.
+        </p>
+      </div>
+    </section>
 
-    <div class="prose prose-lg max-w-none space-y-4 mb-12">
-      <p>
-        I'm Jean Paul Lopez.
-        Senior Consultant at Red Hat with over 8 years in enterprise software.
-      </p>
+    <!-- About the Blog -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <Icon name="mdi:post-outline" class="w-5 h-5 text-primary" />
+        About the Blog
+      </h2>
+      <div class="prose prose-lg max-w-none text-muted-foreground space-y-4">
+        <p>
+          <strong class="text-foreground">blog.labjp.xyz</strong> documents how cloud native architecture evolves in enterprise environments.
+          It's a growing map of patterns that help large systems evolve without breaking.
+        </p>
+        <p>The focus is on:</p>
+        <ul class="space-y-1">
+          <li>Kubernetes and OpenShift for enterprise environments</li>
+          <li>Cloud native architectures and pragmatic design decisions</li>
+          <li>AI systems integrated with Java</li>
+          <li>Developer experience as a design constraint</li>
+        </ul>
+      </div>
+    </section>
 
-      <p>
-        I help companies adopt Kubernetes, OpenShift, and cloud native architectures.
-        Everything I share here is in a personal capacity.
-      </p>
+    <!-- Certifications -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <Icon name="mdi:certificate-outline" class="w-5 h-5 text-primary" />
+        Certifications
+      </h2>
+      <div class="flex flex-wrap gap-2">
+        {CERTIFICATIONS.map((cert) => (
+          <div
+            class="group relative px-3 py-2 rounded-lg bg-card/50 border border-border/50 hover:border-primary/50 transition-colors cursor-default"
+            title={cert.fullName}
+          >
+            <span class="font-mono font-bold text-sm text-foreground">{cert.name}</span>
+            <span class="text-xs text-muted-foreground ml-1">• {cert.issuer}</span>
+          </div>
+        ))}
+      </div>
+    </section>
 
-      <p>
-        This blog is not an opinion outlet.
-        It's my working notebook for modern architecture.
-      </p>
-    </div>
+    <!-- Communities -->
+    <section class="mb-12">
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <Icon name="mdi:account-group-outline" class="w-5 h-5 text-primary" />
+        Communities
+      </h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        {communitiesEn.map((community) => (
+          <a
+            href={community.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-4 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-card/80 transition-all group"
+          >
+            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Icon
+                name={community.logo === 'kubernetes' ? 'simple-icons:kubernetes' : 'simple-icons:cncf'}
+                class="w-6 h-6 text-primary"
+              />
+            </div>
+            <div>
+              <div class="font-semibold text-foreground group-hover:text-primary transition-colors">
+                {community.name}
+              </div>
+              <div class="text-sm text-muted-foreground">{community.role}</div>
+            </div>
+            <Icon name="mdi:open-in-new" class="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+          </a>
+        ))}
+      </div>
+    </section>
 
-    <!-- What You Will Find -->
-    <h3 class="text-xl font-bold tracking-tight mb-4">What You'll Find</h3>
+    <!-- Connect -->
+    <section>
+      <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+        <Icon name="mdi:link-variant" class="w-5 h-5 text-primary" />
+        Connect
+      </h2>
+      <div class="grid sm:grid-cols-3 gap-4">
+        {socialLinks.map((link) => (
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-3 p-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-card/80 transition-all group"
+          >
+            <Icon name={link.icon} class="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+            <div>
+              <div class="text-sm font-medium text-foreground">{link.label}</div>
+              <div class="text-xs text-muted-foreground">{link.handle}</div>
+            </div>
+          </a>
+        ))}
+      </div>
 
-    <div class="prose prose-lg max-w-none space-y-4 mb-12">
-      <p>You won't find content that chases trends.</p>
-
-      <p>You'll find:</p>
-
-      <ul class="space-y-2">
-        <li>Architecture patterns that scale beyond tutorials</li>
-        <li>Practical guides for modernizing large Java systems</li>
-        <li>Deep dives into Kubernetes, OpenShift, GitOps, and AI</li>
-        <li>Real trade-off analysis in platforms</li>
-      </ul>
-
-      <p>
-        Each article is connected to others through shared concepts and patterns.
-      </p>
-    </div>
-
-    <!-- Why Subscribe -->
-    <h3 class="text-xl font-bold tracking-tight mb-4">Why Subscribe</h3>
-
-    <div class="prose prose-lg max-w-none space-y-4 mb-12">
-      <p>Because code alone doesn't modernize systems.</p>
-
-      <p>Subscribers get:</p>
-
-      <ul class="space-y-2">
-        <li>Writing focused on what truly matters in enterprise architecture</li>
-        <li>Access to the complete archive of tutorials and essays</li>
-        <li>A steady stream of architectural thinking, not weekly noise</li>
-      </ul>
-
-      <p class="font-semibold">
-        Write boring code. Deploy exciting systems.
-      </p>
-    </div>
-
-    <!-- Stay Connected -->
-    <h3 class="text-xl font-bold tracking-tight mb-4">Connect</h3>
-
-    <ul class="space-y-3 text-base">
-      <li>
-        <strong>GitHub:</strong>{" "}
-        <a href={SOCIAL.github} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
-          @jeanlopezxyz
+      <!-- RSS -->
+      <div class="mt-4">
+        <a
+          href="/rss.xml"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Icon name="mdi:rss" class="w-5 h-5" />
+          Subscribe via RSS
         </a>
-      </li>
-      <li>
-        <strong>LinkedIn:</strong>{" "}
-        <a href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
-          jean-paul-lopez
-        </a>
-      </li>
-      <li>
-        <strong>X:</strong>{" "}
-        <a href={SOCIAL.twitter} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
-          @jeanlopezxyz
-        </a>
-      </li>
-      <li>
-        <strong>RSS:</strong>{" "}
-        <a href="/rss.xml" class="text-primary hover:underline">
-          blog.labjp.xyz/rss.xml
-        </a>
-      </li>
-    </ul>
+      </div>
+    </section>
 
-  </article>
+  </div>
 </BaseLayout>
