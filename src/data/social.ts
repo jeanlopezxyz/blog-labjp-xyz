@@ -12,7 +12,7 @@ export const socialLinks: SocialLink[] = [
   },
   {
     name: "LinkedIn",
-    url: "https://linkedin.com/in/jeanlopezxyz",
+    url: "https://linkedin.com/in/jean-paul-lopez",
     icon: "mdi:linkedin",
   },
   {

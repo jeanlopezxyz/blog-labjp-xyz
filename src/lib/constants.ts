@@ -21,7 +21,7 @@ export const SITE = {
 
 export const SOCIAL = {
   github: "https://github.com/jeanlopezxyz",
-  linkedin: "https://linkedin.com/in/jeanlopezxyz",
+  linkedin: "https://linkedin.com/in/jean-paul-lopez",
   twitter: "https://x.com/jeanlopezxyz",
 } as const;
 
