@@ -103,12 +103,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   };
 
   // Skip language redirect for API routes, assets, and already localized paths
-  // But still add security headers for non-API routes
   if (url.pathname.startsWith('/api/')) {
     return next(); // API has its own CORS handling
   }
 
+  // Already localized paths - just add security headers
   if (
+    url.pathname.startsWith('/es/') ||
     url.pathname.startsWith('/en/') ||
     url.pathname.startsWith('/_') ||
     url.pathname.includes('.') // Static assets
@@ -117,48 +118,29 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     return addSecurityHeaders(response);
   }
 
-  // Check if user has language preference cookie
-  const cookies = request.headers.get('Cookie') || '';
-  const hasLangPreference = cookies.includes('lang_preference=');
-
-  if (hasLangPreference) {
-    const response = await next();
-    return addSecurityHeaders(response);
-  }
-
   // Get country from Cloudflare headers
   const country = request.headers.get('CF-IPCountry') || 'XX';
 
-  // If not from Spanish-speaking country and visiting root paths, suggest English
-  if (!SPANISH_COUNTRIES.has(country)) {
-    // Only redirect on first visit to homepage or main sections
-    const isMainPath = url.pathname === '/' ||
-      url.pathname === '/blog' ||
-      url.pathname === '/about' ||
-      url.pathname.startsWith('/category/');
+  // Determine language based on country
+  const isSpanishCountry = SPANISH_COUNTRIES.has(country);
+  const targetLang = isSpanishCountry ? 'es' : 'en';
 
-    if (isMainPath) {
-      // Set cookie to remember preference and redirect
-      const englishUrl = `/en${url.pathname}${url.search}`;
-      const response = new Response(null, {
-        status: 302,
-        headers: {
-          'Location': englishUrl,
-          'Set-Cookie': `lang_preference=en; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Strict; Secure`,
-          ...SECURITY_HEADERS
-        }
-      });
-      return response;
-    }
-  } else {
-    // Set Spanish preference cookie
-    const response = await next();
-    const newResponse = addSecurityHeaders(response);
-    newResponse.headers.append(
-      'Set-Cookie',
-      `lang_preference=es; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Strict; Secure`
-    );
-    return newResponse;
+  // Check if visiting root or non-localized paths that need redirect
+  const needsRedirect = url.pathname === '/' ||
+    url.pathname === '/blog' ||
+    url.pathname === '/about' ||
+    url.pathname.startsWith('/category/');
+
+  if (needsRedirect) {
+    // Silent 302 redirect to localized version
+    const localizedUrl = `/${targetLang}${url.pathname === '/' ? '/' : url.pathname}${url.search}`;
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': localizedUrl,
+        ...SECURITY_HEADERS
+      }
+    });
   }
 
   const response = await next();
