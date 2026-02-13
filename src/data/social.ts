@@ -7,17 +7,17 @@ export interface SocialLink {
 export const socialLinks: SocialLink[] = [
   {
     name: "GitHub",
-    url: "https://github.com/jeanpaullopez",
+    url: "https://github.com/jeanlopezxyz",
     icon: "mdi:github",
   },
   {
     name: "LinkedIn",
-    url: "https://linkedin.com/in/jeanpaullopez",
+    url: "https://linkedin.com/in/jeanlopezxyz",
     icon: "mdi:linkedin",
   },
   {
-    name: "Twitter",
-    url: "https://twitter.com/jeanpaullopez",
+    name: "X",
+    url: "https://x.com/jeanlopezxyz",
     icon: "mdi:twitter",
   },
   {

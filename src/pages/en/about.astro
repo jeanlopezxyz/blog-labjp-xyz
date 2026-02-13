@@ -1,0 +1,136 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Icon } from "astro-icon/components";
+import { SITE, SOCIAL } from "@/lib/constants";
+
+const lang = 'en';
+---
+
+<BaseLayout
+  title="About"
+  description={`Learn more about ${SITE.author} and the blog blog.labjp.xyz`}
+  lang={lang}
+>
+  <article class="max-w-2xl mx-auto px-4 sm:px-6 py-12 lg:py-16">
+
+    <!-- Title -->
+    <h1 class="text-3xl lg:text-4xl font-bold tracking-tight mb-8">
+      About <em class="not-italic text-primary">blog.labjp.xyz</em>
+    </h1>
+
+    <!-- About the publication -->
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>
+        <em class="text-primary">blog.labjp.xyz</em> documents how cloud native architecture evolves in enterprise environments.
+      </p>
+
+      <p>
+        It's not a news feed or a framework showcase.
+        It's a growing map of patterns that help large systems evolve without breaking.
+      </p>
+
+      <p>The focus is on:</p>
+
+      <ul class="space-y-2">
+        <li>Kubernetes and OpenShift for enterprise environments</li>
+        <li>Cloud native architectures and pragmatic design decisions</li>
+        <li>AI systems integrated with Java</li>
+        <li>Developer experience as a design constraint</li>
+      </ul>
+
+      <p>
+        I write for people who design systems that must survive real production pressure.
+      </p>
+    </div>
+
+    <!-- About Me -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">About Me</h3>
+
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>
+        I'm Jean Paul Lopez.
+        Senior Consultant at Red Hat with over 8 years in enterprise software.
+      </p>
+
+      <p>
+        I help companies adopt Kubernetes, OpenShift, and cloud native architectures.
+        Everything I share here is in a personal capacity.
+      </p>
+
+      <p>
+        This blog is not an opinion outlet.
+        It's my working notebook for modern architecture.
+      </p>
+    </div>
+
+    <!-- What You Will Find -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">What You'll Find</h3>
+
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>You won't find content that chases trends.</p>
+
+      <p>You'll find:</p>
+
+      <ul class="space-y-2">
+        <li>Architecture patterns that scale beyond tutorials</li>
+        <li>Practical guides for modernizing large Java systems</li>
+        <li>Deep dives into Kubernetes, OpenShift, GitOps, and AI</li>
+        <li>Real trade-off analysis in platforms</li>
+      </ul>
+
+      <p>
+        Each article is connected to others through shared concepts and patterns.
+      </p>
+    </div>
+
+    <!-- Why Subscribe -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">Why Subscribe</h3>
+
+    <div class="prose prose-lg max-w-none space-y-4 mb-12">
+      <p>Because code alone doesn't modernize systems.</p>
+
+      <p>Subscribers get:</p>
+
+      <ul class="space-y-2">
+        <li>Writing focused on what truly matters in enterprise architecture</li>
+        <li>Access to the complete archive of tutorials and essays</li>
+        <li>A steady stream of architectural thinking, not weekly noise</li>
+      </ul>
+
+      <p class="font-semibold">
+        Write boring code. Deploy exciting systems.
+      </p>
+    </div>
+
+    <!-- Stay Connected -->
+    <h3 class="text-xl font-bold tracking-tight mb-4">Connect</h3>
+
+    <ul class="space-y-3 text-base">
+      <li>
+        <strong>GitHub:</strong>{" "}
+        <a href={SOCIAL.github} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+          @jeanlopezxyz
+        </a>
+      </li>
+      <li>
+        <strong>LinkedIn:</strong>{" "}
+        <a href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+          @jeanlopezxyz
+        </a>
+      </li>
+      <li>
+        <strong>X:</strong>{" "}
+        <a href={SOCIAL.twitter} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+          @jeanlopezxyz
+        </a>
+      </li>
+      <li>
+        <strong>RSS:</strong>{" "}
+        <a href="/rss.xml" class="text-primary hover:underline">
+          blog.labjp.xyz/rss.xml
+        </a>
+      </li>
+    </ul>
+
+  </article>
+</BaseLayout>
