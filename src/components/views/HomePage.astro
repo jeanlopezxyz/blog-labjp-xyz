@@ -47,7 +47,7 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
 
           <!-- Featured Post (Left) -->
           {featuredPost && (
-            <article class="group" data-post-id={featuredPostId}>
+            <article class="group p-5 bg-card/50 border border-border/50 rounded-xl hover:bg-card/80 hover:border-border transition-all duration-300" data-post-id={featuredPostId}>
               <a href={getBlogUrl(featuredPost.slug)} class="block">
                 {featuredPost.data.image && (
                   <div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-muted">
