@@ -10,7 +10,7 @@ import SocialActions from "@/components/ui/SocialActions.astro";
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { calculateReadingTime, getCategoryInfo, getRelativeTime } from "@/lib/utils";
-import { useTranslations, defaultLang, normalizeSlug, slugToPostId, isPostForLang, type Lang } from "@/i18n";
+import { useTranslations, normalizeSlug, slugToPostId, isPostForLang, type Lang } from "@/i18n";
 
 interface Props {
   lang: Lang;
@@ -19,9 +19,8 @@ interface Props {
 
 const { lang, category } = Astro.props;
 const t = useTranslations(lang);
-const isDefault = lang === defaultLang;
-const basePath = isDefault ? '/blog' : `/${lang}/blog`;
-const homePath = isDefault ? '/' : `/${lang}`;
+const basePath = `/${lang}/blog`;
+const homePath = `/${lang}`;
 
 const { color, icon, label } = getCategoryInfo(category);
 
