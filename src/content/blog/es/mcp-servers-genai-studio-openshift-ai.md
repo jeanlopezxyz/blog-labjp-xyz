@@ -146,7 +146,7 @@ spec:
 
 Una vez desplegado, verificamos que aparece en Gen AI Studio:
 
-![Gen AI Studio - Models Tab](/images/blog/mcp-genai-studio/gen-ai-models-tab.png)
+![Captura de pantalla de Gen AI Studio mostrando el modelo Llama 3.2 3B con estado Active en la pestaña Models](/images/blog/mcp-genai-studio/gen-ai-models-tab.webp)
 *El modelo Llama 3.2 3B aparece con estado "Active" en Gen AI Studio.*
 
 ## Paso 2: Desplegar los MCP Servers
@@ -241,7 +241,7 @@ data:
 
 Cuando registré los servidores por primera vez, el Kubernetes MCP Server mostraba "Token Required":
 
-![MCP Servers - Antes del fix](/images/blog/mcp-genai-studio/gen-ai-mcp-servers-initial.png)
+![Captura de Gen AI Studio con 4 MCP servers registrados, Kubernetes MCP Server muestra error Token Required](/images/blog/mcp-genai-studio/gen-ai-mcp-servers-initial.webp)
 *El Kubernetes MCP Server mostraba "Token Required" — un problema de transporte MCP.*
 
 El problema era que estaba usando `/sse` pero Gen AI Studio esperaba `/mcp` para Streamable HTTP. La solución fue verificar qué transporte usa cada servidor:
@@ -254,17 +254,17 @@ curl -X POST https://tu-mcp-server.apps.example.com/mcp
 
 Después del fix, todos los servidores aparecen como "Active":
 
-![Gen AI Studio - MCP Servers](/images/blog/mcp-genai-studio/gen-ai-mcp-servers.png)
+![Panel de MCP Servers en Gen AI Studio mostrando Prometheus, Alertmanager, Kubernetes y Red Hat KB con estado Active](/images/blog/mcp-genai-studio/gen-ai-mcp-servers.webp)
 *Los 4 MCP servers registrados y activos en Gen AI Studio.*
 
 ## Paso 4: Probando el Playground
 
 Con todo configurado, llegó el momento de la verdad. Abrí el Playground de Gen AI Studio y conecté los 4 MCP servers:
 
-![Playground - Inicial](/images/blog/mcp-genai-studio/gen-ai-playground.png)
+![Interfaz del Playground de Gen AI Studio con panel lateral mostrando 4 MCP servers disponibles para conectar](/images/blog/mcp-genai-studio/gen-ai-playground.webp)
 *El Playground con los 4 MCP servers disponibles para conectar.*
 
-![Playground - Conectado](/images/blog/mcp-genai-studio/gen-ai-playground-connected.png)
+![Playground de Gen AI Studio con 51 herramientas activas de los 4 MCP servers conectados, mostrando advertencia de rendimiento](/images/blog/mcp-genai-studio/gen-ai-playground-connected.webp)
 *51 herramientas activas — Gen AI Studio advierte sobre el impacto en rendimiento.*
 
 **La advertencia es real**: Con 51 herramientas, el modelo de 3B parámetros tiene que procesar mucha información en cada request. Para producción, recomendaría un modelo de 8B+ parámetros.
