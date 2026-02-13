@@ -135,7 +135,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const isMainPath = url.pathname === '/' ||
       url.pathname === '/blog' ||
       url.pathname === '/about' ||
-      url.pathname === '/notes' ||
       url.pathname.startsWith('/category/');
 
     if (isMainPath) {

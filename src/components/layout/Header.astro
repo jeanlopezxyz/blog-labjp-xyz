@@ -64,9 +64,9 @@ const getNavLabel = (key: string) => t(key as any);
 
       <!-- Center: Navigation (hidden on mobile/tablet, only show on xl screens) -->
       <nav class="hidden xl:flex items-center" aria-label={t('nav.mainNav')}>
-        <!-- Primary Nav: Home, Notes -->
+        <!-- Primary Nav: Home -->
         <ul class="flex items-center" role="list">
-          {NAV_ITEMS.filter(item => ['/', '/notes'].includes(item.href)).map((item) => (
+          {NAV_ITEMS.filter(item => ['/'].includes(item.href)).map((item) => (
             <li>
               <a
                 href={getLocalizedPath(item.href, lang)}
@@ -207,19 +207,6 @@ const getNavLabel = (key: string) => t(key as any);
               ]}
             >
               {t('nav.home')}
-            </a>
-          </li>
-          <li>
-            <a
-              href={getLocalizedPath('/notes', lang)}
-              class:list={[
-                "inline-flex items-center px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap",
-                isNavActive('/notes')
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground",
-              ]}
-            >
-              {t('nav.notes')}
             </a>
           </li>
           {CATEGORIES.map((cat) => {
