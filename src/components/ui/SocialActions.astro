@@ -223,6 +223,7 @@ const containerClasses = {
   import { initShareMenus, initCopyLinks, setupGlobalShareHandlers } from '@/scripts/share';
   import { escapeHtml, formatRelativeDate } from '@/scripts/utils';
   import { API_ENDPOINTS } from '@/lib/types';
+  import { sendLikeToAPI } from '@/scripts/visitor';
 
   // Track initialized elements to avoid duplicate handlers
   const initializedLikes = new WeakSet<HTMLElement>();
@@ -232,7 +233,7 @@ const containerClasses = {
 
   async function loadStats(postId: string, container: HTMLElement) {
     try {
-      const res = await fetch(`${API_ENDPOINTS.STATS}/${postId}`);
+      const res = await fetch(`${API_ENDPOINTS.STATS}?slug=${encodeURIComponent(postId)}`);
       if (res.ok) {
         const data = await res.json();
         const likeCount = container.querySelector('.like-count');
@@ -263,7 +264,7 @@ const containerClasses = {
     }
 
     try {
-      const res = await fetch(`${API_ENDPOINTS.COMMENTS}/${postId}`);
+      const res = await fetch(`${API_ENDPOINTS.COMMENTS}?slug=${encodeURIComponent(postId)}`);
       if (res.ok) {
         const comments = await res.json();
         if (loading) loading.classList.add('hidden');
@@ -387,10 +388,10 @@ const containerClasses = {
         }
 
         try {
-          const res = await fetch(`${API_ENDPOINTS.COMMENTS}/${postId}`, {
+          const res = await fetch(API_ENDPOINTS.COMMENTS, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ author, content })
+            body: JSON.stringify({ slug: postId, author, content })
           });
 
           if (res.ok) {
@@ -444,15 +445,7 @@ const containerClasses = {
         updateLikeUI(btn, isLiked);
 
         // Send to API
-        try {
-          await fetch(`${API_ENDPOINTS.LIKES}/${postId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: isLiked ? 'like' : 'unlike' })
-          });
-        } catch (e) {
-          // Silently fail
-        }
+        sendLikeToAPI(postId);
       });
     });
 
