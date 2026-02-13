@@ -2,7 +2,7 @@
 title: "Pasos para Ser un Golden Kubestronaut: Mi Experiencia Personal"
 description: "Guía completa sobre cómo convertirse en Kubestronaut y Golden Kubestronaut de la CNCF, con consejos prácticos y el orden recomendado para las certificaciones."
 pubDate: 2025-06-21
-image: "/images/blog/golden-kubestronaut.svg"
+image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1200&h=630&fit=crop"
 tags: ["golden-kubestronaut", "kubernetes", "cks", "cka", "ckad", "kubestronaut", "lfcs", "certificaciones"]
 categories: ["comunidad", "kubernetes"]
 featured: true

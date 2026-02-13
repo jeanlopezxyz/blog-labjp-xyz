@@ -2,7 +2,7 @@
 title: "Ansible Execution Environment: Optimizing Automation with Containers"
 description: "A practical guide to creating Ansible Execution Environments using ansible-builder and Red Hat UBI 9, solving the problem of inconsistent dependencies."
 pubDate: 2025-06-21
-image: "/images/blog/ansible-ee.svg"
+image: "https://images.unsplash.com/photo-1605745341112-85968b19335b?w=1200&h=630&fit=crop"
 tags: ["automation", "ansible", "containers", "aap", "execution-environment", "devops"]
 categories: ["devops", "cloud-native"]
 featured: false
