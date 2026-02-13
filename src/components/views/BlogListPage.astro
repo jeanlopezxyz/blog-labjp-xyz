@@ -94,7 +94,7 @@ function getPostUrl(slug: string) {
             {otherPosts.length > 0 && (
               <section class="pt-8 border-t border-border/30">
                 <ArticleTabs activeTab="latest" lang={lang} />
-                <div id="articles-list" class="divide-y divide-border/20">
+                <div id="articles-list" class="flex flex-col gap-4">
                   {otherPosts.map((post) => (
                     <PostCardHorizontal
                       title={post.data.title}
