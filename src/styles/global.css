@@ -417,9 +417,17 @@
   }
 }
 
-/* Prose styling for blog */
+/* Prose styling for blog - Clean & Professional */
 .prose {
   @apply max-w-none text-foreground;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  text-align: left;
 }
 
 .prose h1 {
@@ -427,74 +435,141 @@
 }
 
 .prose h2 {
-  @apply text-2xl font-semibold tracking-tight mt-10 mb-4 pb-3;
+  @apply text-2xl font-bold tracking-tight mt-12 mb-6;
+  @apply border-b border-border pb-3;
 }
 
 .prose h3 {
-  @apply text-xl font-semibold tracking-tight mt-8 mb-3;
+  @apply text-xl font-semibold tracking-tight mt-8 mb-4;
+  @apply text-primary;
+}
+
+.prose h4 {
+  @apply text-lg font-semibold mt-6 mb-3;
 }
 
 .prose p {
-  @apply leading-7 mb-4 text-foreground/90;
+  @apply leading-relaxed mb-5 text-foreground/90;
 }
 
 .prose a {
-  @apply text-primary underline underline-offset-4;
-  @apply hover:text-primary/80 transition-colors;
+  @apply text-primary font-medium no-underline;
+  @apply hover:underline hover:underline-offset-4 transition-all;
+}
+
+.prose strong {
+  @apply font-semibold text-foreground;
 }
 
 .prose ul, .prose ol {
-  @apply my-4 ml-6;
+  @apply my-5 ml-0 pl-6 space-y-2;
+  text-align: left;
 }
 
 .prose ul {
-  @apply list-disc;
+  @apply list-none;
+}
+
+.prose ul > li {
+  @apply relative pl-5;
+}
+
+.prose ul > li::before {
+  content: "▸";
+  @apply absolute left-0 text-primary font-bold;
 }
 
 .prose ol {
   @apply list-decimal;
 }
 
+.prose ol > li {
+  @apply pl-2;
+}
+
+.prose ol > li::marker {
+  @apply text-primary font-semibold;
+}
+
 .prose li {
-  @apply mt-2 text-foreground/90;
+  @apply text-foreground/90 leading-relaxed;
+}
+
+.prose li > ul, .prose li > ol {
+  @apply mt-2 mb-0;
 }
 
 .prose blockquote {
-  @apply mt-6 border-l-4 border-primary pl-6 italic text-muted-foreground;
+  @apply my-6 border-l-4 border-primary/60 pl-5 py-1;
+  @apply bg-muted/30 rounded-r-lg pr-4;
+  @apply text-foreground/80 not-italic;
+  text-align: left;
+}
+
+.prose blockquote p {
+  @apply mb-0;
 }
 
 .prose code {
-  @apply rounded-md bg-muted px-1.5 py-0.5 font-mono text-sm;
-  @apply border border-border;
+  @apply rounded bg-muted/80 px-1.5 py-0.5 font-mono text-sm;
+  @apply text-primary;
 }
 
 .prose pre {
-  @apply my-6 overflow-x-auto rounded-lg p-4;
-  @apply bg-[#0d1117] border-2 border-border;
+  @apply my-8 overflow-x-auto rounded-xl;
+  @apply bg-[#0d1117] border border-border/50;
+  @apply shadow-lg;
+  text-align: left;
 }
 
 .prose pre code {
-  @apply bg-transparent p-0 border-0;
+  @apply bg-transparent p-0 text-sm leading-relaxed;
+  @apply block p-5;
+  color: #e6edf3;
 }
 
 .prose img {
-  @apply rounded-lg border-2 border-border shadow-sm;
+  @apply rounded-xl border border-border/50 shadow-lg;
+  @apply my-8 mx-auto;
+}
+
+.prose img + em {
+  @apply block text-center text-sm text-muted-foreground mt-3 mb-6;
+  @apply not-italic;
 }
 
 .prose hr {
-  @apply my-8 border-t-2 border-border;
+  @apply my-12 border-t border-border/50;
 }
 
 .prose table {
-  @apply w-full border-collapse my-6;
+  @apply w-full my-8 text-sm;
+  @apply border border-border/50 rounded-lg overflow-hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
 }
 
-.prose th, .prose td {
-  @apply border-2 border-border px-4 py-2 text-left;
+.prose thead {
+  @apply bg-muted/50;
 }
 
 .prose th {
-  @apply bg-muted font-semibold;
+  @apply px-4 py-3 font-semibold text-foreground;
+  @apply border-b border-border/50;
+}
+
+.prose td {
+  @apply px-4 py-3 text-foreground/90;
+  @apply border-b border-border/30;
+}
+
+.prose tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+.prose tbody tr:hover {
+  @apply bg-muted/20;
 }
 
 /* Hide scrollbar utility */
