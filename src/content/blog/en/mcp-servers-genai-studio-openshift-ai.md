@@ -9,11 +9,19 @@ featured: true
 lang: "en"
 ---
 
-A few weeks ago I found myself dealing with a familiar problem: I was troubleshooting an OpenShift cluster at 2am, jumping between Prometheus, Alertmanager, the Kubernetes console, and the Red Hat Knowledge Base. Tabs everywhere, copying and pasting queries, searching for solutions... and I thought: **"Why can't I just ask someone to do all this for me?"**
+## The Problem: Too Many Tools, Too Little Time
 
-That "someone" turned out to be an AI agent.
+Troubleshooting in OpenShift means constantly jumping between tools: Prometheus for metrics, Alertmanager for alerts, kubectl for resources, and the Red Hat Knowledge Base for solutions. Each context switch wastes valuable time and increases the chance of missing something critical.
 
-In this article I'll tell you how I built an operations assistant that can query metrics, review alerts, interact with Kubernetes, and search for solutions in the Red Hat KB — all from a conversation. And the best part: using the new Tech Preview features from **Red Hat OpenShift AI 3.2**.
+**What if you could query all these sources from a single conversation?**
+
+That's exactly what an AI agent with MCP Server access enables. In this article we'll build an operations assistant that can:
+- Query Prometheus metrics
+- Review and silence Alertmanager alerts
+- Interact with Kubernetes resources
+- Search for solutions in the Red Hat KB
+
+All using the new Tech Preview features from **Red Hat OpenShift AI 3.2**.
 
 ## What is Red Hat OpenShift AI?
 
