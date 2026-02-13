@@ -122,6 +122,12 @@ const jsonLd = {
         <ViewTracker slug={cleanSlug} />
       </article>
 
+      <!-- Code block enhancements -->
+      <script>
+        import { initCodeBlocks } from '@/scripts/codeBlocks';
+        initCodeBlocks();
+      </script>
+
       {hasToC && (
         <aside class="hidden lg:block">
           <div class="sticky top-24">

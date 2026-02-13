@@ -515,11 +515,47 @@
   @apply text-primary;
 }
 
-.prose pre {
-  @apply my-8 overflow-x-auto rounded-xl;
+/* Code block container with header */
+.prose .code-block {
+  @apply my-8 rounded-xl overflow-hidden;
   @apply bg-[#0d1117] border border-border/50;
   @apply shadow-lg;
+}
+
+.prose .code-header {
+  @apply flex items-center justify-between px-4 py-2;
+  @apply bg-[#161b22] border-b border-border/30;
+}
+
+.prose .code-lang {
+  @apply text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider;
+}
+
+.prose .code-copy {
+  @apply flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs;
+  @apply bg-transparent text-muted-foreground;
+  @apply hover:bg-white/10 hover:text-foreground;
+  @apply transition-all duration-200 cursor-pointer;
+  @apply border border-transparent hover:border-border/50;
+}
+
+.prose .code-copy.copied {
+  @apply text-primary;
+}
+
+.prose pre {
+  @apply overflow-x-auto;
+  @apply bg-[#0d1117];
   text-align: left;
+  margin: 0;
+  border-radius: 0;
+}
+
+/* Fallback for pre without wrapper */
+.prose > pre {
+  @apply my-8 rounded-xl;
+  @apply border border-border/50;
+  @apply shadow-lg;
 }
 
 .prose pre code {
