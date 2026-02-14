@@ -61,7 +61,7 @@ const relatedPosts = scoredPosts.map(({ post }) => post);
   <section class="mt-12 pt-8 border-t border-border">
     <h2 class="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
       <Icon name="mdi:post-outline" class="w-5 h-5 text-primary" />
-      {lang === 'es' ? 'Artículos relacionados' : 'Related articles'}
+      {t('post.relatedArticles')}
     </h2>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

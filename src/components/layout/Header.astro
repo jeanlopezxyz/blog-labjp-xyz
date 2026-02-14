@@ -445,7 +445,7 @@ const getNavLabel = (key: string) => t(key as any);
           // Result count
           const countDiv = document.createElement('div');
           countDiv.className = 'text-xs text-muted-foreground px-3 py-2 border-b border-border';
-          countDiv.textContent = `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`;
+          countDiv.textContent = `${filtered.length} ${filtered.length === 1 ? t['search.result'] : t['search.results']}`;
           searchResults.appendChild(countDiv);
 
           filtered.slice(0, 10).forEach((post, index) => {

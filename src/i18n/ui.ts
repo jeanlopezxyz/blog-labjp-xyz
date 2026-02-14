@@ -78,6 +78,8 @@ export const ui = {
     'post.like': 'Me gusta',
     'post.comments': 'Comentarios',
     'post.share': 'Compartir',
+    'post.updated': 'Actualizado',
+    'post.relatedArticles': 'Artículos relacionados',
     'post.copyLink': 'Copiar enlace',
     'post.copied': '✓',
     'post.shareArticle': 'Compartir artículo',
@@ -146,6 +148,8 @@ export const ui = {
     'search.typing': 'Escribe para buscar...',
     'search.noResults': 'No se encontraron resultados',
     'search.close': 'Cerrar búsqueda',
+    'search.result': 'resultado',
+    'search.results': 'resultados',
 
     // Subscribe / Newsletter
     'subscribe.title': 'Suscríbete al newsletter',
@@ -247,6 +251,8 @@ export const ui = {
     'post.like': 'Like',
     'post.comments': 'Comments',
     'post.share': 'Share',
+    'post.updated': 'Updated',
+    'post.relatedArticles': 'Related articles',
     'post.copyLink': 'Copy link',
     'post.copied': '✓',
     'post.shareArticle': 'Share article',
@@ -315,6 +321,8 @@ export const ui = {
     'search.typing': 'Type to search...',
     'search.noResults': 'No results found',
     'search.close': 'Close search',
+    'search.result': 'result',
+    'search.results': 'results',
 
     // Subscribe / Newsletter
     'subscribe.title': 'Subscribe to newsletter',

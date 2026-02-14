@@ -49,13 +49,13 @@ const postUrl = getFullBlogPostUrl(slug, lang);
           {formatDate(pubDate, lang)}
         </time>
         <span>·</span>
-        <span>{readingTime} min {lang === 'es' ? 'de lectura' : 'read'}</span>
+        <span>{readingTime} {t('blog.readingTime')}</span>
         {wasUpdated && (
           <>
             <span>·</span>
             <span class="inline-flex items-center gap-1 text-primary">
               <Icon name="mdi:update" class="w-3 h-3" />
-              {lang === 'es' ? 'Actualizado' : 'Updated'} {formatDate(updatedDate!, lang)}
+              {t('post.updated')} {formatDate(updatedDate!, lang)}
             </span>
           </>
         )}
