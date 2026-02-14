@@ -236,10 +236,14 @@ const containerClasses = {
       const res = await fetch(`${API_ENDPOINTS.STATS}?slug=${encodeURIComponent(postId)}`);
       if (res.ok) {
         const data = await res.json();
-        const likeCount = container.querySelector('.like-count');
-        const commentCount = container.querySelector('.comment-count');
-        if (likeCount) likeCount.textContent = String(data.likes || 0);
-        if (commentCount) commentCount.textContent = String(data.comments || 0);
+        // API returns { "slug": { likes: N, comments: N } }
+        const stats = data[postId];
+        if (stats) {
+          const likeCount = container.querySelector('.like-count');
+          const commentCount = container.querySelector('.comment-count');
+          if (likeCount) likeCount.textContent = String(stats.likes || 0);
+          if (commentCount) commentCount.textContent = String(stats.comments || 0);
+        }
       }
     } catch {
       // Silently fail - counts will show 0
