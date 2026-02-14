@@ -133,15 +133,6 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
           <Icon name="mdi:magnify" class="w-5 h-5" aria-hidden="true" />
         </button>
 
-        <button
-          id="theme-toggle"
-          class="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-          aria-label={t('nav.theme')}
-        >
-          <Icon name="mdi:weather-sunny" class="w-5 h-5 hidden dark:block" aria-hidden="true" />
-          <Icon name="mdi:weather-night" class="w-5 h-5 block dark:hidden" aria-hidden="true" />
-        </button>
-
         <!-- Language Switcher Dropdown -->
         <div class="relative" id="lang-dropdown-container">
           <button
@@ -320,7 +311,6 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
   import { STORAGE_KEYS } from '@/lib/types';
 
   function initHeader() {
-    const themeToggle = document.getElementById("theme-toggle");
     const subscribeLinks = document.querySelectorAll('a[href="#subscribe"]');
     const subscribeModal = document.getElementById("subscribe-modal");
     const closeSubscribe = document.getElementById("close-modal");
@@ -347,13 +337,6 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
         document.body.style.overflow = "";
       }
     };
-
-    // Theme toggle
-    themeToggle?.addEventListener("click", () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      document.documentElement.classList.toggle("dark", !isDark);
-      localStorage.setItem(STORAGE_KEYS.THEME, isDark ? "light" : "dark");
-    });
 
     // Language dropdown
     langToggle?.addEventListener("click", (e) => {

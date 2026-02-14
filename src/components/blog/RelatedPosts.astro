@@ -68,7 +68,7 @@ const relatedPosts = scoredPosts.map(({ post }) => post);
       {relatedPosts.map((post) => (
         <a
           href={`${basePath}/${normalizeSlug(post.slug)}`}
-          class="group block p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/50 transition-all"
+          class="group block p-4 rounded-xl hover:bg-muted/50 transition-all"
         >
           {post.data.image && (
             <div class="aspect-video rounded-lg overflow-hidden mb-3 bg-muted">

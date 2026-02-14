@@ -284,16 +284,6 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
       <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
     )}
 
-    <!-- Theme script -->
-    <script is:inline>
-      const theme = localStorage.getItem("theme");
-      if (theme === "light") {
-        document.documentElement.classList.remove("dark");
-      } else {
-        document.documentElement.classList.add("dark");
-      }
-    </script>
-
     <!-- i18n for client scripts -->
     <script is:inline define:vars={{ i18n }}>
       window.__i18n = i18n;
