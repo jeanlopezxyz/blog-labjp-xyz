@@ -167,10 +167,10 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
               <h2 class="text-xl font-bold text-foreground">{t('home.latest')}</h2>
               <a
                 href={getLocalizedPath('/blog', lang)}
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                class="group inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all"
               >
                 {t('home.viewAll')}
-                <Icon name="mdi:arrow-right" class="w-3.5 h-3.5" />
+                <Icon name="mdi:chevron-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
               </a>
             </div>
 
@@ -234,10 +234,10 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
             <div class="mt-6 text-center">
               <a
                 href={getLocalizedPath('/blog', lang)}
-                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                class="group inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40"
               >
                 {t('home.viewAllArticles')}
-                <Icon name="mdi:arrow-right" class="w-4 h-4" />
+                <Icon name="mdi:arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </a>
             </div>
           </section>
