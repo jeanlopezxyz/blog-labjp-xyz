@@ -4,17 +4,24 @@
  * GET /api/likes?slug=xxx - Get likes for specific slug
  */
 
-import { jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
+import { normalizeSlug, jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   try {
-    const { slug, visitorId } = await request.json() as { slug: string; visitorId: string };
+    const { slug: rawSlug, visitorId } = await request.json() as { slug: string; visitorId: string };
 
-    if (!slug || !visitorId) {
+    if (!rawSlug || !visitorId) {
       return errorResponse('slug and visitorId are required');
     }
+
+    // Validate input lengths
+    if (rawSlug.length > 200 || visitorId.length > 100) {
+      return errorResponse('Invalid input length');
+    }
+
+    const slug = normalizeSlug(rawSlug);
 
     const existing = await env.DB.prepare(
       'SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?'
@@ -47,13 +54,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
-  const slug = url.searchParams.get('slug');
+  const rawSlug = url.searchParams.get('slug');
   const visitorId = url.searchParams.get('visitorId');
 
   try {
-    if (!slug) {
+    if (!rawSlug) {
       return errorResponse('slug is required');
     }
+
+    const slug = normalizeSlug(rawSlug);
 
     const result = await env.DB.prepare(
       'SELECT COUNT(*) as count FROM post_likes WHERE slug = ?'
