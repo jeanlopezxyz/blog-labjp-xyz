@@ -5,7 +5,6 @@ import { getCollection } from "astro:content";
 import { getRelativeTime, formatShortDate, getBlogPostUrl } from "@/lib/utils";
 import { SITE } from "@/lib/constants";
 import { useTranslations, getLocalizedPath, slugToPostId, isPostForLang, normalizeSlug, type Lang } from "@/i18n";
-import SocialActions from "@/components/ui/SocialActions.astro";
 
 interface Props {
   lang: Lang;
@@ -79,25 +78,25 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                   </p>
                 </a>
 
-                <div class="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-4">
+                <div class="flex items-center justify-center gap-3 text-sm text-muted-foreground">
                   <time datetime={featuredPost.data.pubDate.toISOString()}>
                     {getRelativeTime(featuredPost.data.pubDate, lang)}
                   </time>
                   <span class="text-muted-foreground/40">•</span>
                   <span class="uppercase tracking-wide text-xs">{SITE.author}</span>
-                </div>
-
-                <!-- Social Actions on hover -->
-                <div class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
-                  <SocialActions
-                    postId={featuredPostId}
-                    postTitle={featuredPost.data.title}
-                    postSlug={normalizeSlug(featuredPost.slug)}
-                    lang={lang}
-                    showComments={true}
-                    size="sm"
-                    variant="centered"
-                  />
+                  <span class="text-muted-foreground/40">•</span>
+                  <!-- Like button always visible -->
+                  <button
+                    type="button"
+                    class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
+                    data-post-id={featuredPostId}
+                    aria-label="Me gusta"
+                  >
+                    <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span class="like-count text-xs">0</span>
+                  </button>
                 </div>
               </div>
             </article>
@@ -119,26 +118,24 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                         <p class="text-sm text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
                           {post.data.description}
                         </p>
-                        <div class="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div class="flex items-center gap-2 text-xs text-muted-foreground">
                           <time datetime={post.data.pubDate.toISOString()} class="uppercase tracking-wide">
                             {formatShortDate(post.data.pubDate, lang)}
                           </time>
                           <span class="text-muted-foreground/40">•</span>
-                          <span class="uppercase tracking-wide">{SITE.author}</span>
+                          <button
+                            type="button"
+                            class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
+                            data-post-id={postId}
+                            aria-label="Me gusta"
+                          >
+                            <svg class="w-3.5 h-3.5 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <span class="like-count">0</span>
+                          </button>
                         </div>
                       </a>
-                      <!-- Social actions on hover - inside text column -->
-                      <div class="mt-2 w-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
-                        <SocialActions
-                          postId={postId}
-                          postTitle={post.data.title}
-                          postSlug={cleanSlug}
-                          lang={lang}
-                          showComments={true}
-                          size="sm"
-                          variant="spread"
-                        />
-                      </div>
                     </div>
                     {post.data.image && (
                       <a href={getBlogUrl(post.slug)} class="flex-shrink-0">
@@ -210,19 +207,17 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                         {formatShortDate(post.data.pubDate, lang)}
                       </time>
                       <span class="text-muted-foreground/40">•</span>
-                      <span class="uppercase tracking-wide">{SITE.author}</span>
-                    </div>
-                    <!-- Social actions on hover -->
-                    <div class="mt-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
-                      <SocialActions
-                        postId={postId}
-                        postTitle={post.data.title}
-                        postSlug={cleanSlug}
-                        lang={lang}
-                        showComments={true}
-                        size="sm"
-                        variant="spread"
-                      />
+                      <button
+                        type="button"
+                        class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
+                        data-post-id={postId}
+                        aria-label="Me gusta"
+                      >
+                        <svg class="w-3.5 h-3.5 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span class="like-count">0</span>
+                      </button>
                     </div>
                   </article>
                 );
@@ -253,4 +248,119 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
   </div>
 </BaseLayout>
 
-<!-- SocialActions component handles its own initialization -->
+<script>
+  import { API_ENDPOINTS, STORAGE_KEYS } from '@/lib/types';
+
+  interface LikeData {
+    slug: string;
+    likes: number;
+  }
+
+  function initHomeLikes() {
+    const likeButtons = document.querySelectorAll('.like-btn');
+    if (!likeButtons.length) return;
+
+    // Get liked posts from localStorage
+    const getLikedPosts = (): string[] => {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEYS.LIKED_POSTS) || '[]');
+      } catch {
+        return [];
+      }
+    };
+
+    // Save liked posts to localStorage
+    const saveLikedPosts = (posts: string[]) => {
+      localStorage.setItem(STORAGE_KEYS.LIKED_POSTS, JSON.stringify(posts));
+    };
+
+    // Update button appearance
+    const updateButtonState = (btn: Element, isLiked: boolean) => {
+      const icon = btn.querySelector('.like-icon');
+      if (isLiked) {
+        btn.classList.add('text-red-500');
+        btn.classList.remove('text-muted-foreground');
+        icon?.setAttribute('fill', 'currentColor');
+      } else {
+        btn.classList.remove('text-red-500');
+        btn.classList.add('text-muted-foreground');
+        icon?.setAttribute('fill', 'none');
+      }
+    };
+
+    // Fetch all likes and update counts
+    fetch(API_ENDPOINTS.LIKES)
+      .then(res => res.json())
+      .then((data: LikeData[]) => {
+        const likedPosts = getLikedPosts();
+
+        likeButtons.forEach(btn => {
+          const postId = btn.getAttribute('data-post-id');
+          if (!postId) return;
+
+          const countEl = btn.querySelector('.like-count');
+          const likeData = data.find(d => d.slug === postId);
+
+          if (countEl && likeData) {
+            countEl.textContent = String(likeData.likes);
+          }
+
+          // Update state if already liked
+          if (likedPosts.includes(postId)) {
+            updateButtonState(btn, true);
+          }
+        });
+      })
+      .catch(() => {});
+
+    // Handle like clicks
+    likeButtons.forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const postId = btn.getAttribute('data-post-id');
+        if (!postId) return;
+
+        const likedPosts = getLikedPosts();
+        const isLiked = likedPosts.includes(postId);
+        const countEl = btn.querySelector('.like-count');
+        const currentCount = parseInt(countEl?.textContent || '0');
+
+        // Optimistic update
+        if (isLiked) {
+          updateButtonState(btn, false);
+          if (countEl) countEl.textContent = String(Math.max(0, currentCount - 1));
+          saveLikedPosts(likedPosts.filter(id => id !== postId));
+        } else {
+          updateButtonState(btn, true);
+          if (countEl) countEl.textContent = String(currentCount + 1);
+          saveLikedPosts([...likedPosts, postId]);
+        }
+
+        // Send to API
+        try {
+          await fetch(API_ENDPOINTS.LIKES, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slug: postId, action: isLiked ? 'unlike' : 'like' })
+          });
+        } catch {
+          // Revert on error
+          if (isLiked) {
+            updateButtonState(btn, true);
+            if (countEl) countEl.textContent = String(currentCount);
+            saveLikedPosts([...likedPosts]);
+          } else {
+            updateButtonState(btn, false);
+            if (countEl) countEl.textContent = String(currentCount);
+            saveLikedPosts(likedPosts.filter(id => id !== postId));
+          }
+        }
+      });
+    });
+  }
+
+  initHomeLikes();
+  document.addEventListener('astro:after-swap', initHomeLikes);
+</script>
