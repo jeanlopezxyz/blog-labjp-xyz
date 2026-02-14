@@ -23,7 +23,8 @@ const allPosts = (await getCollection("blog", ({ id, data }) => {
 const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
 const otherPosts = allPosts.filter((post) => post.slug !== featuredPost?.slug);
 const recentPosts = otherPosts.slice(0, 4);
-const latestPosts = otherPosts.slice(4, 10);
+// Show ALL recent posts in Últimos section (including featured at top)
+const latestPosts = allPosts.slice(0, 9);
 
 // Helper to get the correct blog URL
 function getBlogUrl(slug: string): string {
