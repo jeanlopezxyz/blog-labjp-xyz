@@ -284,8 +284,8 @@
 /* Code block container with header */
 .prose .code-block {
   @apply my-8 rounded-xl overflow-hidden;
-  @apply bg-[#0d1117] border border-border/50;
-  @apply shadow-lg;
+  @apply bg-[#0d1117];
+  @apply shadow-xl shadow-black/25;
 }
 
 .prose .code-header {
@@ -320,8 +320,7 @@
 /* Fallback for pre without wrapper */
 .prose > pre {
   @apply my-8 rounded-xl;
-  @apply border border-border/50;
-  @apply shadow-lg;
+  @apply shadow-xl shadow-black/25;
 }
 
 .prose pre code {
@@ -331,7 +330,7 @@
 }
 
 .prose img {
-  @apply rounded-xl border border-border/50 shadow-lg;
+  @apply rounded-xl shadow-xl shadow-black/20;
   @apply my-8 mx-auto;
 }
 
@@ -346,7 +345,8 @@
 
 .prose table {
   @apply w-full my-8 text-sm;
-  @apply border border-border/50 rounded-lg overflow-hidden;
+  @apply rounded-xl overflow-hidden;
+  @apply shadow-xl shadow-black/20;
   border-collapse: separate;
   border-spacing: 0;
   text-align: left;
