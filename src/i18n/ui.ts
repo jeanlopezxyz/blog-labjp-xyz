@@ -27,6 +27,8 @@ export const ui = {
     'nav.mainNav': 'Navegación principal',
     'nav.langToggle': 'Cambiar idioma',
     'nav.navigation': 'Navegación',
+    'nav.menu': 'Menú',
+    'nav.close': 'Cerrar',
 
     // Categories
     'cat.kubernetes': 'Kubernetes',
@@ -205,6 +207,8 @@ export const ui = {
     'nav.mainNav': 'Main navigation',
     'nav.langToggle': 'Change language',
     'nav.navigation': 'Navigation',
+    'nav.menu': 'Menu',
+    'nav.close': 'Close',
 
     // Categories
     'cat.kubernetes': 'Kubernetes',
