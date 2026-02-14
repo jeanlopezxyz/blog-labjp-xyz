@@ -21,8 +21,9 @@ const allPosts = (await getCollection("blog", ({ id, data }) => {
 })).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
-const recentPosts = allPosts.filter((post) => post.slug !== featuredPost?.slug).slice(0, 4);
-const latestPosts = allPosts.slice(5, 11);
+const otherPosts = allPosts.filter((post) => post.slug !== featuredPost?.slug);
+const recentPosts = otherPosts.slice(0, 4);
+const latestPosts = otherPosts.slice(4, 10);
 
 // Helper to get the correct blog URL
 function getBlogUrl(slug: string): string {
