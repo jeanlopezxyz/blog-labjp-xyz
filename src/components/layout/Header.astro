@@ -50,7 +50,7 @@ const isNavActive = (href: string) => {
 const getNavLabel = (key: string) => t(key as any);
 ---
 
-<header class="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-border" role="banner">
+<header class="sticky top-0 z-50 bg-card/95 backdrop-blur-md" role="banner">
   <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-14 lg:h-16">
 
@@ -188,7 +188,7 @@ const getNavLabel = (key: string) => t(key as any);
   </div>
 
   <!-- Mobile/Tablet Category Bar -->
-  <div class="xl:hidden border-t border-border/50 bg-card/80">
+  <div class="xl:hidden bg-card/80">
     <div class="max-w-screen-2xl mx-auto">
       <nav class="overflow-x-auto scrollbar-hide" aria-label={t('nav.navigation')}>
         <ul class="flex items-center justify-center gap-1.5 px-4 py-2" role="list">
