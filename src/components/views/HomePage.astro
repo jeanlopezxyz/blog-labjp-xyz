@@ -161,10 +161,10 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
               <h2 class="text-xl font-bold text-foreground">{t('home.latest')}</h2>
               <a
                 href={getLocalizedPath('/blog', lang)}
-                class="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
               >
                 {t('home.viewAll')}
-                <Icon name="mdi:arrow-right" class="w-4 h-4" />
+                <Icon name="mdi:arrow-right" class="w-3.5 h-3.5" />
               </a>
             </div>
 
@@ -225,10 +225,10 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
             </div>
 
             <!-- View All Link -->
-            <div class="mt-12 text-center">
+            <div class="mt-6 text-center">
               <a
                 href={getLocalizedPath('/blog', lang)}
-                class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium bg-card/30 rounded-lg hover:bg-card/50 transition-colors"
+                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
               >
                 {t('home.viewAllArticles')}
                 <Icon name="mdi:arrow-right" class="w-4 h-4" />
