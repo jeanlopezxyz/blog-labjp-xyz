@@ -2,11 +2,17 @@
  * Client-side utilities for share functionality
  */
 
+let globalHandlersInitialized = false;
+
 /**
  * Initialize share menu dropdowns
  */
 export function initShareMenus(container: Element | Document = document): void {
   container.querySelectorAll<HTMLElement>('[data-share-menu]').forEach((menu) => {
+    // Skip if already initialized
+    if (menu.dataset.shareInitialized === 'true') return;
+    menu.dataset.shareInitialized = 'true';
+
     const toggle = menu.querySelector<HTMLButtonElement>('[data-share-toggle]');
     const dropdown = menu.querySelector<HTMLElement>('[data-share-dropdown]');
 
@@ -76,6 +82,10 @@ export function initShareMenus(container: Element | Document = document): void {
  */
 export function initCopyLinks(container: Element | Document = document): void {
   container.querySelectorAll<HTMLElement>('.copy-link-btn').forEach((btn) => {
+    // Skip if already initialized
+    if (btn.dataset.copyInitialized === 'true') return;
+    btn.dataset.copyInitialized = 'true';
+
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -93,19 +103,8 @@ export function initCopyLinks(container: Element | Document = document): void {
             textSpan.textContent = originalText;
           }, 1500);
         } catch {
-          // Fallback: select text in a temporary input (for older browsers)
-          const input = document.createElement('input');
-          input.value = url;
-          document.body.appendChild(input);
-          input.select();
-          document.execCommand('copy');
-          document.body.removeChild(input);
-
-          const originalText = textSpan.textContent;
-          textSpan.textContent = window.__i18n?.t['post.copied'] || '✓';
-          setTimeout(() => {
-            textSpan.textContent = originalText;
-          }, 1500);
+          // Clipboard API failed - this is rare in modern browsers
+          console.warn('Clipboard API not available');
         }
       }
     });
@@ -125,8 +124,12 @@ export function closeAllShareMenus(): void {
 
 /**
  * Setup global click handler to close dropdowns
+ * Only runs once even if called multiple times
  */
 export function setupGlobalShareHandlers(): void {
+  if (globalHandlersInitialized) return;
+  globalHandlersInitialized = true;
+
   document.addEventListener('click', (e) => {
     const target = e.target as Node;
     document.querySelectorAll('[data-share-dropdown]').forEach((dropdown) => {
@@ -137,5 +140,18 @@ export function setupGlobalShareHandlers(): void {
         toggle?.setAttribute('aria-expanded', 'false');
       }
     });
+  });
+}
+
+/**
+ * Reset initialization state (for Astro navigation)
+ */
+export function resetShareState(): void {
+  globalHandlersInitialized = false;
+  document.querySelectorAll('[data-share-initialized]').forEach((el) => {
+    delete (el as HTMLElement).dataset.shareInitialized;
+  });
+  document.querySelectorAll('[data-copy-initialized]').forEach((el) => {
+    delete (el as HTMLElement).dataset.copyInitialized;
   });
 }

@@ -82,7 +82,7 @@ const postsData = JSON.stringify(
 
     if (!loadingEl || !listEl || !errorEl) return;
 
-    const { t, locale } = window.__i18n;
+    const { t, locale } = window.__i18n || { t: {}, locale: 'es-ES' };
     const baseUrl = locale.startsWith('en') ? '/en/blog/' : '/blog/';
 
     fetch(API_ENDPOINTS.VIEWS)

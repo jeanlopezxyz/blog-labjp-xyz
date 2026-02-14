@@ -12,6 +12,14 @@
   gsap.registerPlugin(ScrollTrigger);
 
   function initScrollAnimations() {
+    // Respect user's motion preferences for accessibility
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Make elements visible without animation
+      document.querySelectorAll('.prose > *, .prose pre, .prose img, aside > div').forEach((el) => {
+        (el as HTMLElement).style.opacity = '1';
+      });
+      return;
+    }
     // Animate prose elements (paragraphs, headings, lists, code blocks)
     const proseElements = document.querySelectorAll('.prose > *:not(pre)');
 

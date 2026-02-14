@@ -178,6 +178,11 @@ export const ui = {
     'a11y.closeMenu': 'Cerrar menú',
     'a11y.goToHome': 'Ir al inicio',
 
+    // Code blocks
+    'code.copy': 'Copiar',
+    'code.copied': '¡Copiado!',
+    'code.copyCode': 'Copiar código',
+
     // Projects
     'projects.code': 'Código',
     'projects.demo': 'Demo',
@@ -350,6 +355,11 @@ export const ui = {
     'a11y.openMenu': 'Open menu',
     'a11y.closeMenu': 'Close menu',
     'a11y.goToHome': 'Go to home',
+
+    // Code blocks
+    'code.copy': 'Copy',
+    'code.copied': 'Copied!',
+    'code.copyCode': 'Copy code',
 
     // Projects
     'projects.code': 'Code',

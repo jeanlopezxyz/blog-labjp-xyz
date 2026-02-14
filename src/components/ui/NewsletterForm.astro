@@ -54,7 +54,7 @@ const t = useTranslations(lang);
 
       if (!form || !messageEl || !emailInput || !submitBtn) return;
 
-      const { t } = window.__i18n;
+      const { t } = window.__i18n || { t: {} };
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();

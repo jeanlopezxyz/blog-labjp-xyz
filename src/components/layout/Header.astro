@@ -407,7 +407,7 @@ const getNavLabel = (key: string) => t(key as any);
     let posts: SearchPost[] = [];
     let selectedIndex = -1;
     let debounceTimer: ReturnType<typeof setTimeout>;
-    const { t } = window.__i18n;
+    const { t } = window.__i18n || { t: {} };
 
     fetch('/search.json')
       .then(res => {

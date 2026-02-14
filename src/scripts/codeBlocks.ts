@@ -38,6 +38,10 @@ const LANG_NAMES: Record<string, string> = {
   plaintext: 'Text',
 };
 
+function getTranslation(key: string, fallback: string): string {
+  return window.__i18n?.t[key] || fallback;
+}
+
 function getLangFromClass(pre: HTMLElement): string | null {
   const code = pre.querySelector('code');
   if (!code) return null;
@@ -86,16 +90,16 @@ function detectLanguage(code: string): string | null {
   return null;
 }
 
-function createCopyButton(lang: string): HTMLButtonElement {
+function createCopyButton(): HTMLButtonElement {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'code-copy';
-  btn.setAttribute('aria-label', 'Copiar código');
+  btn.setAttribute('aria-label', getTranslation('code.copyCode', 'Copy code'));
   btn.innerHTML = `
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
     </svg>
-    <span class="copy-text">Copiar</span>
+    <span class="copy-text">${getTranslation('code.copy', 'Copy')}</span>
   `;
   return btn;
 }
@@ -129,38 +133,22 @@ function wrapCodeBlock(pre: HTMLPreElement): void {
   langSpan.textContent = displayLang;
 
   // Copy button
-  const copyBtn = createCopyButton(displayLang);
+  const copyBtn = createCopyButton();
   copyBtn.addEventListener('click', async () => {
     const text = code.textContent || '';
     try {
       await navigator.clipboard.writeText(text);
       copyBtn.classList.add('copied');
       const copyText = copyBtn.querySelector('.copy-text');
-      if (copyText) copyText.textContent = 'Copiado!';
+      if (copyText) copyText.textContent = getTranslation('code.copied', 'Copied!');
 
       setTimeout(() => {
         copyBtn.classList.remove('copied');
-        if (copyText) copyText.textContent = 'Copiar';
+        if (copyText) copyText.textContent = getTranslation('code.copy', 'Copy');
       }, 2000);
     } catch {
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-
-      copyBtn.classList.add('copied');
-      const copyText = copyBtn.querySelector('.copy-text');
-      if (copyText) copyText.textContent = 'Copiado!';
-
-      setTimeout(() => {
-        copyBtn.classList.remove('copied');
-        if (copyText) copyText.textContent = 'Copiar';
-      }, 2000);
+      // Clipboard API not available - rare in modern browsers
+      console.warn('Clipboard API not available');
     }
   });
 
