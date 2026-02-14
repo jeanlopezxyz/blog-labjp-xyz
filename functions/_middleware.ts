@@ -16,11 +16,11 @@ const ALLOWED_ORIGINS = [
 // Content Security Policy - strict but allows necessary resources
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: https: blob:",
-  "connect-src 'self' https://blog.labjp.xyz https://fonts.googleapis.com",
+  "connect-src 'self' https://blog.labjp.xyz https://fonts.googleapis.com https://cloudflareinsights.com",
   "frame-ancestors 'self'",
   "form-action 'self'",
   "base-uri 'self'",
