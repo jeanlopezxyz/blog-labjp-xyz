@@ -66,9 +66,9 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
           <Icon name="mdi:menu" class="w-5 h-5" aria-hidden="true" />
         </button>
 
-        <a href={getLocalizedPath('/', lang)} class="flex items-center gap-1.5 sm:gap-3 shrink-0" aria-label={`labjp.xyz - ${t('a11y.goToHome')}`}>
-          <span class="font-mono font-bold text-lg sm:text-2xl text-primary">&gt;_</span>
-          <span class="font-semibold text-base sm:text-xl text-foreground">labjp.xyz</span>
+        <a href={getLocalizedPath('/', lang)} class="flex items-center gap-2 sm:gap-3 shrink-0" aria-label={`labjp.xyz - ${t('a11y.goToHome')}`}>
+          <span class="font-mono font-bold text-xl sm:text-2xl text-primary">&gt;_</span>
+          <span class="font-semibold text-lg sm:text-xl text-foreground">labjp.xyz</span>
         </a>
       </div>
 
