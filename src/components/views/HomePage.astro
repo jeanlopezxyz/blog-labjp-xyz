@@ -249,114 +249,57 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
 </BaseLayout>
 
 <script>
-  import { API_ENDPOINTS, STORAGE_KEYS } from '@/lib/types';
+  import { API_ENDPOINTS } from '@/lib/types';
+  import { isPostLiked, toggleLike, updateLikeUI } from '@/scripts/likes';
+  import { sendLikeToAPI } from '@/scripts/visitor';
 
-  interface LikeData {
-    slug: string;
-    likes: number;
+  const initializedLikes = new WeakSet<HTMLElement>();
+
+  async function loadLikeCount(postId: string, btn: HTMLElement) {
+    try {
+      const res = await fetch(`${API_ENDPOINTS.STATS}?slug=${encodeURIComponent(postId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const countEl = btn.querySelector('.like-count');
+        if (countEl) countEl.textContent = String(data.likes || 0);
+      }
+    } catch {
+      // Silent fail
+    }
   }
 
   function initHomeLikes() {
-    const likeButtons = document.querySelectorAll('.like-btn');
+    const likeButtons = document.querySelectorAll<HTMLElement>('.like-btn');
     if (!likeButtons.length) return;
 
-    // Get liked posts from localStorage
-    const getLikedPosts = (): string[] => {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEYS.LIKED_POSTS) || '[]');
-      } catch {
-        return [];
-      }
-    };
-
-    // Save liked posts to localStorage
-    const saveLikedPosts = (posts: string[]) => {
-      localStorage.setItem(STORAGE_KEYS.LIKED_POSTS, JSON.stringify(posts));
-    };
-
-    // Update button appearance
-    const updateButtonState = (btn: Element, isLiked: boolean) => {
-      const icon = btn.querySelector('.like-icon');
-      if (isLiked) {
-        btn.classList.add('text-red-500');
-        btn.classList.remove('text-muted-foreground');
-        icon?.setAttribute('fill', 'currentColor');
-      } else {
-        btn.classList.remove('text-red-500');
-        btn.classList.add('text-muted-foreground');
-        icon?.setAttribute('fill', 'none');
-      }
-    };
-
-    // Fetch all likes and update counts
-    fetch(API_ENDPOINTS.LIKES)
-      .then(res => res.json())
-      .then((data: LikeData[]) => {
-        const likedPosts = getLikedPosts();
-
-        likeButtons.forEach(btn => {
-          const postId = btn.getAttribute('data-post-id');
-          if (!postId) return;
-
-          const countEl = btn.querySelector('.like-count');
-          const likeData = data.find(d => d.slug === postId);
-
-          if (countEl && likeData) {
-            countEl.textContent = String(likeData.likes);
-          }
-
-          // Update state if already liked
-          if (likedPosts.includes(postId)) {
-            updateButtonState(btn, true);
-          }
-        });
-      })
-      .catch(() => {});
-
-    // Handle like clicks
     likeButtons.forEach(btn => {
+      if (initializedLikes.has(btn)) return;
+      initializedLikes.add(btn);
+
+      const postId = btn.dataset.postId;
+      if (!postId) return;
+
+      // Set initial state from localStorage
+      updateLikeUI(btn, isPostLiked(postId));
+
+      // Load count from API
+      loadLikeCount(postId, btn);
+
+      // Handle clicks
       btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        const postId = btn.getAttribute('data-post-id');
-        if (!postId) return;
-
-        const likedPosts = getLikedPosts();
-        const isLiked = likedPosts.includes(postId);
         const countEl = btn.querySelector('.like-count');
-        const currentCount = parseInt(countEl?.textContent || '0');
+        const currentCount = parseInt(countEl?.textContent || '0', 10);
+        const isLiked = toggleLike(postId);
+        const newCount = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
 
-        // Optimistic update
-        if (isLiked) {
-          updateButtonState(btn, false);
-          if (countEl) countEl.textContent = String(Math.max(0, currentCount - 1));
-          saveLikedPosts(likedPosts.filter(id => id !== postId));
-        } else {
-          updateButtonState(btn, true);
-          if (countEl) countEl.textContent = String(currentCount + 1);
-          saveLikedPosts([...likedPosts, postId]);
-        }
+        if (countEl) countEl.textContent = String(newCount);
+        updateLikeUI(btn, isLiked);
 
         // Send to API
-        try {
-          await fetch(API_ENDPOINTS.LIKES, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ slug: postId, action: isLiked ? 'unlike' : 'like' })
-          });
-        } catch {
-          // Revert on error
-          if (isLiked) {
-            updateButtonState(btn, true);
-            if (countEl) countEl.textContent = String(currentCount);
-            saveLikedPosts([...likedPosts]);
-          } else {
-            updateButtonState(btn, false);
-            if (countEl) countEl.textContent = String(currentCount);
-            saveLikedPosts(likedPosts.filter(id => id !== postId));
-          }
-        }
+        sendLikeToAPI(postId);
       });
     });
   }
