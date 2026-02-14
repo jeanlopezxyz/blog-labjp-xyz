@@ -179,9 +179,10 @@ const postUrl = getFullBlogPostUrl(slug, lang);
       });
     });
 
-    // Initialize share menus and copy links (scoped to header)
-    initShareMenus(document.querySelector('header') || document);
-    initCopyLinks(document.querySelector('header') || document);
+    // Initialize share menus and copy links (scoped to article header)
+    const articleHeader = document.querySelector('article header') || document;
+    initShareMenus(articleHeader);
+    initCopyLinks(articleHeader);
     setupGlobalShareHandlers();
 
     // Load stats using centralized function
