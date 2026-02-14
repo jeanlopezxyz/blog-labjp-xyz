@@ -2,13 +2,9 @@
  * Client-side utilities for loading and displaying post stats
  */
 
-import { API_ENDPOINTS } from '@/lib/types';
+import { API_ENDPOINTS, type PostStats } from '@/lib/types';
 
-export interface PostStats {
-  likes: number;
-  comments: number;
-  views?: number;
-}
+export type { PostStats };
 
 /**
  * Load stats for a single post
