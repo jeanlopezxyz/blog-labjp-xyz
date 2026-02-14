@@ -105,67 +105,71 @@ const filteredHeadings = headings
       currentActiveId = id;
     }
 
-    // Scroll-based detection - simpler and more reliable
-    function detectActiveHeading() {
-      const headerOffset = 100; // Account for fixed header
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollY = window.scrollY;
+    // Use IntersectionObserver for better performance
+    const observerOptions = {
+      root: null,
+      rootMargin: '-100px 0px -66% 0px', // Account for header and bottom threshold
+      threshold: 0
+    };
 
-      // Check if we're at the bottom of the page
-      const isAtBottom = scrollY + windowHeight >= documentHeight - 50;
+    let visibleHeadings: Set<string> = new Set();
 
-      if (isAtBottom && headings.length > 0) {
-        updateActiveLink(headings[headings.length - 1].id);
-        return;
-      }
-
-      // Find the heading that's currently in view
-      // We want the last heading whose top is above or at the threshold
-      let activeHeading: HTMLElement | null = null;
-
-      for (const heading of headings) {
-        const rect = heading.getBoundingClientRect();
-        // Check if heading top is above or at the threshold from viewport top
-        if (rect.top <= headerOffset) {
-          activeHeading = heading;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const id = entry.target.id;
+        if (entry.isIntersecting) {
+          visibleHeadings.add(id);
         } else {
-          // Since headings are in DOM order, once we find one below threshold, stop
-          break;
+          visibleHeadings.delete(id);
+        }
+      });
+
+      // Find the topmost visible heading
+      if (visibleHeadings.size > 0) {
+        for (const heading of headings) {
+          if (visibleHeadings.has(heading.id)) {
+            updateActiveLink(heading.id);
+            break;
+          }
+        }
+      } else {
+        // Fallback: find the closest heading above viewport
+        const scrollY = window.scrollY;
+        let closestHeading: HTMLElement | null = null;
+
+        for (const heading of headings) {
+          const rect = heading.getBoundingClientRect();
+          if (rect.top <= 100) {
+            closestHeading = heading;
+          }
+        }
+
+        if (closestHeading) {
+          updateActiveLink(closestHeading.id);
         }
       }
+    }, observerOptions);
 
-      if (activeHeading) {
-        updateActiveLink(activeHeading.id);
-      } else if (headings.length > 0) {
-        // If no heading has passed the threshold yet, use the first one
-        const firstRect = headings[0].getBoundingClientRect();
-        if (firstRect.top <= windowHeight / 2) {
-          updateActiveLink(headings[0].id);
+    // Observe all headings
+    headings.forEach(heading => observer.observe(heading));
+
+    // Initial check for headings already in view
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      if (scrollY > 100 && headings.length > 0) {
+        // Find the closest heading above current scroll position
+        for (const heading of headings) {
+          const rect = heading.getBoundingClientRect();
+          if (rect.top <= 100) {
+            updateActiveLink(heading.id);
+          }
         }
       }
-    }
-
-    // Throttled scroll handler
-    let ticking = false;
-    function onScroll() {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          detectActiveHeading();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    // Initial check
-    detectActiveHeading();
+    });
 
     // Cleanup on page navigation (for Astro view transitions)
     document.addEventListener('astro:before-swap', () => {
-      window.removeEventListener('scroll', onScroll);
+      observer.disconnect();
     }, { once: true });
   }
 

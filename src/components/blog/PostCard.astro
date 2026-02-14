@@ -55,6 +55,9 @@ const postId = slugToPostId(slug);
           <img
             src={image}
             alt={title}
+            width="600"
+            height="800"
+            decoding="async"
             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
@@ -91,6 +94,9 @@ const postId = slugToPostId(slug);
             <img
               src={image}
               alt={title}
+              width="288"
+              height="216"
+              decoding="async"
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
@@ -150,7 +156,7 @@ const postId = slugToPostId(slug);
       </div>
       {image && (
         <div class="hidden sm:block w-20 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-          <img src={image} alt="" class="w-full h-full object-cover" loading="lazy" />
+          <img src={image} alt="" width="80" height="64" decoding="async" class="w-full h-full object-cover" loading="lazy" />
         </div>
       )}
     </a>
@@ -169,6 +175,9 @@ const postId = slugToPostId(slug);
           <img
             src={image}
             alt={title}
+            width="400"
+            height="225"
+            decoding="async"
             class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />

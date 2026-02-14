@@ -149,7 +149,8 @@ const getNavLabel = (key: string) => t(key as any);
             class="flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
             aria-label={t('nav.langToggle')}
             aria-expanded="false"
-            aria-haspopup="true"
+            aria-haspopup="menu"
+            aria-controls="lang-dropdown"
           >
             <span>{LANG_CODES[lang as keyof typeof LANG_CODES]}</span>
             <Icon name="mdi:chevron-down" class="w-4 h-4" aria-hidden="true" />
@@ -158,6 +159,7 @@ const getNavLabel = (key: string) => t(key as any);
             id="lang-dropdown"
             class="hidden absolute right-0 mt-2 w-32 bg-card border border-border rounded-lg shadow-lg py-1 z-50"
             role="menu"
+            aria-labelledby="lang-toggle"
           >
             {Object.entries(languages).map(([langCode, langName]) => (
               <a
@@ -273,7 +275,7 @@ const getNavLabel = (key: string) => t(key as any);
         autocomplete="off"
       />
     </div>
-    <div id="search-results" class="mt-4 max-h-80 overflow-y-auto" role="listbox">
+    <div id="search-results" class="mt-4 max-h-80 overflow-y-auto" role="listbox" aria-label={t('search.results')}>
       <p class="text-sm text-muted-foreground text-center py-8">{t('search.typing')}</p>
     </div>
   </div>

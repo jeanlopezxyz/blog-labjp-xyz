@@ -68,6 +68,7 @@ const cleanSlug = normalizeSlug(slug);
   import { gsap } from 'gsap';
   import { API_ENDPOINTS } from '@/lib/types';
   import { escapeHtml, formatDateFull } from '@/scripts/utils';
+  import { checkRateLimit, API_RATE_LIMITS } from '@/scripts/rateLimiter';
 
   interface Comment {
     id: number;
@@ -136,6 +137,13 @@ const cleanSlug = normalizeSlug(slug);
         const author = authorInput.value.trim();
         const content = contentInput.value.trim();
         if (!author || !content) return;
+
+        // Rate limiting check
+        if (!checkRateLimit('comments', API_RATE_LIMITS.comments)) {
+          messageEl.textContent = t['comments.rateLimit'] || 'Please wait before posting another comment.';
+          messageEl.classList.add('text-red-500');
+          return;
+        }
 
         submitBtn.disabled = true;
         messageEl.textContent = '';

@@ -40,8 +40,8 @@ const t = useTranslations(lang);
 </div>
 
 <script>
-  import { gsap } from 'gsap';
   import { API_ENDPOINTS } from '@/lib/types';
+  import { checkRateLimit, API_RATE_LIMITS } from '@/scripts/rateLimiter';
 
   function initNewsletterForms() {
     document.querySelectorAll('.newsletter-form:not(.initialized)').forEach(container => {
@@ -65,6 +65,12 @@ const t = useTranslations(lang);
           return;
         }
 
+        // Rate limiting check
+        if (!checkRateLimit('newsletter', API_RATE_LIMITS.newsletter)) {
+          showMessage(t['subscribe.rateLimit'] || 'Please wait before subscribing again.', 'error');
+          return;
+        }
+
         submitBtn.disabled = true;
         messageEl.classList.add('hidden');
 
@@ -78,10 +84,8 @@ const t = useTranslations(lang);
 
           emailInput.value = '';
           showMessage(t['subscribe.success'], 'success');
-          gsap.fromTo(messageEl,
-            { opacity: 0, y: -10 },
-            { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
-          );
+          // Use CSS animation instead of GSAP
+          messageEl.style.animation = 'fadeInUp 0.3s ease-out';
         } catch {
           showMessage(t['subscribe.error'], 'error');
         } finally {
