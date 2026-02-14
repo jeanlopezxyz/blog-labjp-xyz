@@ -69,10 +69,10 @@ const getNavLabel = (key: string) => t(key as any);
               <a
                 href={getLocalizedPath(item.href, lang)}
                 class:list={[
-                  "px-2 py-1.5 text-sm whitespace-nowrap transition-colors",
+                  "px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
                   isNavActive(item.href)
-                    ? "font-medium text-foreground border-b-2 border-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "font-medium text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                 ]}
               >
                 {getNavLabel(item.key)}
@@ -90,10 +90,10 @@ const getNavLabel = (key: string) => t(key as any);
                 <a
                   href={getLocalizedPath(`/category/${cat.id}`, lang)}
                   class:list={[
-                    "px-2 py-1.5 text-sm whitespace-nowrap transition-colors",
+                    "px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
                     isActive
-                      ? "font-medium text-foreground border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "font-medium text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                   ]}
                 >
                   {cat.label}
@@ -110,10 +110,10 @@ const getNavLabel = (key: string) => t(key as any);
               <a
                 href={getLocalizedPath(item.href, lang)}
                 class:list={[
-                  "px-2 py-1.5 text-sm whitespace-nowrap transition-colors",
+                  "px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
                   isNavActive(item.href)
-                    ? "font-medium text-foreground border-b-2 border-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "font-medium text-primary bg-primary/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                 ]}
               >
                 {getNavLabel(item.key)}
