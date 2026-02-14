@@ -450,7 +450,12 @@ const getNavLabel = (key: string) => t(key as any);
 
           filtered.slice(0, 10).forEach((post, index) => {
             const link = document.createElement('a');
-            link.href = `/blog/${post.slug}`;
+            // Handle slug format: "en/article-name" or "es/article-name"
+            const slugParts = post.slug.split('/');
+            const lang = slugParts[0];
+            const articleSlug = slugParts.slice(1).join('/');
+            // Build correct URL: /en/blog/article-name or /es/blog/article-name
+            link.href = `/${lang}/blog/${articleSlug}`;
             link.className = 'search-result block p-3 rounded-lg hover:bg-muted focus:bg-muted focus:outline-none transition-colors';
             link.setAttribute('role', 'option');
             link.setAttribute('data-index', String(index));
