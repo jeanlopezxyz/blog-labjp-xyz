@@ -59,7 +59,8 @@ export function getRelativeTime(date: Date, lang: Lang = defaultLang): string {
 export function formatShortDate(date: Date, lang: Lang = defaultLang): string {
   const locale = locales[lang];
   const month = date.toLocaleDateString(locale, { month: 'short' }).toUpperCase().replace('.', '');
-  return `${month} ${date.getDate()}`;
+  const year = date.getFullYear().toString().slice(-2);
+  return `${month} ${date.getDate()}, '${year}`;
 }
 
 // Social sharing URL utilities
