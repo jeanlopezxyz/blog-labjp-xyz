@@ -21,8 +21,14 @@ const allPosts = (await getCollection("blog", ({ id, data }) => {
 })).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
-const otherPosts = allPosts.filter((post) => post.slug !== featuredPost?.slug);
-const recentPosts = otherPosts.slice(0, 4);
+// Get featured posts for right column (excluding the main featured post)
+const featuredPosts = allPosts
+  .filter((post) => post.data.featured && post.slug !== featuredPost?.slug)
+  .slice(0, 4);
+// If not enough featured posts, fill with recent posts
+const recentPosts = featuredPosts.length >= 4
+  ? featuredPosts
+  : [...featuredPosts, ...allPosts.filter(p => !p.data.featured && p.slug !== featuredPost?.slug)].slice(0, 4);
 // Show 6 recent posts in Últimos section
 const latestPosts = allPosts.slice(0, 6);
 
