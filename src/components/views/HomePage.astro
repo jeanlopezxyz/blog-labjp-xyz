@@ -79,13 +79,18 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                 </a>
 
                 <div class="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                  <time datetime={featuredPost.data.pubDate.toISOString()}>
-                    {getRelativeTime(featuredPost.data.pubDate, lang)}
-                  </time>
+                  <span class="inline-flex items-center gap-1">
+                    <Icon name="mdi:calendar-outline" class="w-4 h-4" />
+                    <time datetime={featuredPost.data.pubDate.toISOString()}>
+                      {getRelativeTime(featuredPost.data.pubDate, lang)}
+                    </time>
+                  </span>
                   <span class="text-muted-foreground/40">•</span>
-                  <span class="uppercase tracking-wide text-xs">{SITE.author}</span>
+                  <span class="inline-flex items-center gap-1 uppercase tracking-wide text-xs">
+                    <Icon name="mdi:account-outline" class="w-4 h-4" />
+                    {SITE.author}
+                  </span>
                   <span class="text-muted-foreground/40">•</span>
-                  <!-- Like button always visible -->
                   <button
                     type="button"
                     class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
@@ -119,9 +124,12 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                           {post.data.description}
                         </p>
                         <div class="flex items-center gap-2 text-xs text-muted-foreground">
-                          <time datetime={post.data.pubDate.toISOString()} class="uppercase tracking-wide">
-                            {formatShortDate(post.data.pubDate, lang)}
-                          </time>
+                          <span class="inline-flex items-center gap-1 uppercase tracking-wide">
+                            <Icon name="mdi:calendar-outline" class="w-3.5 h-3.5" />
+                            <time datetime={post.data.pubDate.toISOString()}>
+                              {formatShortDate(post.data.pubDate, lang)}
+                            </time>
+                          </span>
                           <span class="text-muted-foreground/40">•</span>
                           <button
                             type="button"
@@ -203,9 +211,12 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                       </p>
                     </a>
                     <div class="flex items-center gap-2 text-xs text-muted-foreground mt-3">
-                      <time datetime={post.data.pubDate.toISOString()} class="uppercase tracking-wide">
-                        {formatShortDate(post.data.pubDate, lang)}
-                      </time>
+                      <span class="inline-flex items-center gap-1 uppercase tracking-wide">
+                        <Icon name="mdi:calendar-outline" class="w-3.5 h-3.5" />
+                        <time datetime={post.data.pubDate.toISOString()}>
+                          {formatShortDate(post.data.pubDate, lang)}
+                        </time>
+                      </span>
                       <span class="text-muted-foreground/40">•</span>
                       <button
                         type="button"
