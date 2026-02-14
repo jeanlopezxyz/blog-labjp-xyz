@@ -1,7 +1,7 @@
 import { locales } from "@/i18n/ui";
 
 export const SITE = {
-  name: "blog.labjp.xyz",
+  name: "labjp.xyz",
   url: "https://blog.labjp.xyz",
   author: "Jean Paul López",
   email: "contact@labjp.xyz",
