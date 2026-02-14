@@ -45,7 +45,8 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
     {allPosts.length > 0 ? (
       <>
         <!-- Hero Section: Featured + Recent -->
-        <section class="grid lg:grid-cols-2 gap-8 lg:gap-10 mb-16">
+        <section class="bg-muted/40 rounded-2xl p-4 sm:p-6 mb-8">
+          <div class="grid lg:grid-cols-2 gap-6 lg:gap-8">
 
           <!-- Featured Post (Left) -->
           {featuredPost && (
@@ -150,11 +151,12 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
               );
             })}
           </div>
+          </div>
         </section>
 
         <!-- More Articles Section -->
         {latestPosts.length > 0 && (
-          <section class="pt-12">
+          <section class="pt-6">
             <div class="flex items-center justify-between mb-8">
               <h2 class="text-xl font-bold text-foreground">{t('home.latest')}</h2>
               <a
