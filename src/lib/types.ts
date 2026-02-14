@@ -34,15 +34,6 @@ export interface BlogCollectionEntry {
   data: PostData;
 }
 
-/** Popular post with views data */
-export interface PopularPostData {
-  slug: string;
-  title: string;
-  image?: string;
-  pubDate: string;
-  views?: number;
-}
-
 // ============================================
 // Component Props - Common patterns
 // ============================================
@@ -50,16 +41,6 @@ export interface PopularPostData {
 /** Base props for components that support i18n */
 export interface WithLang {
   lang?: Lang;
-}
-
-/** Props for components that display a single post */
-export interface PostCardProps extends WithLang {
-  title: string;
-  description: string;
-  pubDate: Date;
-  slug: string;
-  image?: string;
-  readingTime?: number;
 }
 
 /** Props for social action components */
@@ -73,16 +54,6 @@ export interface SocialActionsProps extends WithLang {
   class?: string;
 }
 
-/** Props for list/archive pages */
-export interface ListPageProps extends WithLang {
-  // All list pages receive lang
-}
-
-/** Props for category pages */
-export interface CategoryPageProps extends WithLang {
-  category: string;
-}
-
 // ============================================
 // API Types
 // ============================================
@@ -91,13 +62,6 @@ export interface PostStats {
   views: number;
   likes: number;
   comments: number;
-}
-
-export interface Comment {
-  id: number;
-  author: string;
-  content: string;
-  created_at: string;
 }
 
 // ============================================

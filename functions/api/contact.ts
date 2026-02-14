@@ -1,12 +1,9 @@
 /**
  * API endpoint for contact form
  * POST /api/contact - Submit contact form
- * GET /api/contact - Get contact submissions (admin)
  */
 
-interface Env {
-  DB: D1Database;
-}
+import { isValidEmail, sanitize, jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
 
 // Initialize contact table
 async function initContactTable(db: D1Database) {
@@ -21,19 +18,6 @@ async function initContactTable(db: D1Database) {
       read INTEGER DEFAULT 0
     )
   `).run();
-}
-
-// Simple validation
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function sanitize(str: string): string {
-  return str
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .trim();
 }
 
 // POST: Submit contact form
@@ -52,36 +36,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const { name, email, subject, message } = body;
 
-    // Validation
     if (!name || !email || !message) {
-      return new Response(JSON.stringify({ error: 'name, email, and message are required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('name, email, and message are required');
     }
 
     if (!isValidEmail(email)) {
-      return new Response(JSON.stringify({ error: 'Invalid email format' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('Invalid email format');
     }
 
     if (name.length > 100) {
-      return new Response(JSON.stringify({ error: 'Name too long (max 100)' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('Name too long (max 100)');
     }
 
     if (message.length > 5000) {
-      return new Response(JSON.stringify({ error: 'Message too long (max 5000)' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('Message too long (max 5000)');
     }
 
-    // Sanitize and insert
     await env.DB.prepare(
       'INSERT INTO contact_submissions (name, email, subject, message) VALUES (?, ?, ?, ?)'
     ).bind(
@@ -91,32 +61,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       sanitize(message)
     ).run();
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Message sent successfully'
-    }), {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz'
-      }
-    });
-  } catch (error) {
-    console.error('Error submitting contact form:', error);
-    return new Response(JSON.stringify({ error: 'Failed to send message' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return jsonResponse({ success: true, message: 'Message sent successfully' }, { status: 201 });
+  } catch {
+    return errorResponse('Failed to send message', 500);
   }
 };
 
 // OPTIONS: Handle CORS
-export const onRequestOptions: PagesFunction = async () => {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  });
-};
+export const onRequestOptions: PagesFunction = async () => corsResponse();

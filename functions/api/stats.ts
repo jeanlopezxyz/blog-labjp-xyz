@@ -4,19 +4,12 @@
  * GET /api/stats?slug=xxx - Get stats for single post
  */
 
-interface Env {
-  DB: D1Database;
-}
+import { normalizeSlug, jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
 
 interface PostStats {
   slug: string;
   likes: number;
   comments: number;
-}
-
-// Normalize slug (remove language prefix)
-function normalizeSlug(slug: string): string {
-  return slug.replace(/^(en|es)\//, '');
 }
 
 // Initialize tables if they don't exist
@@ -48,7 +41,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  // Support both single slug and multiple slugs
   const singleSlug = url.searchParams.get('slug');
   const multipleSlugs = url.searchParams.get('slugs');
 
@@ -61,19 +53,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   if (slugs.length === 0) {
-    return new Response(JSON.stringify({ error: 'slug or slugs parameter is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse('slug or slugs parameter is required');
   }
 
   try {
     await initTables(env.DB);
 
-    // Build placeholders for IN clause
     const placeholders = slugs.map(() => '?').join(',');
 
-    // Get likes counts
     const likesResult = await env.DB.prepare(`
       SELECT slug, COUNT(*) as count
       FROM post_likes
@@ -81,7 +68,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       GROUP BY slug
     `).bind(...slugs).all<{ slug: string; count: number }>();
 
-    // Get comments counts
     const commentsResult = await env.DB.prepare(`
       SELECT slug, COUNT(*) as count
       FROM comments
@@ -89,7 +75,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       GROUP BY slug
     `).bind(...slugs).all<{ slug: string; count: number }>();
 
-    // Build stats map
     const likesMap = new Map(likesResult.results?.map(r => [r.slug, r.count]) || []);
     const commentsMap = new Map(commentsResult.results?.map(r => [r.slug, r.count]) || []);
 
@@ -102,28 +87,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       };
     }
 
-    return new Response(JSON.stringify(stats), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
-        'Cache-Control': 'public, max-age=60'
-      }
-    });
-  } catch (error) {
-    console.error('Error getting stats:', error);
-    return new Response(JSON.stringify({ error: 'Failed to get stats' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return jsonResponse(stats, { cache: true });
+  } catch {
+    return errorResponse('Failed to get stats', 500);
   }
 };
 
-export const onRequestOptions: PagesFunction = async () => {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  });
-};
+export const onRequestOptions: PagesFunction = async () => corsResponse();

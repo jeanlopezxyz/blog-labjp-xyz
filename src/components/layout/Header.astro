@@ -47,7 +47,7 @@ const isNavActive = (href: string) => {
   return pathname === localizedHref || pathname.startsWith(localizedHref + '/');
 };
 
-const getNavLabel = (key: string) => t(key as any);
+const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTranslations>);
 ---
 
 <header class="sticky top-0 z-50 bg-card/95 backdrop-blur-md" role="banner">

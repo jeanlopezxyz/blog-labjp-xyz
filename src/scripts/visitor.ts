@@ -7,7 +7,7 @@ import { STORAGE_KEYS, API_ENDPOINTS } from '@/lib/types';
 /**
  * Get or create a unique visitor ID
  */
-export function getVisitorId(): string {
+function getVisitorId(): string {
   let id = localStorage.getItem(STORAGE_KEYS.VISITOR_ID);
 
   if (!id) {

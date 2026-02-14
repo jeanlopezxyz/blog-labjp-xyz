@@ -22,15 +22,6 @@ export function calculateReadingTime(content: string): number {
   return Math.ceil(wordCount / WORDS_PER_MINUTE);
 }
 
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
 const DEFAULT_CATEGORY = {
   color: "#22c55e",
   icon: "mdi:file-document-outline",

@@ -3,9 +3,7 @@
  * Handles geolocation-based language redirect and security headers
  */
 
-interface Env {
-  DB: D1Database;
-}
+import type { Env } from './lib/utils';
 
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
@@ -79,15 +77,6 @@ const SPANISH_COUNTRIES = new Set([
   'PR', // Puerto Rico
   'GQ', // Equatorial Guinea
 ]);
-
-// Helper to get CORS origin
-export function getAllowedOrigin(request: Request): string {
-  const origin = request.headers.get('Origin') || '';
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    return origin;
-  }
-  return ALLOWED_ORIGINS[0]; // Default to main domain
-}
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, next } = context;

@@ -8,7 +8,7 @@ import { STORAGE_KEYS, type LikesStore } from '@/lib/types';
 /**
  * Get all likes from localStorage
  */
-export function getLikes(): LikesStore {
+function getLikes(): LikesStore {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.LIKES) || '{}');
   } catch {
@@ -19,7 +19,7 @@ export function getLikes(): LikesStore {
 /**
  * Save likes to localStorage
  */
-export function saveLikes(likes: LikesStore): void {
+function saveLikes(likes: LikesStore): void {
   localStorage.setItem(STORAGE_KEYS.LIKES, JSON.stringify(likes));
 }
 
@@ -70,38 +70,3 @@ export function updateLikeUI(btn: HTMLElement, isLiked: boolean): void {
   }
 }
 
-/**
- * Initialize a like button with current state and click handler
- */
-export function initLikeButton(
-  btn: HTMLElement,
-  postId: string,
-  options?: {
-    onToggle?: (isLiked: boolean, count: number) => void;
-    countSelector?: string;
-  }
-): void {
-  const { onToggle, countSelector = '.like-count' } = options || {};
-
-  // Set initial state
-  const initialLiked = isPostLiked(postId);
-  updateLikeUI(btn, initialLiked);
-
-  // Add click handler
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const countEl = btn.querySelector(countSelector);
-    const currentCount = parseInt(countEl?.textContent || '0', 10);
-    const isLiked = toggleLike(postId);
-    const newCount = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
-
-    if (countEl) {
-      countEl.textContent = String(newCount);
-    }
-
-    updateLikeUI(btn, isLiked);
-    onToggle?.(isLiked, newCount);
-  });
-}

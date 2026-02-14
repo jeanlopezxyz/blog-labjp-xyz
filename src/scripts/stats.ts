@@ -9,7 +9,7 @@ export type { PostStats };
 /**
  * Load stats for a single post
  */
-export async function loadPostStats(slug: string): Promise<PostStats | null> {
+async function loadPostStats(slug: string): Promise<PostStats | null> {
   try {
     const response = await fetch(`${API_ENDPOINTS.STATS}?slug=${slug}`);
     if (!response.ok) return null;
@@ -25,7 +25,7 @@ export async function loadPostStats(slug: string): Promise<PostStats | null> {
 /**
  * Load stats for multiple posts
  */
-export async function loadMultiplePostStats(slugs: string[]): Promise<Record<string, PostStats>> {
+async function loadMultiplePostStats(slugs: string[]): Promise<Record<string, PostStats>> {
   if (slugs.length === 0) return {};
 
   try {
@@ -42,7 +42,7 @@ export async function loadMultiplePostStats(slugs: string[]): Promise<Record<str
 /**
  * Update stats display in a container
  */
-export function updateStatsDisplay(
+function updateStatsDisplay(
   container: Element,
   stats: PostStats,
   selectors = { likes: '.like-count', comments: '.comment-count' }

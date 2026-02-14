@@ -14,13 +14,11 @@ interface Props extends WithLang {
   description: string;
   pubDate: Date;
   updatedDate?: Date;
-  tags: string[];
   readingTime: number;
   slug: string;
 }
 
-const { title, description, pubDate, updatedDate, tags: _tags, readingTime, slug, lang = defaultLang } = Astro.props;
-void _tags; // Available for future use
+const { title, description, pubDate, updatedDate, readingTime, slug, lang = defaultLang } = Astro.props;
 const wasUpdated = updatedDate && updatedDate > pubDate;
 const t = useTranslations(lang);
 const postUrl = getFullBlogPostUrl(slug, lang);

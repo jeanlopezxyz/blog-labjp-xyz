@@ -127,25 +127,10 @@
     @apply bg-card shadow-lg shadow-primary/5;
   }
 
-  .card-interactive {
-    @apply bg-card/60 rounded-xl;
-    @apply shadow-sm;
-    @apply transition-all duration-200;
-    @apply cursor-pointer;
-  }
-
-  .card-interactive:hover {
-    @apply bg-card shadow-xl shadow-primary/5;
-  }
-
   /* Badge styling */
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-md text-sm font-medium;
     @apply bg-secondary/80 text-secondary-foreground;
-  }
-
-  .badge-primary {
-    @apply bg-primary text-primary-foreground;
   }
 
 }
@@ -423,7 +408,7 @@
   .card { @apply border-2 border-gray-400 shadow-none; }
 }
 
-/* CSS Animations - replacements for simple GSAP animations */
+/* CSS Animation for Newsletter form */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -433,47 +418,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.3s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.animate-slide-in-left {
-  animation: slideInLeft 0.3s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
 }

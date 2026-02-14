@@ -147,8 +147,7 @@ function wrapCodeBlock(pre: HTMLPreElement): void {
         if (copyText) copyText.textContent = getTranslation('code.copy', 'Copy');
       }, 2000);
     } catch {
-      // Clipboard API not available - rare in modern browsers
-      console.warn('Clipboard API not available');
+      // Clipboard API not available - silent fail
     }
   });
 

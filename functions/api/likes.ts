@@ -4,9 +4,7 @@
  * GET /api/likes?slug=xxx - Get likes for specific slug
  */
 
-interface Env {
-  DB: D1Database;
-}
+import { jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
@@ -15,50 +13,34 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { slug, visitorId } = await request.json() as { slug: string; visitorId: string };
 
     if (!slug || !visitorId) {
-      return new Response(JSON.stringify({ error: 'slug and visitorId are required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('slug and visitorId are required');
     }
 
-    // Check if already liked
     const existing = await env.DB.prepare(
       'SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?'
     ).bind(slug, visitorId).first();
 
     if (existing) {
-      // Remove like
       await env.DB.prepare(
         'DELETE FROM post_likes WHERE slug = ? AND visitor_id = ?'
       ).bind(slug, visitorId).run();
     } else {
-      // Add like
       await env.DB.prepare(
         'INSERT INTO post_likes (slug, visitor_id) VALUES (?, ?)'
       ).bind(slug, visitorId).run();
     }
 
-    // Get updated count
     const result = await env.DB.prepare(
       'SELECT COUNT(*) as count FROM post_likes WHERE slug = ?'
     ).bind(slug).first<{ count: number }>();
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       slug,
       likes: result?.count || 0,
       liked: !existing
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz'
-      }
     });
-  } catch (error) {
-    console.error('Error handling like:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+  } catch {
+    return errorResponse('Internal server error', 500);
   }
 };
 
@@ -70,18 +52,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   try {
     if (!slug) {
-      return new Response(JSON.stringify({ error: 'slug is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse('slug is required');
     }
 
-    // Get like count
     const result = await env.DB.prepare(
       'SELECT COUNT(*) as count FROM post_likes WHERE slug = ?'
     ).bind(slug).first<{ count: number }>();
 
-    // Check if visitor liked
     let liked = false;
     if (visitorId) {
       const existing = await env.DB.prepare(
@@ -90,31 +67,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       liked = !!existing;
     }
 
-    return new Response(JSON.stringify({
-      slug,
-      likes: result?.count || 0,
-      liked
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://blog.labjp.xyz'
-      }
-    });
-  } catch (error) {
-    console.error('Error getting likes:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return jsonResponse({ slug, likes: result?.count || 0, liked });
+  } catch {
+    return errorResponse('Internal server error', 500);
   }
 };
 
-export const onRequestOptions: PagesFunction = async () => {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': 'https://blog.labjp.xyz',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    }
-  });
-};
+export const onRequestOptions: PagesFunction = async () => corsResponse();

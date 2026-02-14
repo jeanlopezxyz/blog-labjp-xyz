@@ -43,5 +43,3 @@ export const CATEGORIES = [
 ] as const;
 
 export type CategoryId = typeof CATEGORIES[number]["id"];
-
-export const POSTS_PER_PAGE = 6;

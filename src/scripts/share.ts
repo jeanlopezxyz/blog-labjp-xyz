@@ -103,22 +103,10 @@ export function initCopyLinks(container: Element | Document = document): void {
             textSpan.textContent = originalText;
           }, 1500);
         } catch {
-          // Clipboard API failed - this is rare in modern browsers
-          console.warn('Clipboard API not available');
+          // Clipboard API not available - silent fail
         }
       }
     });
-  });
-}
-
-/**
- * Close all share dropdowns
- */
-export function closeAllShareMenus(): void {
-  document.querySelectorAll('[data-share-dropdown]').forEach((dropdown) => {
-    dropdown.classList.add('hidden');
-    const toggle = dropdown.closest('[data-share-menu]')?.querySelector('[data-share-toggle]');
-    toggle?.setAttribute('aria-expanded', 'false');
   });
 }
 
@@ -143,15 +131,3 @@ export function setupGlobalShareHandlers(): void {
   });
 }
 
-/**
- * Reset initialization state (for Astro navigation)
- */
-export function resetShareState(): void {
-  globalHandlersInitialized = false;
-  document.querySelectorAll('[data-share-initialized]').forEach((el) => {
-    delete (el as HTMLElement).dataset.shareInitialized;
-  });
-  document.querySelectorAll('[data-copy-initialized]').forEach((el) => {
-    delete (el as HTMLElement).dataset.copyInitialized;
-  });
-}
