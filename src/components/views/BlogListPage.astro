@@ -92,20 +92,22 @@ function getPostUrl(slug: string) {
             )}
 
             {otherPosts.length > 0 && (
-              <section class="pt-8 border-t border-border/30">
+              <section class="mt-8">
                 <ArticleTabs activeTab="latest" lang={lang} />
-                <div id="articles-list" class="flex flex-col gap-4">
-                  {otherPosts.map((post) => (
-                    <PostCardHorizontal
-                      title={post.data.title}
-                      description={post.data.description}
-                      pubDate={post.data.pubDate}
-                      slug={post.slug}
-                      image={post.data.image}
-                      readingTime={calculateReadingTime(post.body ?? "")}
-                      lang={lang}
-                    />
-                  ))}
+                <div class="bg-muted/40 rounded-2xl p-4 sm:p-6">
+                  <div id="articles-list" class="flex flex-col gap-3">
+                    {otherPosts.map((post) => (
+                      <PostCardHorizontal
+                        title={post.data.title}
+                        description={post.data.description}
+                        pubDate={post.data.pubDate}
+                        slug={post.slug}
+                        image={post.data.image}
+                        readingTime={calculateReadingTime(post.body ?? "")}
+                        lang={lang}
+                      />
+                    ))}
+                  </div>
                 </div>
               </section>
             )}

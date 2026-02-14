@@ -152,7 +152,7 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
 
         <!-- More Articles Section -->
         {latestPosts.length > 0 && (
-          <section class="border-t border-border/30 pt-12">
+          <section class="pt-12">
             <div class="flex items-center justify-between mb-8">
               <h2 class="text-xl font-bold text-foreground">{t('home.latest')}</h2>
               <a
@@ -165,7 +165,8 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
             </div>
 
             <!-- Grid of Posts -->
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-muted/40 rounded-2xl p-4 sm:p-6">
+              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {latestPosts.map((post) => {
                 const postId = getPostId(post.slug);
                 const cleanSlug = normalizeSlug(post.slug);
@@ -216,6 +217,7 @@ const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
                   </article>
                 );
               })}
+              </div>
             </div>
 
             <!-- View All Link -->
