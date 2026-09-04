@@ -1,7 +1,7 @@
 ---
 import { Icon } from "astro-icon/components";
 import { NAV_ITEMS, CATEGORIES, RSS_URL } from "@/lib/constants";
-import { getLangFromUrl, useTranslations, getLocalizedPath, languages, defaultLang } from "@/i18n";
+import { getLangFromUrl, useTranslations, getLocalizedPath, languages } from "@/i18n";
 
 // Language display names (short codes)
 const LANG_CODES = {
@@ -10,7 +10,7 @@ const LANG_CODES = {
 } as const;
 
 // Función para obtener URL del idioma alternativo (mantiene la página actual)
-function getLangSwitchUrl(targetLang: string, currentLang: string, pathname: string): string {
+function getLangSwitchUrl(targetLang: string, pathname: string): string {
   // Normalizar pathname (quitar trailing slash excepto para root)
   const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
 
@@ -166,7 +166,7 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
           >
             {Object.entries(languages).map(([langCode, langName]) => (
               <a
-                href={getLangSwitchUrl(langCode, lang, pathname)}
+                href={getLangSwitchUrl(langCode, pathname)}
                 class:list={[
                   "flex items-center justify-between px-4 py-2 text-sm transition-colors",
                   lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",
@@ -361,8 +361,6 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
 </div>
 
 <script>
-  import { STORAGE_KEYS } from '@/lib/types';
-
   function initHeader() {
     const subscribeLinks = document.querySelectorAll('a[href="#subscribe"]');
     const subscribeModal = document.getElementById("subscribe-modal");

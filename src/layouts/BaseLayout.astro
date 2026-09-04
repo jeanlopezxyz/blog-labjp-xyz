@@ -274,14 +274,14 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
     <meta name="twitter:image:alt" content={finalTitle} />
 
     <!-- JSON-LD Structured Data for Rich Results -->
-    <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
-    <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
-    <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
     {breadcrumbItems.length > 0 && (
-      <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
     )}
     {isHomepage && (
-      <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
     )}
 
     <!-- i18n for client scripts -->
@@ -302,7 +302,15 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
     </a>
 
     <Header currentCategory={currentCategory} />
-    <main id="main-content" class="flex-1" tabindex="-1">
+    <div class="terminal-status" aria-label="Estado del sitio">
+      <div class="terminal-status__inner">
+        <span class="terminal-status__path"><span aria-hidden="true">~/</span>labjp/blog</span>
+        <span class="terminal-status__command" aria-hidden="true">git:main</span>
+        <span class="terminal-status__runtime">astro@7 · cloudflare/pages</span>
+        <span class="terminal-status__online"><span class="terminal-status__dot"></span>online</span>
+      </div>
+    </div>
+    <main id="main-content" class="terminal-workspace flex-1" tabindex="-1">
       <slot />
     </main>
     <Footer lang={lang} />

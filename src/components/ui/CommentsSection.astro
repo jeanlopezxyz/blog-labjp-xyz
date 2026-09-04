@@ -77,6 +77,10 @@ const cleanSlug = normalizeSlug(slug);
     created_at: string;
   }
 
+  interface CommentResponse {
+    comment: Comment;
+  }
+
   function initComments() {
     document.querySelectorAll('.comments-section').forEach(section => {
       const slug = section.getAttribute('data-slug');
@@ -111,8 +115,8 @@ const cleanSlug = normalizeSlug(slug);
 
       // Load comments
       fetch(`${API_ENDPOINTS.COMMENTS}?slug=${encodeURIComponent(slug)}`)
-        .then(res => res.json())
-        .then((comments: Comment[]) => {
+        .then(res => res.json() as Promise<Comment[]>)
+        .then((comments) => {
           loadingEl.classList.add('hidden');
           if (comments.length === 0) {
             emptyEl.classList.remove('hidden');
@@ -157,7 +161,7 @@ const cleanSlug = normalizeSlug(slug);
           });
           if (!res.ok) throw new Error('Failed');
 
-          const data = await res.json();
+          const data = await res.json() as CommentResponse;
           contentInput.value = '';
           messageEl.textContent = t['comments.success'];
           messageEl.classList.add('text-green-500');

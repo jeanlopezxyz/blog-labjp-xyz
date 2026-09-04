@@ -1,7 +1,9 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const blog = defineCollection({
-  type: "content",
+  loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
@@ -17,12 +19,12 @@ const blog = defineCollection({
 });
 
 const projects = defineCollection({
-  type: "data",
+  loader: glob({ base: "./src/content/projects", pattern: "**/*.{yaml,yml,json}" }),
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    repo: z.string().url(),
-    demo: z.string().url().optional(),
+    repo: z.url(),
+    demo: z.url().optional(),
     image: z.string().optional(),
     tech: z.array(z.string()),
     category: z.enum(["library", "tool", "cli", "web", "other"]),
@@ -32,13 +34,13 @@ const projects = defineCollection({
 });
 
 const notes = defineCollection({
-  type: "content",
+  loader: glob({ base: "./src/content/notes", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     pubDate: z.coerce.date(),
     source: z.enum(["linkedin", "twitter", "mastodon", "original"]).default("original"),
-    sourceUrl: z.string().url().optional(),
+    sourceUrl: z.url().optional(),
     link: z.object({
-      url: z.string().url(),
+      url: z.url(),
       title: z.string(),
       domain: z.string(),
       image: z.string().optional(),
@@ -47,8 +49,4 @@ const notes = defineCollection({
   }),
 });
 
-export const collections = {
-  blog,
-  projects,
-  notes,
-};
+export const collections = { blog, projects, notes };

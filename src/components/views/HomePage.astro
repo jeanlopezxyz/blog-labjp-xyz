@@ -1,10 +1,13 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import PostCard from "@/components/blog/PostCard.astro";
+import PostCardHorizontal from "@/components/blog/PostCardHorizontal.astro";
+import SocialActions from "@/components/ui/SocialActions.astro";
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
-import { getRelativeTime, formatShortDate, getBlogPostUrl } from "@/lib/utils";
+import { calculateReadingTime, getBlogPostUrl, getRelativeTime } from "@/lib/utils";
 import { SITE } from "@/lib/constants";
-import { useTranslations, getLocalizedPath, slugToPostId, isPostForLang, normalizeSlug, type Lang } from "@/i18n";
+import { getLocalizedPath, isPostForLang, normalizeSlug, slugToPostId, useTranslations, type Lang } from "@/i18n";
 
 interface Props {
   lang: Lang;
@@ -12,311 +15,130 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
-
-// Get posts for current language
-const allPosts = (await getCollection("blog", ({ id, data }) => {
-  if (data.draft) return false;
-  return isPostForLang(id, lang);
-})).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const allPosts = (await getCollection("blog", ({ id, data }) => !data.draft && isPostForLang(id, lang)))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
-// Get featured posts for right column (excluding the main featured post)
-const featuredPosts = allPosts
-  .filter((post) => post.data.featured && post.slug !== featuredPost?.slug)
-  .slice(0, 4);
-// If not enough featured posts, fill with recent posts
-const recentPosts = featuredPosts.length >= 4
-  ? featuredPosts
-  : [...featuredPosts, ...allPosts.filter(p => !p.data.featured && p.slug !== featuredPost?.slug)].slice(0, 4);
-// Show 6 recent posts in Últimos section
-const latestPosts = allPosts.slice(0, 6);
-
-// Helper to get the correct blog URL
-function getBlogUrl(slug: string): string {
-  return getBlogPostUrl(slug, lang);
-}
-
-// Helper to get post ID for interactions
-function getPostId(slug: string): string {
-  return slugToPostId(slug);
-}
-
-const featuredPostId = featuredPost ? getPostId(featuredPost.slug) : '';
+const secondaryPosts = allPosts.filter((post) => post.id !== featuredPost?.id).slice(0, 4);
+const secondaryIds = new Set(secondaryPosts.map((post) => post.id));
+const latestPosts = allPosts
+  .filter((post) => post.id !== featuredPost?.id && !secondaryIds.has(post.id))
+  .slice(0, 6);
 ---
 
 <BaseLayout lang={lang}>
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+  <div class="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <section class="terminal-hero mb-6" aria-labelledby="terminal-intro-title">
+      <div class="terminal-window-bar" aria-hidden="true">
+        <span class="terminal-window-dot terminal-window-dot--red"></span>
+        <span class="terminal-window-dot terminal-window-dot--yellow"></span>
+        <span class="terminal-window-dot terminal-window-dot--green"></span>
+        <span class="terminal-window-title">jean@labjp: ~/blog</span>
+      </div>
+      <div class="terminal-hero__body">
+        <p class="terminal-command"><span class="terminal-prompt">jean@labjp:~/blog$</span> whoami</p>
+        <h1 id="terminal-intro-title" class="terminal-output">
+          {lang === "es"
+            ? "Ingeniería cloud native, explicada desde la terminal."
+            : "Cloud-native engineering, explained from the terminal."}
+        </h1>
+        <p class="terminal-description">
+          {lang === "es"
+            ? "Notas de campo sobre Kubernetes, OpenShift, IA, automatización y sistemas en producción."
+            : "Field notes on Kubernetes, OpenShift, AI, automation, and production systems."}
+        </p>
+        <p class="terminal-command terminal-command--next" aria-hidden="true">
+          <span class="terminal-prompt">jean@labjp:~/blog$</span> ls --latest <span class="terminal-cursor"></span>
+        </p>
+      </div>
+    </section>
 
-    {allPosts.length > 0 ? (
+    {featuredPost ? (
       <>
-        <!-- Hero Section: Featured + Recent -->
-        <section class="bg-muted/40 rounded-2xl p-4 sm:p-6 mb-4">
-          <div class="grid lg:grid-cols-2 gap-6 lg:gap-8">
-
-          <!-- Featured Post (Left) -->
-          {featuredPost && (
-            <article class="group p-5 bg-card/30 rounded-xl hover:bg-card/50 transition-all duration-300" data-post-id={featuredPostId}>
-              <a href={getBlogUrl(featuredPost.slug)} class="block">
-                {featuredPost.data.image && (
-                  <div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-muted">
-                    <img
-                      src={featuredPost.data.image}
-                      alt={featuredPost.data.title}
-                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                )}
-              </a>
-
-              <div class="text-center">
-                <a href={getBlogUrl(featuredPost.slug)} class="block">
-                  <h1 class="text-2xl md:text-3xl font-bold text-foreground group-hover:text-primary transition-colors mb-3 leading-tight">
-                    {featuredPost.data.title}
-                  </h1>
-                  <p class="text-muted-foreground leading-relaxed mb-4 max-w-lg mx-auto">
-                    {featuredPost.data.description}
-                  </p>
-                </a>
-
-                <div class="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                  <span class="inline-flex items-center gap-1">
-                    <Icon name="mdi:calendar-outline" class="w-4 h-4" />
-                    <time datetime={featuredPost.data.pubDate.toISOString()}>
-                      {getRelativeTime(featuredPost.data.pubDate, lang)}
-                    </time>
-                  </span>
-                  <span class="text-muted-foreground/40">•</span>
-                  <span class="inline-flex items-center gap-1 uppercase tracking-wide text-xs">
-                    <Icon name="mdi:account-outline" class="w-4 h-4" />
-                    {SITE.author}
-                  </span>
-                  <span class="text-muted-foreground/40">•</span>
-                  <button
-                    type="button"
-                    class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
-                    data-post-id={featuredPostId}
-                    aria-label="Me gusta"
-                  >
-                    <svg class="w-4 h-4 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span class="like-count text-xs">0</span>
-                  </button>
+        <section class="terminal-panel mb-6 grid gap-6 p-4 sm:p-6 lg:grid-cols-2 lg:gap-8">
+          <article class="terminal-card group p-5">
+            <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
+              {featuredPost.data.image && (
+                <div class="mb-5 aspect-[16/10] overflow-hidden rounded-sm bg-muted">
+                  <img
+                    src={featuredPost.data.image}
+                    alt={featuredPost.data.title}
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
+              )}
+              <h2 class="mb-3 text-2xl font-bold leading-tight transition-colors group-hover:text-primary md:text-3xl">
+                {featuredPost.data.title}
+              </h2>
+              <p class="mb-4 leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
+              <div class="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
+                <time datetime={featuredPost.data.pubDate.toISOString()}>
+                  {getRelativeTime(featuredPost.data.pubDate, lang)}
+                </time>
+                <span aria-hidden="true">·</span>
+                <span>{SITE.author}</span>
+                <span aria-hidden="true">·</span>
+                <span>{calculateReadingTime(featuredPost.body ?? "")} min</span>
               </div>
-            </article>
-          )}
+            </a>
+            <div class="mt-4 border-t border-border/40 pt-4">
+              <SocialActions
+                postId={slugToPostId(featuredPost.id)}
+                postTitle={featuredPost.data.title}
+                postSlug={normalizeSlug(featuredPost.id)}
+                lang={lang}
+                showComments={true}
+                size="sm"
+              />
+            </div>
+          </article>
 
-          <!-- Recent Posts (Right) -->
-          <div class="flex flex-col justify-between gap-4">
-            {recentPosts.map((post) => {
-              const postId = getPostId(post.slug);
-              const cleanSlug = normalizeSlug(post.slug);
-              return (
-                <article class="group p-4 bg-card/30 rounded-xl hover:bg-card/50 transition-all duration-300">
-                  <div class="flex gap-4 items-start">
-                    <div class="flex-1 min-w-0">
-                      <a href={getBlogUrl(post.slug)} class="block">
-                        <h2 class="font-bold text-foreground group-hover:text-primary transition-colors mb-2 leading-snug text-lg">
-                          {post.data.title}
-                        </h2>
-                        <p class="text-sm text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
-                          {post.data.description}
-                        </p>
-                        <div class="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span class="inline-flex items-center gap-1 uppercase tracking-wide">
-                            <Icon name="mdi:calendar-outline" class="w-3.5 h-3.5" />
-                            <time datetime={post.data.pubDate.toISOString()}>
-                              {formatShortDate(post.data.pubDate, lang)}
-                            </time>
-                          </span>
-                          <span class="text-muted-foreground/40">•</span>
-                          <button
-                            type="button"
-                            class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
-                            data-post-id={postId}
-                            aria-label="Me gusta"
-                          >
-                            <svg class="w-3.5 h-3.5 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                            <span class="like-count">0</span>
-                          </button>
-                        </div>
-                      </a>
-                    </div>
-                    {post.data.image && (
-                      <a href={getBlogUrl(post.slug)} class="flex-shrink-0">
-                        <div class="w-28 h-28 rounded-lg overflow-hidden bg-muted">
-                          <img
-                            src={post.data.image}
-                            alt=""
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+          <div class="flex flex-col gap-4">
+            {secondaryPosts.map((post) => (
+              <PostCardHorizontal
+                title={post.data.title}
+                description={post.data.description}
+                pubDate={post.data.pubDate}
+                slug={post.id}
+                image={post.data.image}
+                readingTime={calculateReadingTime(post.body ?? "")}
+                lang={lang}
+              />
+            ))}
           </div>
         </section>
 
-        <!-- More Articles Section -->
         {latestPosts.length > 0 && (
-          <section class="pt-4">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-bold text-foreground">{t('home.latest')}</h2>
-              <a
-                href={getLocalizedPath('/blog', lang)}
-                class="group inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-all"
-              >
-                {t('home.viewAll')}
-                <Icon name="mdi:chevron-right" class="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          <section>
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="terminal-section-title text-xl font-bold">{t("home.latest")}</h2>
+              <a href={getLocalizedPath("/blog", lang)} class="font-mono text-xs text-primary hover:underline">
+                {t("home.viewAll")} →
               </a>
             </div>
-
-            <!-- Grid of Posts -->
-            <div class="bg-muted/40 rounded-2xl p-4 sm:p-6">
-              <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {latestPosts.map((post) => {
-                const postId = getPostId(post.slug);
-                const cleanSlug = normalizeSlug(post.slug);
-                return (
-                  <article class="group h-full flex flex-col">
-                    <a href={getBlogUrl(post.slug)} class="block flex-1 flex flex-col">
-                      <!-- Always show image area for consistent layout -->
-                      <div class="aspect-[16/10] rounded-lg overflow-hidden mb-4 bg-muted flex-shrink-0">
-                        {post.data.image ? (
-                          <img
-                            src={post.data.image}
-                            alt=""
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                            <Icon name="mdi:file-document-outline" class="w-12 h-12 text-primary/30" />
-                          </div>
-                        )}
-                      </div>
-                      <h3 class="font-bold text-foreground group-hover:text-primary transition-colors mb-2 leading-snug">
-                        {post.data.title}
-                      </h3>
-                      <p class="text-sm text-muted-foreground line-clamp-2 flex-1">
-                        {post.data.description}
-                      </p>
-                    </a>
-                    <div class="flex items-center gap-2 text-xs text-muted-foreground mt-3">
-                      <span class="inline-flex items-center gap-1 uppercase tracking-wide">
-                        <Icon name="mdi:calendar-outline" class="w-3.5 h-3.5" />
-                        <time datetime={post.data.pubDate.toISOString()}>
-                          {formatShortDate(post.data.pubDate, lang)}
-                        </time>
-                      </span>
-                      <span class="text-muted-foreground/40">•</span>
-                      <button
-                        type="button"
-                        class="like-btn inline-flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors"
-                        data-post-id={postId}
-                        aria-label="Me gusta"
-                      >
-                        <svg class="w-3.5 h-3.5 like-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        <span class="like-count">0</span>
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-              </div>
-            </div>
-
-            <!-- View All Link -->
-            <div class="mt-6 text-center">
-              <a
-                href={getLocalizedPath('/blog', lang)}
-                class="group inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40"
-              >
-                {t('home.viewAllArticles')}
-                <Icon name="mdi:arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </a>
+            <div class="terminal-panel grid gap-6 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
+              {latestPosts.map((post) => (
+                <PostCard
+                  title={post.data.title}
+                  description={post.data.description}
+                  pubDate={post.data.pubDate}
+                  slug={post.id}
+                  image={post.data.image}
+                  categories={post.data.categories}
+                  readingTime={calculateReadingTime(post.body ?? "")}
+                  lang={lang}
+                />
+              ))}
             </div>
           </section>
         )}
       </>
     ) : (
-      <div class="text-center py-16">
-        <Icon name="mdi:file-document-outline" class="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 class="text-lg font-semibold text-foreground mb-2">{t('home.noArticles')}</h2>
-        <p class="text-sm text-muted-foreground">{t('home.articlesWillAppear')}</p>
+      <div class="terminal-panel py-16 text-center">
+        <Icon name="mdi:file-document-outline" class="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+        <h2 class="mb-2 text-lg font-semibold">{t("home.noArticles")}</h2>
+        <p class="text-sm text-muted-foreground">{t("home.articlesWillAppear")}</p>
       </div>
     )}
   </div>
 </BaseLayout>
-
-<script>
-  import { API_ENDPOINTS } from '@/lib/types';
-  import { isPostLiked, toggleLike, updateLikeUI } from '@/scripts/likes';
-  import { sendLikeToAPI } from '@/scripts/visitor';
-
-  const initializedLikes = new WeakSet<HTMLElement>();
-
-  async function loadLikeCount(postId: string, btn: HTMLElement) {
-    try {
-      const res = await fetch(`${API_ENDPOINTS.STATS}?slug=${encodeURIComponent(postId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        const countEl = btn.querySelector('.like-count');
-        // API returns { "slug": { likes: N, comments: N } }
-        const stats = data[postId];
-        if (countEl && stats) countEl.textContent = String(stats.likes || 0);
-      }
-    } catch {
-      // Silent fail
-    }
-  }
-
-  function initHomeLikes() {
-    const likeButtons = document.querySelectorAll<HTMLElement>('.like-btn');
-    if (!likeButtons.length) return;
-
-    likeButtons.forEach(btn => {
-      if (initializedLikes.has(btn)) return;
-      initializedLikes.add(btn);
-
-      const postId = btn.dataset.postId;
-      if (!postId) return;
-
-      // Set initial state from localStorage
-      updateLikeUI(btn, isPostLiked(postId));
-
-      // Load count from API
-      loadLikeCount(postId, btn);
-
-      // Handle clicks
-      btn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const countEl = btn.querySelector('.like-count');
-        const currentCount = parseInt(countEl?.textContent || '0', 10);
-        const isLiked = toggleLike(postId);
-        const newCount = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
-
-        if (countEl) countEl.textContent = String(newCount);
-        updateLikeUI(btn, isLiked);
-
-        // Send to API
-        sendLikeToAPI(postId);
-      });
-    });
-  }
-
-  initHomeLikes();
-  document.addEventListener('astro:after-swap', initHomeLikes);
-</script>

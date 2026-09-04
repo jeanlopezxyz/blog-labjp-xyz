@@ -29,7 +29,6 @@ export interface PostMeta {
 /** Blog collection entry type for use in components */
 export interface BlogCollectionEntry {
   id: string;
-  slug: string;
   body?: string;
   data: PostData;
 }

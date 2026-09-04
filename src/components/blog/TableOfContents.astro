@@ -112,7 +112,7 @@ const filteredHeadings = headings
       threshold: 0
     };
 
-    let visibleHeadings: Set<string> = new Set();
+    const visibleHeadings: Set<string> = new Set();
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -134,7 +134,6 @@ const filteredHeadings = headings
         }
       } else {
         // Fallback: find the closest heading above viewport
-        const scrollY = window.scrollY;
         let closestHeading: HTMLElement | null = null;
 
         for (const heading of headings) {

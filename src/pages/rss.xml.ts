@@ -19,7 +19,7 @@ export async function GET(context: APIContext) {
       title: post.data.title,
       pubDate: post.data.pubDate,
       description: post.data.description,
-      link: `/blog/${normalizeSlug(post.slug)}/`,
+      link: `/es/blog/${normalizeSlug(post.id)}/`,
       categories: post.data.tags,
     })),
     customData: `<language>es-es</language>`,

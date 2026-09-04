@@ -6,7 +6,7 @@ import ViewTracker from "@/components/effects/ViewTracker.astro";
 import ReadingProgress from "@/components/effects/ReadingProgress.astro";
 import CommentsSection from "@/components/ui/CommentsSection.astro";
 import RelatedPosts from "@/components/blog/RelatedPosts.astro";
-import type { CollectionEntry } from "astro:content";
+import { render, type CollectionEntry } from "astro:content";
 import { SITE } from "@/lib/constants";
 
 import { defaultLang, normalizeSlug, type Lang } from "@/i18n";
@@ -19,11 +19,11 @@ interface Props {
 
 const { post, readingTime, lang = defaultLang } = Astro.props;
 const { title, description, pubDate, updatedDate, tags, categories, image } = post.data;
-const { headings } = await post.render();
+const { headings } = await render(post);
 const hasToC = headings.length > 0;
 
 // Normalize slug for tracking (remove any language prefix)
-const cleanSlug = normalizeSlug(post.slug);
+const cleanSlug = normalizeSlug(post.id);
 
 // Use updatedDate if available, otherwise use pubDate
 const modifiedDate = updatedDate || pubDate;
@@ -71,7 +71,7 @@ const jsonLd = {
   lang={lang}
 >
   <!-- JSON-LD Structured Data -->
-  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" />
 
   <!-- Reading Progress Bar -->
   <ReadingProgress />

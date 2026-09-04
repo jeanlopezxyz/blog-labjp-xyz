@@ -21,8 +21,8 @@ const REQUIRED_FIELDS = ['title', 'description', 'pubDate', 'categories', 'lang'
 // Valid languages
 const VALID_LANGS = ['es', 'en'];
 
-let errors = [];
-let warnings = [];
+const errors = [];
+const warnings = [];
 
 function extractFrontmatter(content) {
   const match = content.match(/^---\n([\s\S]*?)\n---/);

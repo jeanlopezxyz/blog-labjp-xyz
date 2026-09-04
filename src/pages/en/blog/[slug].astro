@@ -1,6 +1,6 @@
 ---
 import BlogLayout from "@/layouts/BlogLayout.astro";
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 import { calculateReadingTime } from "@/lib/utils";
 import { isPostForLang, normalizeSlug } from "@/i18n";
 
@@ -10,13 +10,13 @@ export async function getStaticPaths() {
   );
 
   return posts.map((post) => ({
-    params: { slug: normalizeSlug(post.slug) },
+    params: { slug: normalizeSlug(post.id) },
     props: { post },
   }));
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+const { Content } = await render(post);
 const readingTime = calculateReadingTime(post.body || "");
 ---
 

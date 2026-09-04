@@ -229,13 +229,23 @@ const containerClasses = {
   const initializedLikes = new WeakSet<HTMLElement>();
   const initializedComments = new WeakSet<HTMLElement>();
   let modalInitialized = false;
-  let currentPostId: string | null = null;
+
+  interface CommentData {
+    author: string;
+    created_at: string;
+    content: string;
+  }
+
+  interface PostStats {
+    likes: number;
+    comments: number;
+  }
 
   async function loadStats(postId: string, container: HTMLElement) {
     try {
       const res = await fetch(`${API_ENDPOINTS.STATS}?slug=${encodeURIComponent(postId)}`);
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as Record<string, PostStats>;
         // API returns { "slug": { likes: N, comments: N } }
         const stats = data[postId];
         if (stats) {
@@ -270,7 +280,7 @@ const containerClasses = {
     try {
       const res = await fetch(`${API_ENDPOINTS.COMMENTS}?slug=${encodeURIComponent(postId)}`);
       if (res.ok) {
-        const comments = await res.json();
+        const comments = await res.json() as CommentData[];
         if (loading) loading.classList.add('hidden');
 
         if (comments.length === 0) {
@@ -279,7 +289,7 @@ const containerClasses = {
         } else {
           if (content) {
             content.classList.remove('hidden');
-            content.innerHTML = comments.map((comment: { author: string; created_at: string; content: string }) => `
+            content.innerHTML = comments.map((comment) => `
               <div class="comment flex gap-3">
                 <div class="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                   <svg class="w-6 h-6 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor">
@@ -313,7 +323,6 @@ const containerClasses = {
     const modal = document.getElementById('comment-modal');
     if (!modal) return;
 
-    currentPostId = postId;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
@@ -340,7 +349,6 @@ const containerClasses = {
     setTimeout(() => {
       modal.classList.add('hidden');
       document.body.style.overflow = '';
-      currentPostId = null;
     }, 300);
   }
 

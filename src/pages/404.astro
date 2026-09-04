@@ -1,10 +1,9 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { Icon } from "astro-icon/components";
-import { getLangFromUrl, useTranslations, getLocalizedPath } from "@/i18n";
+import { getLangFromUrl, getLocalizedPath } from "@/i18n";
 
 const lang = getLangFromUrl(Astro.url);
-const t = useTranslations(lang);
 ---
 
 <BaseLayout title="404 - Página no encontrada" description="La página que buscas no existe" lang={lang}>

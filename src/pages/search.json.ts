@@ -9,7 +9,7 @@ export const GET: APIRoute = async () => {
   const searchData = posts.map((post: BlogPost) => ({
     title: post.data.title,
     description: post.data.description,
-    slug: post.slug,
+    slug: post.id,
     categories: post.data.categories,
   }));
 

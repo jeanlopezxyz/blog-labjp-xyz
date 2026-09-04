@@ -22,7 +22,7 @@ const allPosts = await getCollection("blog", ({ id, data }) => {
 
 const postsData = JSON.stringify(
   allPosts.map(post => ({
-    slug: normalizeSlug(post.slug),
+    slug: normalizeSlug(post.id),
     title: post.data.title,
     image: post.data.image,
     pubDate: post.data.pubDate.toISOString()
@@ -83,18 +83,18 @@ const postsData = JSON.stringify(
     if (!loadingEl || !listEl || !errorEl) return;
 
     const { t, locale } = window.__i18n || { t: {}, locale: 'es-ES' };
-    const baseUrl = locale.startsWith('en') ? '/en/blog/' : '/blog/';
+    const baseUrl = locale.startsWith('en') ? '/en/blog/' : '/es/blog/';
 
     fetch(API_ENDPOINTS.VIEWS)
-      .then(res => res.json())
-      .then((views: ViewData[]) => {
+      .then(res => res.json() as Promise<ViewData[]>)
+      .then((views) => {
         const popularPosts = views
           .slice(0, limit)
           .map(view => {
             const post = postsData.find(p => p.slug === view.slug);
             return post ? { ...post, views: view.views } : null;
           })
-          .filter(Boolean)
+          .filter((post): post is PostData & { views: number } => post !== null)
           .slice(0, limit);
 
         if (popularPosts.length === 0) {
@@ -115,7 +115,8 @@ const postsData = JSON.stringify(
       });
 
     function renderPosts(posts: Array<PostData & { views?: number }>, showViews: boolean) {
-      listEl.innerHTML = posts.map(post => `
+      const postsList = listEl!;
+      postsList.innerHTML = posts.map(post => `
         <a href="${baseUrl}${post.slug}" class="group block">
           ${post.image ? `
             <div class="aspect-[16/9] rounded-lg overflow-hidden mb-2 bg-muted">

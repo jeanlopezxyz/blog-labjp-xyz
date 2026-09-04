@@ -78,6 +78,14 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-mono);
   }
 
   /* Accessibility: High contrast focus states */
@@ -118,7 +126,7 @@
 
   /* Card - borderless with subtle contrast */
   .card {
-    @apply bg-card/60 rounded-xl;
+    @apply bg-card/60 rounded-md border border-border/70;
     @apply shadow-sm;
     @apply transition-all duration-200;
   }
@@ -133,6 +141,114 @@
     @apply bg-secondary/80 text-secondary-foreground;
   }
 
+}
+
+/* Terminal identity */
+@layer components {
+  .terminal-status {
+    @apply border-b border-primary/20 bg-[#080b0a]/95 font-mono text-[11px] text-muted-foreground;
+  }
+
+  .terminal-status__inner {
+    @apply max-w-screen-2xl mx-auto flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-2;
+  }
+
+  .terminal-status__path,
+  .terminal-status__command {
+    @apply text-primary;
+  }
+
+  .terminal-status__runtime {
+    @apply hidden sm:inline;
+  }
+
+  .terminal-status__online {
+    @apply ml-auto inline-flex items-center gap-1.5 uppercase tracking-widest;
+  }
+
+  .terminal-status__dot {
+    @apply block size-1.5 rounded-full bg-primary;
+    box-shadow: 0 0 10px hsl(var(--primary));
+  }
+
+  .terminal-workspace {
+    position: relative;
+  }
+
+  .terminal-hero,
+  .terminal-panel {
+    @apply overflow-hidden rounded-md border border-primary/25 bg-card/80;
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.18), inset 0 1px 0 hsl(var(--primary) / 0.08);
+  }
+
+  .terminal-window-bar {
+    @apply flex items-center gap-2 border-b border-border/70 bg-[#101512] px-4 py-2.5;
+  }
+
+  .terminal-window-dot {
+    @apply size-2.5 rounded-full;
+  }
+
+  .terminal-window-dot--red { @apply bg-red-400/80; }
+  .terminal-window-dot--yellow { @apply bg-amber-300/80; }
+  .terminal-window-dot--green { @apply bg-primary/90; }
+
+  .terminal-window-title {
+    @apply ml-2 font-mono text-[11px] text-muted-foreground;
+  }
+
+  .terminal-hero__body {
+    @apply px-5 py-7 sm:px-8 sm:py-9 font-mono;
+  }
+
+  .terminal-command {
+    @apply text-xs sm:text-sm text-muted-foreground;
+  }
+
+  .terminal-prompt {
+    @apply mr-2 text-primary;
+  }
+
+  .terminal-output {
+    @apply mt-4 max-w-4xl text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight;
+  }
+
+  .terminal-output::before {
+    content: "> ";
+    @apply text-primary;
+  }
+
+  .terminal-description {
+    @apply mt-4 max-w-3xl text-sm sm:text-base leading-relaxed text-muted-foreground;
+  }
+
+  .terminal-command--next {
+    @apply mt-7;
+  }
+
+  .terminal-cursor {
+    @apply ml-1 inline-block h-[1em] w-2 translate-y-[2px] bg-primary;
+    animation: terminal-blink 1s steps(1) infinite;
+  }
+
+  .terminal-card {
+    @apply rounded-sm border border-border/60 bg-background/35;
+  }
+
+  .terminal-card:hover {
+    @apply border-primary/45 bg-card/70;
+    box-shadow: 0 0 24px hsl(var(--primary) / 0.08);
+  }
+
+  .terminal-section-title::before {
+    content: "$ ";
+    @apply text-primary;
+  }
+}
+
+@keyframes terminal-blink {
+  0%, 48% { opacity: 1; }
+  49%, 100% { opacity: 0; }
 }
 
 /* Header styling - modern full width */

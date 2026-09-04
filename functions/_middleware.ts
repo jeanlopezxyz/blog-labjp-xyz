@@ -5,12 +5,6 @@
 
 import type { Env } from './lib/utils';
 
-// Allowed origins for CORS
-const ALLOWED_ORIGINS = [
-  'https://blog.labjp.xyz',
-  'https://labjp.xyz',
-];
-
 // Content Security Policy - strict but allows necessary resources
 const CSP_DIRECTIVES = [
   "default-src 'self'",

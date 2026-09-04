@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "10:00"
+      timezone: America/Lima
+    open-pull-requests-limit: 5
+    groups:
+      astro:
+        patterns:
+          - astro
+          - "@astrojs/*"
+      cloudflare:
+        patterns:
+          - wrangler
+          - "@cloudflare/*"
+      development-tooling:
+        dependency-type: development
+        patterns:
+          - "*"

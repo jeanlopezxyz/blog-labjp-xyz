@@ -28,14 +28,14 @@ const allPosts = await getCollection("blog", ({ id, data }) => {
 
 // Score posts by relevance
 const scoredPosts = allPosts
-  .filter(post => normalizeSlug(post.slug) !== normalizeSlug(currentSlug))
+  .filter(post => normalizeSlug(post.id) !== normalizeSlug(currentSlug))
   .map(post => {
     let score = 0;
 
     // Category matches (higher weight)
     const postCategories = post.data.categories || [];
-    for (const cat of categories) {
-      if (postCategories.includes(cat)) score += 3;
+    for (const cat of postCategories) {
+      if (categories.includes(cat)) score += 3;
     }
 
     // Tag matches
@@ -67,7 +67,7 @@ const relatedPosts = scoredPosts.map(({ post }) => post);
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {relatedPosts.map((post) => (
         <a
-          href={`${basePath}/${normalizeSlug(post.slug)}`}
+          href={`${basePath}/${normalizeSlug(post.id)}`}
           class="group block p-4 rounded-xl hover:bg-muted/50 transition-all"
         >
           {post.data.image && (
