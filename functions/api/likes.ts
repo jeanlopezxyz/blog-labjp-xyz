@@ -4,81 +4,111 @@
  * GET /api/likes?slug=xxx - Get likes for specific slug
  */
 
-import { normalizeSlug, jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
+import {
+  normalizeSlug,
+  checkRateLimit,
+  jsonResponse,
+  errorResponse,
+  corsResponse,
+  type Env,
+} from "../lib/utils";
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   try {
-    const { slug: rawSlug, visitorId } = await request.json() as { slug: string; visitorId: string };
+    const allowed = await checkRateLimit(env.DB, request, "likes", {
+      limit: 30,
+      windowSeconds: 60,
+    });
+    if (!allowed) {
+      return errorResponse("Too many requests, please try again later", 429);
+    }
+
+    const { slug: rawSlug, visitorId } = (await request.json()) as {
+      slug: string;
+      visitorId: string;
+    };
 
     if (!rawSlug || !visitorId) {
-      return errorResponse('slug and visitorId are required');
+      return errorResponse("slug and visitorId are required");
     }
 
     // Validate input lengths
     if (rawSlug.length > 200 || visitorId.length > 100) {
-      return errorResponse('Invalid input length');
+      return errorResponse("Invalid input length");
     }
 
     const slug = normalizeSlug(rawSlug);
 
     const existing = await env.DB.prepare(
-      'SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?'
-    ).bind(slug, visitorId).first();
+      "SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?",
+    )
+      .bind(slug, visitorId)
+      .first();
 
     if (existing) {
       await env.DB.prepare(
-        'DELETE FROM post_likes WHERE slug = ? AND visitor_id = ?'
-      ).bind(slug, visitorId).run();
+        "DELETE FROM post_likes WHERE slug = ? AND visitor_id = ?",
+      )
+        .bind(slug, visitorId)
+        .run();
     } else {
       await env.DB.prepare(
-        'INSERT INTO post_likes (slug, visitor_id) VALUES (?, ?)'
-      ).bind(slug, visitorId).run();
+        "INSERT INTO post_likes (slug, visitor_id) VALUES (?, ?)",
+      )
+        .bind(slug, visitorId)
+        .run();
     }
 
     const result = await env.DB.prepare(
-      'SELECT COUNT(*) as count FROM post_likes WHERE slug = ?'
-    ).bind(slug).first<{ count: number }>();
+      "SELECT COUNT(*) as count FROM post_likes WHERE slug = ?",
+    )
+      .bind(slug)
+      .first<{ count: number }>();
 
     return jsonResponse({
       slug,
       likes: result?.count || 0,
-      liked: !existing
+      liked: !existing,
     });
   } catch {
-    return errorResponse('Internal server error', 500);
+    return errorResponse("Internal server error", 500);
   }
 };
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
-  const rawSlug = url.searchParams.get('slug');
-  const visitorId = url.searchParams.get('visitorId');
+  const rawSlug = url.searchParams.get("slug");
+  const visitorId = url.searchParams.get("visitorId");
 
   try {
     if (!rawSlug) {
-      return errorResponse('slug is required');
+      return errorResponse("slug is required");
     }
 
     const slug = normalizeSlug(rawSlug);
 
     const result = await env.DB.prepare(
-      'SELECT COUNT(*) as count FROM post_likes WHERE slug = ?'
-    ).bind(slug).first<{ count: number }>();
+      "SELECT COUNT(*) as count FROM post_likes WHERE slug = ?",
+    )
+      .bind(slug)
+      .first<{ count: number }>();
 
     let liked = false;
     if (visitorId) {
       const existing = await env.DB.prepare(
-        'SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?'
-      ).bind(slug, visitorId).first();
+        "SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?",
+      )
+        .bind(slug, visitorId)
+        .first();
       liked = !!existing;
     }
 
     return jsonResponse({ slug, likes: result?.count || 0, liked });
   } catch {
-    return errorResponse('Internal server error', 500);
+    return errorResponse("Internal server error", 500);
   }
 };
 

@@ -1,81 +1,115 @@
 /**
  * API endpoint for newsletter subscriptions
  * POST /api/newsletter - Subscribe email
- * DELETE /api/newsletter - Unsubscribe email
+ * DELETE /api/newsletter - Unsubscribe email (requires the subscriber's unsubscribe token)
  */
 
-import { isValidEmail, jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
-
-async function initDatabase(db: D1Database) {
-  await db.prepare(`
-    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      subscribed_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      unsubscribed_at TEXT
-    )
-  `).run();
-  await db.prepare(
-    'CREATE INDEX IF NOT EXISTS idx_subscribers_email ON newsletter_subscribers(email)'
-  ).run();
-}
+import {
+  isValidEmail,
+  checkRateLimit,
+  jsonResponse,
+  errorResponse,
+  corsResponse,
+  type Env,
+} from "../lib/utils";
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   try {
-    await initDatabase(env.DB);
-    const { email } = await request.json() as { email: string };
+    const allowed = await checkRateLimit(env.DB, request, "newsletter", {
+      limit: 5,
+      windowSeconds: 300,
+    });
+    if (!allowed) {
+      return errorResponse("Too many requests, please try again later", 429);
+    }
+
+    const { email } = (await request.json()) as { email: string };
 
     if (!email || !isValidEmail(email)) {
-      return errorResponse('Valid email is required');
+      return errorResponse("Valid email is required");
     }
 
     const normalizedEmail = email.toLowerCase().trim();
 
     const existing = await env.DB.prepare(
-      'SELECT id, unsubscribed_at FROM newsletter_subscribers WHERE email = ?'
-    ).bind(normalizedEmail).first<{ id: number; unsubscribed_at: string | null }>();
+      "SELECT id, unsubscribed_at FROM newsletter_subscribers WHERE email = ?",
+    )
+      .bind(normalizedEmail)
+      .first<{ id: number; unsubscribed_at: string | null }>();
 
     if (existing) {
       if (existing.unsubscribed_at) {
         await env.DB.prepare(
-          'UPDATE newsletter_subscribers SET unsubscribed_at = NULL, subscribed_at = CURRENT_TIMESTAMP WHERE email = ?'
-        ).bind(normalizedEmail).run();
+          "UPDATE newsletter_subscribers SET unsubscribed_at = NULL, subscribed_at = CURRENT_TIMESTAMP WHERE email = ?",
+        )
+          .bind(normalizedEmail)
+          .run();
       }
-      return jsonResponse({ success: true, message: 'Subscribed successfully' });
+      return jsonResponse({
+        success: true,
+        message: "Subscribed successfully",
+      });
     }
 
-    await env.DB.prepare(
-      'INSERT INTO newsletter_subscribers (email) VALUES (?)'
-    ).bind(normalizedEmail).run();
+    const unsubscribeToken = crypto.randomUUID();
 
-    return jsonResponse({ success: true, message: 'Subscribed successfully' }, { status: 201 });
+    await env.DB.prepare(
+      "INSERT INTO newsletter_subscribers (email, unsubscribe_token) VALUES (?, ?)",
+    )
+      .bind(normalizedEmail, unsubscribeToken)
+      .run();
+
+    return jsonResponse(
+      { success: true, message: "Subscribed successfully" },
+      { status: 201 },
+    );
   } catch {
-    return errorResponse('Internal server error', 500);
+    return errorResponse("Internal server error", 500);
   }
 };
 
+// DELETE: Unsubscribe using the subscriber's own token (prevents unsubscribing someone else by guessing their email)
 export const onRequestDelete: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   try {
-    await initDatabase(env.DB);
-    const { email } = await request.json() as { email: string };
+    const allowed = await checkRateLimit(env.DB, request, "newsletter-unsub", {
+      limit: 10,
+      windowSeconds: 300,
+    });
+    if (!allowed) {
+      return errorResponse("Too many requests, please try again later", 429);
+    }
 
-    if (!email) {
-      return errorResponse('Email is required');
+    const { email, token } = (await request.json()) as {
+      email?: string;
+      token?: string;
+    };
+
+    if (!email || !token) {
+      return errorResponse("email and token are required");
     }
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    await env.DB.prepare(
-      'UPDATE newsletter_subscribers SET unsubscribed_at = CURRENT_TIMESTAMP WHERE email = ?'
-    ).bind(normalizedEmail).run();
+    const result = await env.DB.prepare(
+      "UPDATE newsletter_subscribers SET unsubscribed_at = CURRENT_TIMESTAMP WHERE email = ? AND unsubscribe_token = ?",
+    )
+      .bind(normalizedEmail, token)
+      .run();
 
-    return jsonResponse({ success: true, message: 'Unsubscribed successfully' });
+    if (result.meta.changes === 0) {
+      return errorResponse("Invalid email or token", 404);
+    }
+
+    return jsonResponse({
+      success: true,
+      message: "Unsubscribed successfully",
+    });
   } catch {
-    return errorResponse('Internal server error', 500);
+    return errorResponse("Internal server error", 500);
   }
 };
 

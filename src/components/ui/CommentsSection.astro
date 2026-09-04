@@ -77,10 +77,6 @@ const cleanSlug = normalizeSlug(slug);
     created_at: string;
   }
 
-  interface CommentResponse {
-    comment: Comment;
-  }
-
   function initComments() {
     document.querySelectorAll('.comments-section').forEach(section => {
       const slug = section.getAttribute('data-slug');
@@ -165,31 +161,12 @@ const cleanSlug = normalizeSlug(slug);
           });
           if (!res.ok) throw new Error('Failed');
 
-          const data = await res.json() as CommentResponse;
+          authorInput.value = '';
           contentInput.value = '';
           messageEl.textContent = t['comments.success'];
           messageEl.classList.add('text-green-500');
-
-          emptyEl.classList.add('hidden');
-          listEl.classList.remove('hidden');
-
-          const newComment = document.createElement('article');
-          newComment.className = 'comment p-4 rounded-lg bg-muted/30 border border-primary/30';
-          newComment.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-medium text-foreground">${escapeHtml(data.comment.author)}</span>
-              <time class="text-xs text-muted-foreground">${formatDateFull(data.comment.created_at)}</time>
-            </div>
-            <p class="text-muted-foreground whitespace-pre-wrap">${escapeHtml(data.comment.content)}</p>
-          `;
-          listEl.insertBefore(newComment, listEl.firstChild);
-          gsap.fromTo(newComment,
-            { opacity: 0, y: -20, scale: 0.95 },
-            { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.7)' }
-          );
-
-          const count = parseInt(countEl.textContent?.match(/\d+/)?.[0] || '0');
-          countEl.textContent = `(${count + 1})`;
+          // Comments require moderation approval, so it's not shown in the
+          // public list yet — only a confirmation message.
         } catch {
           messageEl.textContent = t['comments.errorSubmit'];
           messageEl.classList.add('text-red-500');

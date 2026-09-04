@@ -75,6 +75,9 @@ const relatedPosts = scoredPosts.map(({ post }) => post);
               <img
                 src={post.data.image}
                 alt={post.data.title}
+                width="400"
+                height="225"
+                decoding="async"
                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
               />

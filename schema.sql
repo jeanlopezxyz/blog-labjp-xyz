@@ -27,8 +27,39 @@ CREATE INDEX IF NOT EXISTS idx_likes_slug ON post_likes(slug);
 CREATE TABLE IF NOT EXISTS newsletter_subscribers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
+  unsubscribe_token TEXT NOT NULL,
   subscribed_at TEXT DEFAULT CURRENT_TIMESTAMP,
   unsubscribed_at TEXT DEFAULT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_subscribers_email ON newsletter_subscribers(email);
+
+-- Comments (moderated: not shown publicly until approved)
+CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL,
+  author TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  approved INTEGER DEFAULT 0
+);
+
+-- Contact form submissions
+CREATE TABLE IF NOT EXISTS contact_submissions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  subject TEXT,
+  message TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  read INTEGER DEFAULT 0
+);
+
+-- Server-side rate limiting (sliding window per IP + bucket)
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_key ON rate_limits(key);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_created_at ON rate_limits(created_at);
