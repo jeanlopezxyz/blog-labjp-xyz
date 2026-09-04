@@ -310,7 +310,7 @@ export const ui = {
 
     // Footer
     "footer.rights": "All rights reserved",
-    "footer.social": "Social networks",
+    "footer.social": "Social media",
     "footer.goHome": "Go to home",
 
     // Stats
@@ -365,7 +365,7 @@ export const ui = {
 
     // Tags
     "tags.backToBlog": "Back to blog",
-    "tags.title": "Posts tagged with",
+    "tags.title": "Articles tagged with",
     "tags.found": "found",
     "tags.articles": "articles",
     "tags.article": "article",
