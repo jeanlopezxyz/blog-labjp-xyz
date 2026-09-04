@@ -2,6 +2,7 @@
 title: "Agente de IA para SREs: MCP Servers + Gen AI Studio en OpenShift AI"
 description: "Cómo construí un asistente de operaciones con 4 MCP Servers (Prometheus, Alertmanager, Kubernetes, Red Hat KB) usando Gen AI Studio en OpenShift AI 3.2."
 pubDate: 2026-02-13
+updatedDate: 2026-09-05
 image: "/images/blog/mcp-genai-studio/cover.webp"
 tags: ["openshift-ai", "mcp", "genai-studio", "llama", "kubernetes", "prometheus", "alertmanager", "agentic-ai", "tech-preview"]
 categories: ["ia", "openshift"]
@@ -22,6 +23,8 @@ Eso es exactamente lo que permite un agente de IA con acceso a MCP Servers. En e
 - Buscar soluciones en la KB de Red Hat
 
 Todo usando las nuevas funcionalidades Tech Preview de **Red Hat OpenShift AI 3.2**.
+
+> **Nota**: Gen AI Studio en OpenShift AI 3.2 estaba en **Technology Preview** en el momento de escribir este artículo (febrero de 2026). Las APIs, los manifiestos y las funcionalidades descritas aquí pueden cambiar antes de alcanzar disponibilidad general (GA), y las funcionalidades en Tech Preview no están cubiertas por el soporte de producción de Red Hat. Verifica la [documentación oficial de Red Hat OpenShift AI](https://docs.redhat.com/en/documentation/red_hat_openshift_ai/) para conocer el estado más reciente antes de aplicarlo en tu entorno.
 
 ## ¿Qué es Red Hat OpenShift AI?
 

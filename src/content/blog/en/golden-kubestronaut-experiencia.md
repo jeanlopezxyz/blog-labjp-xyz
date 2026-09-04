@@ -2,6 +2,7 @@
 title: "Steps to Become a Golden Kubestronaut: My Personal Experience"
 description: "Complete guide on how to become a Kubestronaut and Golden Kubestronaut from the CNCF, with practical tips and the recommended order for certifications."
 pubDate: 2025-06-21
+updatedDate: 2026-09-05
 image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1200&h=630&fit=crop"
 tags: ["golden-kubestronaut", "kubernetes", "cks", "cka", "ckad", "kubestronaut", "lfcs", "certifications"]
 categories: ["comunidad", "kubernetes"]
@@ -14,6 +15,8 @@ If you're reading this, you probably share my fascination with the Cloud Native 
 I'm still in the middle of this journey. I've spent many nights studying, I've talked with professionals who already have their jacket, and I've passed several of those exams. If there's one thing I've learned in this process, it's that each certification represents a significant challenge, but the satisfaction of passing is worth it.
 
 Let me share what this adventure has been like from my personal perspective.
+
+> **Update (September 2026)**: I wrote this article in June 2025 and I keep it as the account of my experience at that time. Since then the CNCF has kept adding certifications to the ecosystem, and the Golden Kubestronaut program requires holding **all** CNCF certifications plus the LFCS, so the concrete list grows over time. I have added notes where relevant, but before planning your route always check the [official program page](https://www.cncf.io/training/kubestronaut/), which is the only source of truth for which exams are required today.
 
 ## The Starting Point: Becoming a Kubestronaut
 
@@ -56,7 +59,7 @@ Reaching Kubestronaut level is just the beginning. For those who want to go furt
 
 ### A Journey Through the Ecosystem
 
-The list of required certifications expands considerably. In addition to maintaining the five Kubestronaut certifications, you must conquer the following:
+The list of required certifications expands considerably. In addition to maintaining the five Kubestronaut certifications, at the time I wrote this you had to conquer the following:
 
 **LFCS (Linux Foundation Certified SysAdmin)**: The journey begins by establishing a solid Linux foundation. It's a pure practical exam, where you only have the terminal and your knowledge.
 
@@ -71,6 +74,8 @@ From there, you dive into an ocean of specialized tools. Most are theoretical ex
 - **KCA**: Kyverno for declarative policies. Validation, mutation, and generation of Kubernetes resources.
 
 Special mention goes to **ICA (Istio Certified Associate)**, which combines theoretical questions with a practical lab. It forces you to switch focus mid-exam, which is quite unique.
+
+**The list is not closed.** This is the most important thing to understand about Golden Kubestronaut: the requirement is not "these twelve certifications", but every certification the CNCF has published at that point in time. Whenever the CNCF launches a new exam for a project in its ecosystem (for example, the CNPA for Platform Engineering, which arrived after this article was written), it becomes part of the path. That is why my recommendation is not to treat any list from a blog, including this one, as definitive: check the official program page before buying vouchers and check it again every few months while you are on the route.
 
 ### Additional Benefits
 
