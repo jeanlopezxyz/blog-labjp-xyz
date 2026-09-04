@@ -1,13 +1,10 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
-import PostCard from "@/components/blog/PostCard.astro";
 import PostCardHorizontal from "@/components/blog/PostCardHorizontal.astro";
 import SocialActions from "@/components/ui/SocialActions.astro";
-import TerminalCommand from "@/components/ui/TerminalCommand.astro";
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { calculateReadingTime, getBlogPostUrl, getRelativeTime } from "@/lib/utils";
-import { SITE } from "@/lib/constants";
 import { getLocalizedPath, isPostForLang, normalizeSlug, slugToPostId, useTranslations, type Lang } from "@/i18n";
 
 interface Props {
@@ -20,107 +17,81 @@ const allPosts = (await getCollection("blog", ({ id, data }) => !data.draft && i
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
-const secondaryPosts = allPosts.filter((post) => post.id !== featuredPost?.id).slice(0, 4);
-const secondaryIds = new Set(secondaryPosts.map((post) => post.id));
-const latestPosts = allPosts
-  .filter((post) => post.id !== featuredPost?.id && !secondaryIds.has(post.id))
-  .slice(0, 6);
+const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 ---
 
 <BaseLayout lang={lang}>
-  <div class="mx-auto max-w-screen-2xl px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
-    <section class="terminal-hero mb-6" aria-labelledby="terminal-intro-title">
-      <div class="terminal-hero__body">
-        <TerminalCommand command="whoami" cwd="~/blog" />
-        <h1 id="terminal-intro-title" class="terminal-output">
-          {lang === "es"
-            ? "Cloud native, Kubernetes y automatización desde la terminal."
-            : "Cloud native, Kubernetes, and automation from the terminal."}
-        </h1>
-        <p class="terminal-description">
-          {lang === "es"
-            ? "Notas de campo sobre Kubernetes, OpenShift, IA, automatización y sistemas en producción."
-            : "Field notes on Kubernetes, OpenShift, AI, automation, and production systems."}
-        </p>
-      </div>
+  <div class="mx-auto max-w-2xl px-6 py-12 sm:px-8 lg:py-16">
+    <section class="mb-16" aria-labelledby="terminal-intro-title">
+      <h1 id="terminal-intro-title" class="terminal-output">
+        {lang === "es"
+          ? "Cloud native, Kubernetes y automatización."
+          : "Cloud native, Kubernetes, and automation."}
+      </h1>
+      <p class="terminal-description">
+        {lang === "es"
+          ? "Notas de campo sobre Kubernetes, OpenShift, IA, automatización y sistemas en producción."
+          : "Field notes on Kubernetes, OpenShift, AI, automation, and production systems."}
+      </p>
     </section>
 
     {featuredPost ? (
       <>
-        <section class="terminal-panel mb-6 grid gap-6 p-4 sm:p-6 lg:grid-cols-2 lg:gap-8">
-          <article class="terminal-card group p-5">
-            <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
-              {featuredPost.data.image && (
-                <div class="mb-5 aspect-[16/10] overflow-hidden rounded-sm bg-muted">
-                  <img
-                    src={featuredPost.data.image}
-                    alt={featuredPost.data.title}
-                    width="800"
-                    height="500"
-                    decoding="async"
-                    fetchpriority="high"
-                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-              )}
-              <h2 class="mb-3 text-2xl font-bold leading-tight transition-colors group-hover:text-primary md:text-3xl">
-                {featuredPost.data.title}
-              </h2>
-              <p class="mb-4 leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
-              <div class="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
-                <time datetime={featuredPost.data.pubDate.toISOString()}>
-                  {getRelativeTime(featuredPost.data.pubDate, lang)}
-                </time>
-                <span aria-hidden="true">·</span>
-                <span>{SITE.author}</span>
-                <span aria-hidden="true">·</span>
-                <span>{calculateReadingTime(featuredPost.body ?? "")} min</span>
+        <article class="group mb-16">
+          <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
+            {featuredPost.data.image && (
+              <div class="mb-6 aspect-[16/10] overflow-hidden rounded-md bg-muted">
+                <img
+                  src={featuredPost.data.image}
+                  alt={featuredPost.data.title}
+                  width="800"
+                  height="500"
+                  decoding="async"
+                  fetchpriority="high"
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
               </div>
-            </a>
-            <div class="mt-4 border-t border-border/40 pt-4">
-              <SocialActions
-                postId={slugToPostId(featuredPost.id)}
-                postTitle={featuredPost.data.title}
-                postSlug={normalizeSlug(featuredPost.id)}
-                lang={lang}
-                showComments={true}
-                size="sm"
-              />
+            )}
+            <h2 class="mb-3 text-2xl font-bold leading-tight transition-colors group-hover:text-primary md:text-3xl">
+              {featuredPost.data.title}
+            </h2>
+            <p class="mb-4 leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
+            <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <time datetime={featuredPost.data.pubDate.toISOString()}>
+                {getRelativeTime(featuredPost.data.pubDate, lang)}
+              </time>
+              <span aria-hidden="true">·</span>
+              <span>{calculateReadingTime(featuredPost.body ?? "")} min</span>
             </div>
-          </article>
-
-          <div class="flex flex-col gap-4">
-            {secondaryPosts.map((post) => (
-              <PostCardHorizontal
-                title={post.data.title}
-                description={post.data.description}
-                pubDate={post.data.pubDate}
-                slug={post.id}
-                image={post.data.image}
-                readingTime={calculateReadingTime(post.body ?? "")}
-                lang={lang}
-              />
-            ))}
+          </a>
+          <div class="mt-5">
+            <SocialActions
+              postId={slugToPostId(featuredPost.id)}
+              postTitle={featuredPost.data.title}
+              postSlug={normalizeSlug(featuredPost.id)}
+              lang={lang}
+              showComments={true}
+              size="sm"
+            />
           </div>
-        </section>
+        </article>
 
-        {latestPosts.length > 0 && (
+        {restPosts.length > 0 && (
           <section>
-            <div class="mb-4 flex items-center justify-between">
-              <h2 class="terminal-section-title text-xl font-bold">{t("home.latest")}</h2>
-              <a href={getLocalizedPath("/blog", lang)} class="font-mono text-xs text-primary hover:underline">
+            <div class="mb-6 flex items-center justify-between">
+              <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t("home.latest")}</h2>
+              <a href={getLocalizedPath("/blog", lang)} class="text-sm text-primary hover:underline">
                 {t("home.viewAll")} →
               </a>
             </div>
-            <div class="terminal-panel grid gap-6 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
-              {latestPosts.map((post) => (
-                <PostCard
+            <div class="divide-y divide-border/50">
+              {restPosts.map((post) => (
+                <PostCardHorizontal
                   title={post.data.title}
                   description={post.data.description}
                   pubDate={post.data.pubDate}
                   slug={post.id}
                   image={post.data.image}
-                  categories={post.data.categories}
                   readingTime={calculateReadingTime(post.body ?? "")}
                   lang={lang}
                 />
@@ -130,7 +101,7 @@ const latestPosts = allPosts
         )}
       </>
     ) : (
-      <div class="terminal-panel py-16 text-center">
+      <div class="py-16 text-center">
         <Icon name="mdi:file-document-outline" class="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
         <h2 class="mb-2 text-lg font-semibold">{t("home.noArticles")}</h2>
         <p class="text-sm text-muted-foreground">{t("home.articlesWillAppear")}</p>

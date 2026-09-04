@@ -78,10 +78,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    background-image:
-      linear-gradient(hsl(var(--primary) / 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.025) 1px, transparent 1px);
-    background-size: 32px 32px;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -143,75 +139,53 @@
 
 }
 
-/* Terminal identity */
+/* Minimal identity (formerly "terminal") */
 @layer components {
   .terminal-workspace {
     position: relative;
   }
 
-  .terminal-hero,
+  .terminal-hero {
+    @apply border-none bg-transparent;
+  }
+
   .terminal-panel {
-    @apply overflow-hidden rounded-sm border border-border/70 bg-card/50;
+    @apply border-none bg-transparent;
   }
 
   .terminal-hero__body {
-    @apply px-5 py-4 sm:px-7 sm:py-5 font-mono;
+    @apply px-0 py-0;
   }
 
   .terminal-command {
-    @apply text-xs sm:text-sm text-muted-foreground;
-  }
-
-  .terminal-prompt {
-    @apply mr-2 text-primary;
+    @apply hidden;
   }
 
   .terminal-output {
-    @apply mt-4 text-2xl md:text-3xl font-bold leading-tight tracking-tight;
+    @apply text-3xl md:text-4xl font-bold leading-tight tracking-tight;
   }
 
   @media (min-width: 1280px) {
     .terminal-output {
-      font-size: clamp(1.75rem, 1.55vw, 2rem);
-      white-space: nowrap;
+      font-size: clamp(2rem, 2.2vw, 2.5rem);
     }
   }
 
-  .terminal-output::before {
-    content: "> ";
-    @apply text-primary;
-  }
-
   .terminal-description {
-    @apply mt-4 text-sm leading-relaxed text-muted-foreground xl:whitespace-nowrap;
-  }
-
-  .terminal-command--next {
-    @apply mt-7;
-  }
-
-  .terminal-cursor {
-    @apply ml-1 inline-block h-[1em] w-2 translate-y-[2px] bg-primary;
-    animation: terminal-blink 1s steps(1) infinite;
+    @apply mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground;
   }
 
   .terminal-card {
-    @apply rounded-sm border border-border/60 bg-background/35;
+    @apply border-none bg-transparent;
   }
 
   .terminal-card:hover {
-    @apply border-primary/35 bg-card/60;
+    @apply bg-transparent;
   }
 
-  .terminal-section-title::before {
-    content: "$ ";
-    @apply text-primary;
+  .terminal-section-title {
+    @apply font-sans;
   }
-}
-
-@keyframes terminal-blink {
-  0%, 48% { opacity: 1; }
-  49%, 100% { opacity: 0; }
 }
 
 /* Header styling - modern full width */
