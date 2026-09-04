@@ -11,7 +11,6 @@ import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { calculateReadingTime, getCategoryInfo } from "@/lib/utils";
 import { useTranslations, isPostForLang, type Lang } from "@/i18n";
-import TerminalCommand from "@/components/ui/TerminalCommand.astro";
 
 interface Props {
   lang: Lang;
@@ -44,9 +43,8 @@ const otherPosts = posts.slice(1);
 >
   <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
     <div class="lg:grid lg:grid-cols-[1fr_280px] lg:gap-16">
-      <div class="terminal-panel p-5 sm:p-6">
+      <div>
         <header class="mb-8">
-          <TerminalCommand command={`ls ./articles/${category}`} cwd="~/blog" class="mb-4" />
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-xl flex items-center justify-center" style={`background: ${color}15`}>
               <Icon name={icon} class="w-6 h-6" style={`color: ${color}`} />

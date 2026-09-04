@@ -64,7 +64,7 @@ const postId = slugToPostId(slug);
         </div>
       </a>
       {showSocialActions && (
-        <div class="mt-1.5 w-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+        <div class="mt-1.5 w-full opacity-100 transition-opacity duration-200 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100">
           <SocialActions
             postId={postId}
             postTitle={title}

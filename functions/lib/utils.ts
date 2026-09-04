@@ -19,6 +19,15 @@ export function normalizeSlug(slug: string): string {
 }
 
 /**
+ * Validate that a slug looks like a real post slug (lowercase, digits,
+ * hyphens), bounded in length. Rejects arbitrary/oversized input before
+ * it reaches D1.
+ */
+export function isValidSlug(slug: string): boolean {
+  return /^[a-z0-9-]{1,120}$/.test(slug);
+}
+
+/**
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {
@@ -92,9 +101,7 @@ export function jsonResponse(
     "Access-Control-Allow-Origin": SITE_ORIGIN,
   };
 
-  if (cache) {
-    headers["Cache-Control"] = "public, max-age=60";
-  }
+  headers["Cache-Control"] = cache ? "public, max-age=60" : "no-store";
 
   return new Response(JSON.stringify(data), { status, headers });
 }

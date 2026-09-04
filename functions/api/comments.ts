@@ -6,6 +6,7 @@
 
 import {
   normalizeSlug,
+  isValidSlug,
   sanitize,
   checkRateLimit,
   jsonResponse,
@@ -34,6 +35,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   try {
     const normalizedSlug = normalizeSlug(slug);
+
+    if (!isValidSlug(normalizedSlug)) {
+      return errorResponse("Invalid slug format");
+    }
 
     const result = await env.DB.prepare(
       "SELECT id, slug, author, content, created_at FROM comments WHERE slug = ? AND approved = 1 ORDER BY created_at DESC",
@@ -80,19 +85,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     const normalizedSlug = normalizeSlug(slug);
+
+    if (!isValidSlug(normalizedSlug)) {
+      return errorResponse("Invalid slug format");
+    }
+
     const sanitizedAuthor = sanitize(author);
     const sanitizedContent = sanitize(content);
 
-    await env.DB.prepare(
+    const insertResult = await env.DB.prepare(
       "INSERT INTO comments (slug, author, content) VALUES (?, ?, ?)",
     )
       .bind(normalizedSlug, sanitizedAuthor, sanitizedContent)
       .run();
 
     const result = await env.DB.prepare(
-      "SELECT id, slug, author, content, created_at FROM comments WHERE slug = ? ORDER BY id DESC LIMIT 1",
+      "SELECT id, slug, author, content, created_at FROM comments WHERE id = ?",
     )
-      .bind(normalizedSlug)
+      .bind(insertResult.meta.last_row_id)
       .first<Comment>();
 
     return jsonResponse(

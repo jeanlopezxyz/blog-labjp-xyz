@@ -28,13 +28,16 @@ export default defineConfig({
           en: 'en-US',
         },
       },
-      filter: (page) => !page.includes('/api/'),
+      // Exclude the API, the unlocalized root (it's a noindex redirect
+      // shell, not real content) and tag pages (thin, duplicate-ish
+      // content that shouldn't compete with real posts/categories for
+      // crawl budget).
+      filter: (page) =>
+        !page.includes('/api/') &&
+        page !== 'https://blog.labjp.xyz/' &&
+        !page.includes('/tags/'),
       serialize: (item) => {
-        // Boost priority for important pages
-        if (item.url === 'https://blog.labjp.xyz/') {
-          item.priority = 1.0;
-          item.changefreq = 'daily';
-        } else if (item.url.includes('/blog/') && !item.url.includes('/tags/')) {
+        if (item.url.includes('/blog/')) {
           item.priority = 0.8;
           item.changefreq = 'weekly';
         } else if (item.url.includes('/category/')) {
@@ -43,6 +46,9 @@ export default defineConfig({
         } else if (item.url.includes('/about')) {
           item.priority = 0.6;
           item.changefreq = 'monthly';
+        } else if (item.url === 'https://blog.labjp.xyz/es/' || item.url === 'https://blog.labjp.xyz/en/') {
+          item.priority = 1.0;
+          item.changefreq = 'daily';
         }
         return item;
       },

@@ -7,12 +7,14 @@ interface Props {
   description?: string;
   image?: string;
   lang?: Lang;
+  hasTranslation?: boolean;
+  noindex?: boolean;
 }
 
-const { title, description, image, lang } = Astro.props;
+const { title, description, image, lang, hasTranslation, noindex } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} image={image} showCategories={false} lang={lang}>
+<BaseLayout title={title} description={description} image={image} showCategories={false} lang={lang} hasTranslation={hasTranslation} noindex={noindex}>
   <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
     <slot />
   </div>

@@ -5,6 +5,7 @@
 
 import {
   normalizeSlug,
+  isValidSlug,
   checkRateLimit,
   jsonResponse,
   errorResponse,
@@ -18,7 +19,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   try {
     const result = await DB.prepare(
-      "SELECT slug, views FROM page_views ORDER BY views DESC",
+      "SELECT slug, views FROM page_views ORDER BY views DESC LIMIT 100",
     ).all<{ slug: string; views: number }>();
 
     const consolidatedViews = new Map<string, number>();
@@ -61,6 +62,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     const slug = normalizeSlug(rawSlug);
+
+    if (!isValidSlug(slug)) {
+      return errorResponse("Invalid slug format");
+    }
 
     const existing = await DB.prepare(
       "SELECT views FROM page_views WHERE slug = ?",

@@ -25,9 +25,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return errorResponse("Too many requests, please try again later", 429);
     }
 
-    const { email } = (await request.json()) as { email: string };
+    const body = (await request.json()) as { email?: unknown };
+    const email = body.email;
 
-    if (!email || !isValidEmail(email)) {
+    if (!email || typeof email !== "string" || !isValidEmail(email)) {
       return errorResponse("Valid email is required");
     }
 
@@ -40,16 +41,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       .first<{ id: number; unsubscribed_at: string | null }>();
 
     if (existing) {
-      if (existing.unsubscribed_at) {
-        await env.DB.prepare(
-          "UPDATE newsletter_subscribers SET unsubscribed_at = NULL, subscribed_at = CURRENT_TIMESTAMP WHERE email = ?",
-        )
-          .bind(normalizedEmail)
-          .run();
-      }
+      // Do not silently resubscribe an address that unsubscribed — without
+      // email delivery in place there's no way to confirm this is the same
+      // person, so re-subscribing here would let anyone re-add someone
+      // else who opted out.
       return jsonResponse({
         success: true,
-        message: "Subscribed successfully",
+        message: existing.unsubscribed_at
+          ? "This email previously unsubscribed"
+          : "Subscribed successfully",
       });
     }
 
@@ -83,12 +83,15 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
       return errorResponse("Too many requests, please try again later", 429);
     }
 
-    const { email, token } = (await request.json()) as {
-      email?: string;
-      token?: string;
-    };
+    const body = (await request.json()) as { email?: unknown; token?: unknown };
+    const { email, token } = body;
 
-    if (!email || !token) {
+    if (
+      !email ||
+      typeof email !== "string" ||
+      !token ||
+      typeof token !== "string"
+    ) {
       return errorResponse("email and token are required");
     }
 

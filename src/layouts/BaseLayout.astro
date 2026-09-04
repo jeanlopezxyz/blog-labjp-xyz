@@ -17,6 +17,10 @@ interface Props {
   showCategories?: boolean;
   lang?: Lang;
   keywords?: string[];
+  /** Set to false when this page has no counterpart in the other language, to avoid emitting a hreflang link to a 404. */
+  hasTranslation?: boolean;
+  /** Set to true for thin-content pages (e.g. tag pages with very few posts) that shouldn't be indexed. */
+  noindex?: boolean;
 }
 
 const urlLang = getLangFromUrl(Astro.url);
@@ -30,6 +34,8 @@ const {
   currentCategory,
   lang = urlLang,
   keywords = ["Kubernetes", "OpenShift", "Cloud Native", "DevOps", "Java", "Red Hat"],
+  hasTranslation = true,
+  noindex = false,
 } = Astro.props;
 
 const t = useTranslations(lang);
@@ -49,7 +55,7 @@ const organizationSchema = {
   "@type": "Organization",
   "name": SITE.name,
   "url": SITE.url,
-  "logo": `${SITE.url}/favicon.svg`,
+  "logo": `${SITE.url}/android-chrome-512x512.png`,
   "description": defaultDescription,
   "founder": {
     "@type": "Person",
@@ -173,10 +179,14 @@ const personSchema = {
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="alternate" type="application/rss+xml" title={SITE.name} href={lang === 'en' ? '/en/rss.xml' : '/rss.xml'} />
 
-    <!-- Hreflang for multilingual SEO -->
-    <link rel="alternate" hreflang="es" href={`${SITE.url}${getLocalizedPath(localizedPath, 'es')}`} />
-    <link rel="alternate" hreflang="en" href={`${SITE.url}${getLocalizedPath(localizedPath, 'en')}`} />
-    <link rel="alternate" hreflang="x-default" href={`${SITE.url}${getLocalizedPath(localizedPath, 'es')}`} />
+    <!-- Hreflang for multilingual SEO (only when this page has a real counterpart in each language) -->
+    <link rel="alternate" hreflang={lang} href={`${SITE.url}${getLocalizedPath(localizedPath, lang)}`} />
+    {hasTranslation && (
+      <>
+        <link rel="alternate" hreflang={lang === 'es' ? 'en' : 'es'} href={`${SITE.url}${getLocalizedPath(localizedPath, lang === 'es' ? 'en' : 'es')}`} />
+        <link rel="alternate" hreflang="x-default" href={`${SITE.url}${getLocalizedPath(localizedPath, 'es')}`} />
+      </>
+    )}
 
     <meta name="generator" content={Astro.generator} />
 
@@ -195,12 +205,9 @@ const personSchema = {
     <meta name="keywords" content={keywords.join(", ")} />
     <meta name="subject" content="Kubernetes, OpenShift, Cloud Native, DevOps" />
     <meta name="language" content={lang} />
-    <meta name="revisit-after" content="7 days" />
-    <meta name="distribution" content="global" />
-    <meta name="rating" content="general" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="bingbot" content="index, follow" />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
+    <meta name="googlebot" content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
+    <meta name="bingbot" content={noindex ? "noindex, follow" : "index, follow"} />
     <link rel="canonical" href={canonical} />
 
     <!-- Mobile & PWA Meta Tags -->
@@ -263,7 +270,7 @@ const personSchema = {
     </a>
 
     <Header currentCategory={currentCategory} />
-    <main id="main-content" class="terminal-workspace flex-1" tabindex="-1">
+    <main id="main-content" class="page-content flex-1" tabindex="-1">
       <slot />
     </main>
     <Footer lang={lang} />

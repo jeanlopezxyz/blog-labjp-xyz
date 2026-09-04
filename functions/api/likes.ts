@@ -6,6 +6,7 @@
 
 import {
   normalizeSlug,
+  isValidSlug,
   checkRateLimit,
   jsonResponse,
   errorResponse,
@@ -25,12 +26,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return errorResponse("Too many requests, please try again later", 429);
     }
 
-    const { slug: rawSlug, visitorId } = (await request.json()) as {
-      slug: string;
-      visitorId: string;
+    const body = (await request.json()) as {
+      slug?: unknown;
+      visitorId?: unknown;
     };
+    const { slug: rawSlug, visitorId } = body;
 
-    if (!rawSlug || !visitorId) {
+    if (
+      !rawSlug ||
+      typeof rawSlug !== "string" ||
+      !visitorId ||
+      typeof visitorId !== "string"
+    ) {
       return errorResponse("slug and visitorId are required");
     }
 
@@ -40,6 +47,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     const slug = normalizeSlug(rawSlug);
+
+    if (!isValidSlug(slug)) {
+      return errorResponse("Invalid slug format");
+    }
 
     const existing = await env.DB.prepare(
       "SELECT id FROM post_likes WHERE slug = ? AND visitor_id = ?",

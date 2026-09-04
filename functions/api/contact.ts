@@ -27,24 +27,36 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     const body = (await request.json()) as {
-      name?: string;
-      email?: string;
-      subject?: string;
-      message?: string;
+      name?: unknown;
+      email?: unknown;
+      subject?: unknown;
+      message?: unknown;
     };
 
     const { name, email, subject, message } = body;
 
-    if (!name || !email || !message) {
+    if (
+      !name ||
+      typeof name !== "string" ||
+      !email ||
+      typeof email !== "string" ||
+      !message ||
+      typeof message !== "string" ||
+      (subject !== undefined && typeof subject !== "string")
+    ) {
       return errorResponse("name, email, and message are required");
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(email) || email.length > 254) {
       return errorResponse("Invalid email format");
     }
 
     if (name.length > 100) {
       return errorResponse("Name too long (max 100)");
+    }
+
+    if (subject && subject.length > 200) {
+      return errorResponse("Subject too long (max 200)");
     }
 
     if (message.length > 5000) {

@@ -8,7 +8,6 @@ import { formatDate, getTwitterShareUrl, getLinkedInShareUrl, getFullBlogPostUrl
 import { CONTENT_REPO, SITE } from "@/lib/constants";
 import { useTranslations, defaultLang } from "@/i18n";
 import type { WithLang } from "@/lib/types";
-import TerminalCommand from "@/components/ui/TerminalCommand.astro";
 
 interface Props extends WithLang {
   title: string;
@@ -26,9 +25,7 @@ const postUrl = getFullBlogPostUrl(slug, lang);
 const editUrl = `${CONTENT_REPO}/edit/main/src/content/blog/${lang}/${slug}.md`;
 ---
 
-<header class="mb-8" role="banner" aria-labelledby="post-title">
-  <TerminalCommand command={`less ./articles/${slug}.md`} cwd="~/blog" class="mb-4" />
-
+<header class="mb-8" aria-labelledby="post-title">
   <h1 id="post-title" class="text-2xl md:text-3xl font-bold tracking-tight mb-3">
     {title}
   </h1>
