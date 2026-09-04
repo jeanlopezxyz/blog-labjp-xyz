@@ -46,7 +46,7 @@ const otherPosts = posts.slice(1);
     <div class="lg:grid lg:grid-cols-[1fr_280px] lg:gap-16">
       <div class="terminal-panel p-5 sm:p-6">
         <header class="mb-8">
-          <TerminalCommand command={`find ./articles -path "*/${category}/*"`} cwd="~/blog" class="mb-4" />
+          <TerminalCommand command={`ls ./articles/${category}`} cwd="~/blog" class="mb-4" />
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-xl flex items-center justify-center" style={`background: ${color}15`}>
               <Icon name={icon} class="w-6 h-6" style={`color: ${color}`} />
