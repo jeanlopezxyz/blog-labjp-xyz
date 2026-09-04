@@ -26,6 +26,8 @@ export const SOCIAL = {
   twitter: "https://x.com/jeanlopezxyz",
 } as const;
 
+export const CONTENT_REPO = "https://github.com/jeanlopezxyz/blog-labjp-xyz" as const;
+
 export const RSS_URL = "/rss.xml" as const;
 
 export const TERMINAL = {

@@ -95,6 +95,7 @@ export const ui = {
     'post.linkedin': 'LinkedIn',
     'post.articleActions': 'Acciones del artículo',
     'post.commentsCount': 'comentarios',
+    'post.editOnGithub': 'Editar en GitHub',
 
     // Social
     'social.links': 'Redes sociales',
@@ -288,6 +289,7 @@ export const ui = {
     'loading.stats': 'Loading stats...',
     'post.articleActions': 'Article actions',
     'post.commentsCount': 'comments',
+    'post.editOnGithub': 'Edit on GitHub',
 
     // Notes
     'notes.title': 'Notes',

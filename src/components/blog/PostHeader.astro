@@ -5,7 +5,7 @@
  */
 import { Icon } from "astro-icon/components";
 import { formatDate, getTwitterShareUrl, getLinkedInShareUrl, getFullBlogPostUrl } from "@/lib/utils";
-import { SITE } from "@/lib/constants";
+import { CONTENT_REPO, SITE } from "@/lib/constants";
 import { useTranslations, defaultLang } from "@/i18n";
 import type { WithLang } from "@/lib/types";
 import TerminalCommand from "@/components/ui/TerminalCommand.astro";
@@ -23,6 +23,7 @@ const { title, description, pubDate, updatedDate, readingTime, slug, lang = defa
 const wasUpdated = updatedDate && updatedDate > pubDate;
 const t = useTranslations(lang);
 const postUrl = getFullBlogPostUrl(slug, lang);
+const editUrl = `${CONTENT_REPO}/edit/main/src/content/blog/${lang}/${slug}.md`;
 ---
 
 <header class="mb-8" role="banner" aria-labelledby="post-title">
@@ -73,6 +74,17 @@ const postUrl = getFullBlogPostUrl(slug, lang);
     </a>
 
     <div class="flex-1"></div>
+
+    <a
+      href={editUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-flex items-center gap-1.5 text-sm hover:text-foreground transition-colors"
+      aria-label={t('post.editOnGithub')}
+    >
+      <Icon name="mdi:pencil-outline" class="w-5 h-5" aria-hidden="true" />
+      <span class="hidden sm:inline">{t('post.editOnGithub')}</span>
+    </a>
 
     <div class="relative" data-share-menu>
       <button
