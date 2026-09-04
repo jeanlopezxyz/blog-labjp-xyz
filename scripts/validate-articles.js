@@ -13,7 +13,16 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 
 // Valid categories from constants.ts
-const VALID_CATEGORIES = ['kubernetes', 'openshift', 'cloud-native', 'ia', 'comunidad', 'devops'];
+const VALID_CATEGORIES = [
+  'kubernetes',
+  'openshift',
+  'cloud-native',
+  'gitops',
+  'automation',
+  'ia',
+  'devops',
+  'comunidad',
+];
 
 // Required frontmatter fields
 const REQUIRED_FIELDS = ['title', 'description', 'pubDate', 'categories', 'lang'];
