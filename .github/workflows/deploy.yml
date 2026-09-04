@@ -4,13 +4,13 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build-and-deploy:
