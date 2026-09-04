@@ -7,7 +7,7 @@
  * Variants:
  * - inline: compact, for list items (default)
  * - centered: centered layout for featured posts
- * - spread: full width, spread between items
+ * - spread: alias of inline, kept for backwards compatibility
  */
 import { Icon } from "astro-icon/components";
 import { getTwitterShareUrl, getLinkedInShareUrl, getFullBlogPostUrl } from "@/lib/utils";
@@ -37,7 +37,7 @@ const gap = size === 'sm' ? 'gap-1' : 'gap-1.5';
 const containerClasses = {
   inline: 'flex items-center gap-4',
   centered: 'flex items-center justify-center gap-6',
-  spread: 'flex items-center justify-between w-full',
+  spread: 'flex items-center gap-4',
 };
 ---
 
