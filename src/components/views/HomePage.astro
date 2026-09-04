@@ -21,8 +21,8 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 ---
 
 <BaseLayout lang={lang}>
-  <div class="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-    <section class="mb-16" aria-labelledby="terminal-intro-title">
+  <div class="mx-auto max-w-screen-2xl px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
+    <section class="mb-6" aria-labelledby="terminal-intro-title">
       <h1 id="terminal-intro-title" class="terminal-output sm:whitespace-nowrap">
         {lang === "es"
           ? "Cloud native, Kubernetes, IA y automatización."
@@ -37,15 +37,15 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 
     {featuredPost ? (
       <>
-        <article class="group mb-12 grid gap-6 lg:grid-cols-[3fr_2fr] lg:items-center">
+        <article class="group mb-6 grid gap-4 lg:grid-cols-[3fr_2fr] lg:items-center">
           {featuredPost.data.image && (
             <a href={getBlogPostUrl(featuredPost.id, lang)} class="block order-1 lg:order-2">
-              <div class="aspect-[16/10] max-h-64 overflow-hidden rounded-md bg-muted">
+              <div class="aspect-[16/9] max-h-44 overflow-hidden rounded-md bg-muted">
                 <img
                   src={featuredPost.data.image}
                   alt={featuredPost.data.title}
                   width="800"
-                  height="500"
+                  height="450"
                   decoding="async"
                   fetchpriority="high"
                   class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -55,11 +55,11 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
           )}
           <div class="order-2 lg:order-1">
             <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
-              <h2 class="mb-2 text-xl font-bold leading-tight transition-colors group-hover:text-primary md:text-2xl">
+              <h2 class="mb-1 text-lg font-bold leading-tight transition-colors group-hover:text-primary md:text-xl">
                 {featuredPost.data.title}
               </h2>
-              <p class="mb-3 text-sm leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
-              <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <p class="mb-2 text-sm leading-snug text-muted-foreground">{featuredPost.data.description}</p>
+              <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 <time datetime={featuredPost.data.pubDate.toISOString()}>
                   {getRelativeTime(featuredPost.data.pubDate, lang)}
                 </time>
@@ -67,7 +67,7 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
                 <span>{calculateReadingTime(featuredPost.body ?? "")} min</span>
               </div>
             </a>
-            <div class="mt-5">
+            <div class="mt-2">
               <SocialActions
                 postId={slugToPostId(featuredPost.id)}
                 postTitle={featuredPost.data.title}
@@ -82,13 +82,13 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 
         {restPosts.length > 0 && (
           <section>
-            <div class="mb-6 flex items-center justify-between">
-              <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t("home.latest")}</h2>
-              <a href={getLocalizedPath("/blog", lang)} class="text-sm text-primary hover:underline">
+            <div class="mb-3 flex items-center justify-between">
+              <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("home.latest")}</h2>
+              <a href={getLocalizedPath("/blog", lang)} class="text-xs text-primary hover:underline">
                 {t("home.viewAll")} →
               </a>
             </div>
-            <div class="grid gap-x-10 sm:grid-cols-2">
+            <div class="grid gap-x-8 sm:grid-cols-2">
               {restPosts.map((post) => (
                 <PostCardHorizontal
                   title={post.data.title}
