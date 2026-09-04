@@ -21,8 +21,8 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 ---
 
 <BaseLayout lang={lang}>
-  <div class="mx-auto max-w-2xl px-6 py-12 sm:px-8 lg:py-16">
-    <section class="mb-16" aria-labelledby="terminal-intro-title">
+  <div class="mx-auto max-w-6xl px-6 py-12 sm:px-8 lg:py-16">
+    <section class="mb-16 max-w-3xl" aria-labelledby="terminal-intro-title">
       <h1 id="terminal-intro-title" class="terminal-output">
         {lang === "es"
           ? "Cloud native, Kubernetes y automatización."
@@ -37,10 +37,10 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 
     {featuredPost ? (
       <>
-        <article class="group mb-16">
-          <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
-            {featuredPost.data.image && (
-              <div class="mb-6 aspect-[16/10] overflow-hidden rounded-md bg-muted">
+        <article class="group mb-16 grid gap-8 lg:grid-cols-2 lg:items-center">
+          {featuredPost.data.image && (
+            <a href={getBlogPostUrl(featuredPost.id, lang)} class="block order-1 lg:order-2">
+              <div class="aspect-[16/10] overflow-hidden rounded-md bg-muted">
                 <img
                   src={featuredPost.data.image}
                   alt={featuredPost.data.title}
@@ -51,28 +51,32 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
                   class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
-            )}
-            <h2 class="mb-3 text-2xl font-bold leading-tight transition-colors group-hover:text-primary md:text-3xl">
-              {featuredPost.data.title}
-            </h2>
-            <p class="mb-4 leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
-            <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <time datetime={featuredPost.data.pubDate.toISOString()}>
-                {getRelativeTime(featuredPost.data.pubDate, lang)}
-              </time>
-              <span aria-hidden="true">·</span>
-              <span>{calculateReadingTime(featuredPost.body ?? "")} min</span>
+            </a>
+          )}
+          <div class="order-2 lg:order-1">
+            <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
+              <h2 class="mb-3 text-2xl font-bold leading-tight transition-colors group-hover:text-primary md:text-3xl">
+                {featuredPost.data.title}
+              </h2>
+              <p class="mb-4 leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
+              <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <time datetime={featuredPost.data.pubDate.toISOString()}>
+                  {getRelativeTime(featuredPost.data.pubDate, lang)}
+                </time>
+                <span aria-hidden="true">·</span>
+                <span>{calculateReadingTime(featuredPost.body ?? "")} min</span>
+              </div>
+            </a>
+            <div class="mt-5">
+              <SocialActions
+                postId={slugToPostId(featuredPost.id)}
+                postTitle={featuredPost.data.title}
+                postSlug={normalizeSlug(featuredPost.id)}
+                lang={lang}
+                showComments={true}
+                size="sm"
+              />
             </div>
-          </a>
-          <div class="mt-5">
-            <SocialActions
-              postId={slugToPostId(featuredPost.id)}
-              postTitle={featuredPost.data.title}
-              postSlug={normalizeSlug(featuredPost.id)}
-              lang={lang}
-              showComments={true}
-              size="sm"
-            />
           </div>
         </article>
 
@@ -84,7 +88,7 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
                 {t("home.viewAll")} →
               </a>
             </div>
-            <div class="divide-y divide-border/50">
+            <div class="grid gap-x-10 sm:grid-cols-2">
               {restPosts.map((post) => (
                 <PostCardHorizontal
                   title={post.data.title}
