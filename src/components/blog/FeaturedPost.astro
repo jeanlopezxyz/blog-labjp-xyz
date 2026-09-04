@@ -19,7 +19,7 @@ const { title, description, pubDate, slug, body = "", image, lang } = Astro.prop
 <article class="terminal-card group overflow-hidden p-5">
   <a href={getBlogPostUrl(slug, lang)} class="block">
     {image && (
-      <div class="mb-5 aspect-[2/1] overflow-hidden rounded-sm bg-muted">
+      <div class="mx-auto mb-5 aspect-video w-full max-w-4xl overflow-hidden rounded-sm bg-muted">
         <img
           src={image}
           alt={title}
