@@ -37,10 +37,10 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 
     {featuredPost ? (
       <>
-        <article class="group mb-16 grid gap-8 lg:grid-cols-2 lg:items-center">
+        <article class="group mb-12 grid gap-6 lg:grid-cols-[3fr_2fr] lg:items-center">
           {featuredPost.data.image && (
             <a href={getBlogPostUrl(featuredPost.id, lang)} class="block order-1 lg:order-2">
-              <div class="aspect-[16/10] overflow-hidden rounded-md bg-muted">
+              <div class="aspect-[16/10] max-h-64 overflow-hidden rounded-md bg-muted">
                 <img
                   src={featuredPost.data.image}
                   alt={featuredPost.data.title}
@@ -55,10 +55,10 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
           )}
           <div class="order-2 lg:order-1">
             <a href={getBlogPostUrl(featuredPost.id, lang)} class="block">
-              <h2 class="mb-3 text-2xl font-bold leading-tight transition-colors group-hover:text-primary md:text-3xl">
+              <h2 class="mb-2 text-xl font-bold leading-tight transition-colors group-hover:text-primary md:text-2xl">
                 {featuredPost.data.title}
               </h2>
-              <p class="mb-4 leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
+              <p class="mb-3 text-sm leading-relaxed text-muted-foreground">{featuredPost.data.description}</p>
               <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <time datetime={featuredPost.data.pubDate.toISOString()}>
                   {getRelativeTime(featuredPost.data.pubDate, lang)}
