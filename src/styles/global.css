@@ -181,7 +181,7 @@
   }
 
   .terminal-hero__body {
-    @apply px-5 py-6 sm:px-7 sm:py-8 font-mono;
+    @apply px-5 py-4 sm:px-7 sm:py-5 font-mono;
   }
 
   .terminal-command {
