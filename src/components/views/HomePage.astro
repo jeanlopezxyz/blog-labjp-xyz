@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import PostCard from "@/components/blog/PostCard.astro";
 import PostCardHorizontal from "@/components/blog/PostCardHorizontal.astro";
 import SocialActions from "@/components/ui/SocialActions.astro";
+import TerminalCommand from "@/components/ui/TerminalCommand.astro";
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { calculateReadingTime, getBlogPostUrl, getRelativeTime } from "@/lib/utils";
@@ -29,14 +30,8 @@ const latestPosts = allPosts
 <BaseLayout lang={lang}>
   <div class="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
     <section class="terminal-hero mb-6" aria-labelledby="terminal-intro-title">
-      <div class="terminal-window-bar" aria-hidden="true">
-        <span class="terminal-window-dot terminal-window-dot--red"></span>
-        <span class="terminal-window-dot terminal-window-dot--yellow"></span>
-        <span class="terminal-window-dot terminal-window-dot--green"></span>
-        <span class="terminal-window-title">jean@labjp: ~/blog</span>
-      </div>
       <div class="terminal-hero__body">
-        <p class="terminal-command"><span class="terminal-prompt">jean@labjp:~/blog$</span> whoami</p>
+        <TerminalCommand command="whoami" cwd="~/blog" />
         <h1 id="terminal-intro-title" class="terminal-output">
           {lang === "es"
             ? "Ingeniería cloud native, explicada desde la terminal."
@@ -46,9 +41,6 @@ const latestPosts = allPosts
           {lang === "es"
             ? "Notas de campo sobre Kubernetes, OpenShift, IA, automatización y sistemas en producción."
             : "Field notes on Kubernetes, OpenShift, AI, automation, and production systems."}
-        </p>
-        <p class="terminal-command terminal-command--next" aria-hidden="true">
-          <span class="terminal-prompt">jean@labjp:~/blog$</span> ls --latest <span class="terminal-cursor"></span>
         </p>
       </div>
     </section>

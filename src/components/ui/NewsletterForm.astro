@@ -8,15 +8,16 @@ import { useTranslations, defaultLang, type Lang } from "@/i18n";
 interface Props {
   lang?: Lang;
   class?: string;
+  titleId?: string;
 }
 
-const { lang = defaultLang, class: className = '' } = Astro.props;
+const { lang = defaultLang, class: className = '', titleId } = Astro.props;
 const t = useTranslations(lang);
 ---
 
 <div class:list={["newsletter-form", className]}>
   <div class="p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-    <h3 class="text-lg font-bold mb-2">{t('subscribe.title')}</h3>
+    <h3 id={titleId} class="text-lg font-bold mb-2">{t('subscribe.title')}</h3>
     <p class="text-sm text-muted-foreground mb-4">{t('subscribe.description')}</p>
 
     <form class="newsletter-form-inner flex flex-col sm:flex-row gap-3">

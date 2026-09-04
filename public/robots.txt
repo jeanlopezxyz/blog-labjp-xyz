@@ -6,7 +6,6 @@ Allow: /
 
 # Block API endpoints and internal paths
 Disallow: /api/
-Disallow: /_astro/
 Disallow: /search.json
 
 # Allow important crawlers full access
@@ -35,12 +34,5 @@ Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
-# Crawl delay for less aggressive crawlers
-User-agent: *
-Crawl-delay: 1
-
 # Sitemap location
 Sitemap: https://blog.labjp.xyz/sitemap-index.xml
-
-# Host directive
-Host: https://blog.labjp.xyz

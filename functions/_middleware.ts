@@ -13,7 +13,7 @@ const CSP_DIRECTIVES = [
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: https: blob:",
   "connect-src 'self' https://blog.labjp.xyz https://fonts.googleapis.com https://cloudflareinsights.com",
-  "frame-ancestors 'self'",
+  "frame-ancestors 'none'",
   "form-action 'self'",
   "base-uri 'self'",
   "object-src 'none'",
@@ -26,8 +26,6 @@ const SECURITY_HEADERS = {
   'X-Frame-Options': 'SAMEORIGIN',
   // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
-  // XSS Protection (legacy browsers)
-  'X-XSS-Protection': '1; mode=block',
   // Control referrer information
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   // HTTP Strict Transport Security (2 years + subdomains + preload)

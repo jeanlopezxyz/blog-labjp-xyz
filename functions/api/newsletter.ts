@@ -6,10 +6,25 @@
 
 import { isValidEmail, jsonResponse, errorResponse, corsResponse, type Env } from '../lib/utils';
 
+async function initDatabase(db: D1Database) {
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      subscribed_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      unsubscribed_at TEXT
+    )
+  `).run();
+  await db.prepare(
+    'CREATE INDEX IF NOT EXISTS idx_subscribers_email ON newsletter_subscribers(email)'
+  ).run();
+}
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   try {
+    await initDatabase(env.DB);
     const { email } = await request.json() as { email: string };
 
     if (!email || !isValidEmail(email)) {
@@ -45,6 +60,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   try {
+    await initDatabase(env.DB);
     const { email } = await request.json() as { email: string };
 
     if (!email) {

@@ -177,28 +177,11 @@
 
   .terminal-hero,
   .terminal-panel {
-    @apply overflow-hidden rounded-md border border-primary/25 bg-card/80;
-    box-shadow: 0 18px 50px rgb(0 0 0 / 0.18), inset 0 1px 0 hsl(var(--primary) / 0.08);
-  }
-
-  .terminal-window-bar {
-    @apply flex items-center gap-2 border-b border-border/70 bg-[#101512] px-4 py-2.5;
-  }
-
-  .terminal-window-dot {
-    @apply size-2.5 rounded-full;
-  }
-
-  .terminal-window-dot--red { @apply bg-red-400/80; }
-  .terminal-window-dot--yellow { @apply bg-amber-300/80; }
-  .terminal-window-dot--green { @apply bg-primary/90; }
-
-  .terminal-window-title {
-    @apply ml-2 font-mono text-[11px] text-muted-foreground;
+    @apply overflow-hidden rounded-sm border border-border/70 bg-card/50;
   }
 
   .terminal-hero__body {
-    @apply px-5 py-7 sm:px-8 sm:py-9 font-mono;
+    @apply px-5 py-6 sm:px-7 sm:py-8 font-mono;
   }
 
   .terminal-command {
@@ -210,7 +193,14 @@
   }
 
   .terminal-output {
-    @apply mt-4 max-w-4xl text-2xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight;
+    @apply mt-4 text-2xl md:text-3xl font-bold leading-tight tracking-tight;
+  }
+
+  @media (min-width: 1280px) {
+    .terminal-output {
+      font-size: clamp(1.75rem, 1.55vw, 2rem);
+      white-space: nowrap;
+    }
   }
 
   .terminal-output::before {
@@ -219,7 +209,7 @@
   }
 
   .terminal-description {
-    @apply mt-4 max-w-3xl text-sm sm:text-base leading-relaxed text-muted-foreground;
+    @apply mt-4 text-sm leading-relaxed text-muted-foreground xl:whitespace-nowrap;
   }
 
   .terminal-command--next {
@@ -236,8 +226,7 @@
   }
 
   .terminal-card:hover {
-    @apply border-primary/45 bg-card/70;
-    box-shadow: 0 0 24px hsl(var(--primary) / 0.08);
+    @apply border-primary/35 bg-card/60;
   }
 
   .terminal-section-title::before {
@@ -317,13 +306,23 @@
 }
 
 .prose h2 {
-  @apply text-2xl font-bold tracking-tight mt-12 mb-6;
+  @apply text-xl sm:text-2xl font-bold tracking-tight mt-10 mb-5;
   @apply border-b border-border pb-3;
 }
 
+.prose h2::before {
+  content: "## ";
+  @apply font-mono text-primary;
+}
+
 .prose h3 {
-  @apply text-xl font-semibold tracking-tight mt-8 mb-4;
+  @apply text-lg font-semibold tracking-tight mt-8 mb-4;
   @apply text-primary;
+}
+
+.prose h3::before {
+  content: "### ";
+  @apply font-mono text-primary/70;
 }
 
 .prose h4 {
@@ -331,7 +330,7 @@
 }
 
 .prose p {
-  @apply leading-relaxed mb-5 text-foreground/90;
+  @apply leading-6 mb-4 text-foreground/90;
 }
 
 .prose a {
@@ -344,7 +343,7 @@
 }
 
 .prose ul, .prose ol {
-  @apply my-5 ml-0 pl-6 space-y-2;
+  @apply my-4 ml-0 pl-6 space-y-1.5;
   text-align: left;
 }
 

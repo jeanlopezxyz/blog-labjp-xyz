@@ -1,0 +1,16 @@
+---
+import { TERMINAL } from "@/lib/constants";
+
+interface Props {
+  command: string;
+  cwd?: string;
+  class?: string;
+}
+
+const { command, cwd = "~", class: className } = Astro.props;
+---
+
+<p class:list={["terminal-command", className]}>
+  <span class="terminal-prompt">{TERMINAL.user}@{TERMINAL.host}:{cwd}$</span>
+  {command}
+</p>

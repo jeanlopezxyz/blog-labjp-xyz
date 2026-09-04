@@ -3,7 +3,7 @@ title: "GitOps on OpenShift with ArgoCD"
 description: "Implement GitOps workflows on OpenShift using ArgoCD for declarative and automated deployments."
 pubDate: 2026-01-17
 tags: ["openshift", "gitops", "argocd"]
-categories: ["openshift"]
+categories: ["openshift", "gitops"]
 image: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&h=630&fit=crop"
 lang: en
 ---

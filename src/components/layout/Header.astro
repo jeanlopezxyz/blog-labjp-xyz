@@ -2,11 +2,18 @@
 import { Icon } from "astro-icon/components";
 import { NAV_ITEMS, CATEGORIES, RSS_URL } from "@/lib/constants";
 import { getLangFromUrl, useTranslations, getLocalizedPath, languages } from "@/i18n";
+import NewsletterForm from "@/components/ui/NewsletterForm.astro";
 
 // Language display names (short codes)
 const LANG_CODES = {
   es: "ES",
   en: "EN",
+} as const;
+
+const NAV_ICONS = {
+  "/": "mdi:home-outline",
+  "/blog": "mdi:archive-outline",
+  "/about": "mdi:account-outline",
 } as const;
 
 // Función para obtener URL del idioma alternativo (mantiene la página actual)
@@ -48,6 +55,7 @@ const isNavActive = (href: string) => {
 };
 
 const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTranslations>);
+const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0]);
 ---
 
 <header class="sticky top-0 z-50 bg-card/95 backdrop-blur-md" role="banner">
@@ -72,62 +80,21 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
         </a>
       </div>
 
-      <!-- Center: Navigation (hidden on mobile/tablet, only show on xl screens) -->
+      <!-- Primary navigation -->
       <nav class="hidden xl:flex items-center" aria-label={t('nav.mainNav')}>
-        <!-- Primary Nav: Home -->
-        <ul class="flex items-center" role="list">
-          {NAV_ITEMS.filter(item => ['/'].includes(item.href)).map((item) => (
+        <ul class="flex items-center gap-1" role="list">
+          {NAV_ITEMS.map((item) => (
             <li>
               <a
                 href={getLocalizedPath(item.href, lang)}
                 class:list={[
-                  "px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
+                  "inline-flex items-center gap-2 px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
                   isNavActive(item.href)
                     ? "font-medium text-primary bg-primary/10"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
                 ]}
               >
-                {getNavLabel(item.key)}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <!-- All Categories -->
-        <ul class="flex items-center" role="list">
-          {CATEGORIES.map((cat) => {
-            const isActive = currentCategory === cat.id;
-            return (
-              <li>
-                <a
-                  href={getLocalizedPath(`/category/${cat.id}`, lang)}
-                  class:list={[
-                    "px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
-                    isActive
-                      ? "font-medium text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                  ]}
-                >
-                  {cat.label}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-
-        <!-- Secondary Nav: Archive, About -->
-        <ul class="flex items-center" role="list">
-          {NAV_ITEMS.filter(item => ['/blog', '/about'].includes(item.href)).map((item) => (
-            <li>
-              <a
-                href={getLocalizedPath(item.href, lang)}
-                class:list={[
-                  "px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors rounded-md",
-                  isNavActive(item.href)
-                    ? "font-medium text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                ]}
-              >
+                <Icon name={NAV_ICONS[item.href]} class="h-4 w-4" aria-hidden="true" />
                 {getNavLabel(item.key)}
               </a>
             </li>
@@ -191,6 +158,30 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
       </div>
     </div>
   </div>
+
+  <nav class="hidden border-t border-border/60 xl:block" aria-label={t('nav.topics')}>
+    <ul class="mx-auto grid max-w-screen-2xl grid-cols-8 px-4 sm:px-6 lg:px-8" role="list">
+      {CATEGORIES.map((cat) => {
+        const isActive = currentCategory === cat.id;
+        return (
+          <li>
+            <a
+              href={getLocalizedPath(`/category/${cat.id}`, lang)}
+              class:list={[
+                "flex items-center justify-center gap-2 border-b-2 px-2 py-2.5 text-xs whitespace-nowrap transition-colors",
+                isActive
+                  ? "border-primary bg-primary/5 font-medium text-primary"
+                  : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
+              ]}
+            >
+              <Icon name={cat.icon} class="h-4 w-4 shrink-0" style={`color: ${cat.color}`} aria-hidden="true" />
+              {getCategoryLabel(cat.id)}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
 
 </header>
 
@@ -280,7 +271,7 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
                   ]}
                 >
                   <Icon name={cat.icon} class="w-5 h-5" style={`color: ${cat.color}`} />
-                  {cat.label}
+                  {getCategoryLabel(cat.id)}
                 </a>
               </li>
             );
@@ -327,33 +318,11 @@ const getNavLabel = (key: string) => t(key as keyof ReturnType<typeof useTransla
 
 <!-- Subscribe Modal -->
 <div id="subscribe-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="subscribe-title" aria-hidden="true">
-  <div class="relative bg-card border border-border rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+  <div class="relative mx-4 w-full max-w-md rounded-sm border border-border bg-card p-5 shadow-xl">
     <button id="close-modal" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={t('subscribe.close')}>
       <Icon name="mdi:close" class="w-5 h-5" aria-hidden="true" />
     </button>
-    <div class="text-center mb-6">
-      <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-        <Icon name="mdi:email-outline" class="w-6 h-6 text-primary" aria-hidden="true" />
-      </div>
-      <h2 id="subscribe-title" class="text-xl font-bold text-foreground mb-2">{t('subscribe.title')}</h2>
-      <p class="text-muted-foreground text-sm">{t('subscribe.description')}</p>
-    </div>
-    <form class="space-y-4">
-      <label for="subscribe-email" class="sr-only">Email</label>
-      <input
-        type="email"
-        id="subscribe-email"
-        placeholder={t('sidebar.email')}
-        class="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        required
-      />
-      <button
-        type="submit"
-        class="w-full py-3 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-      >
-        {t('subscribe.button')}
-      </button>
-    </form>
+    <NewsletterForm lang={lang} titleId="subscribe-title" class="mt-7" />
     <p class="text-xs text-muted-foreground mt-4 text-center">
       {t('subscribe.orFollow')} <a href={RSS_URL} class="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded">RSS</a>
     </p>

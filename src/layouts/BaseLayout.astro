@@ -4,7 +4,7 @@ import { SITE, SOCIAL } from "@/lib/constants";
 import Header from "@/components/layout/Header.astro";
 import Footer from "@/components/layout/Footer.astro";
 import ScrollToTop from "@/components/ui/ScrollToTop.astro";
-import { getLangFromUrl, useTranslations, getClientI18n, type Lang } from "@/i18n";
+import { getLangFromUrl, useTranslations, getClientI18n, getLocalizedPath, type Lang } from "@/i18n";
 
 interface Props {
   title?: string;
@@ -24,7 +24,7 @@ const {
   title,
   description,
   image = "/og-image.png",
-  canonicalUrl = Astro.url.href,
+  canonicalUrl,
   type = "website",
   publishedTime,
   currentCategory,
@@ -34,6 +34,8 @@ const {
 
 const t = useTranslations(lang);
 const i18n = getClientI18n(lang);
+const localizedPath = Astro.url.pathname.replace(/^\/(?:es|en)(?=\/|$)/, '') || '/';
+const canonical = canonicalUrl || new URL(getLocalizedPath(localizedPath, lang), SITE.url).href;
 const siteLocale = SITE.locales[lang];
 const defaultTitle = siteLocale.title;
 const defaultDescription = siteLocale.description;
@@ -86,16 +88,16 @@ const websiteSchema = {
     "@type": "SearchAction",
     "target": {
       "@type": "EntryPoint",
-      "urlTemplate": `${SITE.url}/blog?q={search_term_string}`
+    "urlTemplate": `${SITE.url}/${lang}/blog?q={search_term_string}`
     },
     "query-input": "required name=search_term_string"
   }
 };
 
 // Breadcrumb schema
-const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+const pathSegments = localizedPath.split('/').filter(Boolean);
 const breadcrumbItems = pathSegments.map((segment, index) => {
-  const path = '/' + pathSegments.slice(0, index + 1).join('/');
+  const path = getLocalizedPath('/' + pathSegments.slice(0, index + 1).join('/'), lang);
   return {
     "@type": "ListItem",
     "position": index + 2,
@@ -124,7 +126,6 @@ const personSchema = {
   "@type": "Person",
   "name": SITE.author,
   "url": SITE.url,
-  "image": `${SITE.url}/author.jpg`,
   "jobTitle": "Senior Consultant",
   "worksFor": {
     "@type": "Organization",
@@ -144,40 +145,6 @@ const personSchema = {
   "description": "Senior Consultant at Red Hat specializing in Kubernetes, OpenShift, and Cloud Native architectures."
 };
 
-// FAQ Schema for common questions (boosts SEO significantly)
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "¿Qué es Kubernetes?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Kubernetes es una plataforma de código abierto para automatizar la implementación, el escalado y la gestión de aplicaciones en contenedores."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Qué es OpenShift?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "OpenShift es la plataforma de Kubernetes empresarial de Red Hat que añade herramientas de desarrollador, seguridad mejorada y soporte empresarial."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Qué es Cloud Native?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Cloud Native es un enfoque de desarrollo de software que aprovecha al máximo el modelo de computación en la nube, usando contenedores, microservicios y entrega continua."
-      }
-    }
-  ]
-};
-
-// Check if we're on homepage to show FAQ
-const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' || Astro.url.pathname === '/en';
 ---
 
 <!doctype html>
@@ -197,9 +164,6 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
 
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Fonts with display=swap for better CLS -->
@@ -207,12 +171,12 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
 
     <!-- Sitemap & Feeds -->
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href={lang === 'en' ? '/en/rss.xml' : '/rss.xml'} />
 
     <!-- Hreflang for multilingual SEO -->
-    <link rel="alternate" hreflang="es" href={`${SITE.url}${Astro.url.pathname.replace(/^\/en/, '')}`} />
-    <link rel="alternate" hreflang="en" href={`${SITE.url}/en${Astro.url.pathname.replace(/^\/en/, '')}`} />
-    <link rel="alternate" hreflang="x-default" href={`${SITE.url}${Astro.url.pathname.replace(/^\/en/, '')}`} />
+    <link rel="alternate" hreflang="es" href={`${SITE.url}${getLocalizedPath(localizedPath, 'es')}`} />
+    <link rel="alternate" hreflang="en" href={`${SITE.url}${getLocalizedPath(localizedPath, 'en')}`} />
+    <link rel="alternate" hreflang="x-default" href={`${SITE.url}${getLocalizedPath(localizedPath, 'es')}`} />
 
     <meta name="generator" content={Astro.generator} />
 
@@ -237,7 +201,7 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="bingbot" content="index, follow" />
-    <link rel="canonical" href={canonicalUrl} />
+    <link rel="canonical" href={canonical} />
 
     <!-- Mobile & PWA Meta Tags -->
     <meta name="theme-color" content="#22c55e" />
@@ -250,7 +214,7 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />
-    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={finalDescription} />
     <meta property="og:image" content={new URL(image, SITE.url).href} />
@@ -267,7 +231,7 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@jeanlopezxyz" />
     <meta name="twitter:creator" content="@jeanlopezxyz" />
-    <meta name="twitter:url" content={canonicalUrl} />
+    <meta name="twitter:url" content={canonical} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={finalDescription} />
     <meta name="twitter:image" content={new URL(image, SITE.url).href} />
@@ -279,9 +243,6 @@ const isHomepage = Astro.url.pathname === '/' || Astro.url.pathname === '/en/' |
     <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
     {breadcrumbItems.length > 0 && (
       <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
-    )}
-    {isHomepage && (
-      <script is:inline type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
     )}
 
     <!-- i18n for client scripts -->

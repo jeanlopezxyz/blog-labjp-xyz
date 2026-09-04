@@ -11,7 +11,8 @@ export default defineConfig({
     defaultLocale: 'es',
     locales: ['es', 'en'],
     routing: {
-      prefixDefaultLocale: false,
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: false,
     },
   },
   integrations: [
@@ -20,7 +21,6 @@ export default defineConfig({
     sitemap({
       changefreq: 'weekly',
       priority: 0.7,
-      lastmod: new Date(),
       i18n: {
         defaultLocale: 'es',
         locales: {

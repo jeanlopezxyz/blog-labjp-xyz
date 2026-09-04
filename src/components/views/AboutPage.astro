@@ -1,0 +1,154 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { SITE, SOCIAL } from "@/lib/constants";
+import type { Lang } from "@/i18n";
+import TerminalCommand from "@/components/ui/TerminalCommand.astro";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const content = {
+  es: {
+    title: "Sobre mí",
+    description: `Conoce más sobre ${SITE.author} y blog.labjp.xyz`,
+    lead: "Arquitectura cloud native desde la experiencia real de producción.",
+    publicationTitle: "Sobre el blog",
+    publication: [
+      "blog.labjp.xyz documenta cómo evoluciona la arquitectura cloud native en entornos empresariales.",
+      "No es un feed de noticias ni un escaparate de frameworks. Es un mapa de patrones para que sistemas grandes evolucionen sin romperse.",
+    ],
+    focusTitle: "Áreas de trabajo",
+    focus: [
+      "Kubernetes y OpenShift en entornos empresariales",
+      "Cloud native y decisiones de arquitectura pragmáticas",
+      "GitOps, automatización y experiencia de desarrollo",
+      "IA integrada con Java y sistemas en producción",
+    ],
+    authorTitle: "Jean Paul López",
+    author: [
+      "Senior Consultant en Red Hat con más de 8 años en software empresarial.",
+      "Ayudo a empresas a adoptar Kubernetes, OpenShift y arquitecturas cloud native. Todo lo publicado aquí representa mi experiencia y opinión personal.",
+      "Este blog es mi cuaderno de trabajo para arquitectura moderna.",
+    ],
+    principlesTitle: "Qué encontrarás",
+    principles: [
+      "Patrones de arquitectura que van más allá del tutorial",
+      "Guías para modernizar sistemas Java grandes",
+      "Análisis de Kubernetes, OpenShift, GitOps e IA",
+      "Trade-offs reales de plataformas en producción",
+    ],
+    connectTitle: "Conecta",
+  },
+  en: {
+    title: "About",
+    description: `Learn more about ${SITE.author} and blog.labjp.xyz`,
+    lead: "Cloud-native architecture grounded in real production experience.",
+    publicationTitle: "About the blog",
+    publication: [
+      "blog.labjp.xyz documents how cloud-native architecture evolves in enterprise environments.",
+      "It is not a news feed or a framework showcase. It is a map of patterns that helps large systems evolve without breaking.",
+    ],
+    focusTitle: "Areas of work",
+    focus: [
+      "Kubernetes and OpenShift in enterprise environments",
+      "Cloud native and pragmatic architecture decisions",
+      "GitOps, automation, and developer experience",
+      "AI integrated with Java and production systems",
+    ],
+    authorTitle: "Jean Paul Lopez",
+    author: [
+      "Senior Consultant at Red Hat with over 8 years in enterprise software.",
+      "I help companies adopt Kubernetes, OpenShift, and cloud-native architectures. Everything published here reflects my personal experience and views.",
+      "This blog is my working notebook for modern architecture.",
+    ],
+    principlesTitle: "What you will find",
+    principles: [
+      "Architecture patterns that go beyond tutorials",
+      "Guides for modernizing large Java systems",
+      "Analysis of Kubernetes, OpenShift, GitOps, and AI",
+      "Real platform trade-offs in production",
+    ],
+    connectTitle: "Connect",
+  },
+} as const;
+
+const copy = content[lang];
+const links = [
+  { label: "GitHub", value: "@jeanlopezxyz", href: SOCIAL.github },
+  { label: "LinkedIn", value: "jean-paul-lopez", href: SOCIAL.linkedin },
+  { label: "X", value: "@jeanlopezxyz", href: SOCIAL.twitter },
+  { label: "RSS", value: "blog.labjp.xyz/rss.xml", href: "/rss.xml" },
+];
+---
+
+<BaseLayout title={copy.title} description={copy.description} lang={lang}>
+  <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <header class="mb-8 border-b border-border/70 pb-8">
+      <TerminalCommand command="cat about.md" class="mb-4" />
+      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
+        {copy.title}<span class="text-primary">.</span>
+      </h1>
+      <p class="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">{copy.lead}</p>
+    </header>
+
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+      <div class="space-y-9">
+        <section aria-labelledby="about-publication">
+          <TerminalCommand command="pwd" class="mb-3" />
+          <h2 id="about-publication" class="mb-4 text-xl font-semibold">{copy.publicationTitle}</h2>
+          <div class="space-y-4 leading-relaxed text-foreground/85">
+            {copy.publication.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </section>
+
+        <section class="border-t border-border/60 pt-8" aria-labelledby="about-focus">
+          <TerminalCommand command="ls topics/" class="mb-3" />
+          <h2 id="about-focus" class="mb-4 text-xl font-semibold">{copy.focusTitle}</h2>
+          <ul class="grid gap-3 sm:grid-cols-2">
+            {copy.focus.map((item) => (
+              <li class="border-l border-primary/50 pl-3 text-sm leading-relaxed text-foreground/85">{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="border-t border-border/60 pt-8" aria-labelledby="about-author">
+          <TerminalCommand command="whoami" class="mb-3" />
+          <h2 id="about-author" class="mb-4 text-xl font-semibold">{copy.authorTitle}</h2>
+          <div class="space-y-4 leading-relaxed text-foreground/85">
+            {copy.author.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </section>
+
+        <section class="border-t border-border/60 pt-8" aria-labelledby="about-principles">
+          <TerminalCommand command="cat principles.txt" class="mb-3" />
+          <h2 id="about-principles" class="mb-4 text-xl font-semibold">{copy.principlesTitle}</h2>
+          <ul class="space-y-3 text-foreground/85">
+            {copy.principles.map((item) => <li><span class="mr-3 text-primary">→</span>{item}</li>)}
+          </ul>
+        </section>
+      </div>
+
+      <aside class="terminal-panel p-5 lg:sticky lg:top-24" aria-labelledby="about-connect">
+        <TerminalCommand command="contact --list" class="mb-4" />
+        <h2 id="about-connect" class="sr-only">{copy.connectTitle}</h2>
+        <ul class="space-y-4">
+          {links.map((link) => (
+            <li>
+              <span class="block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{link.label}</span>
+              <a
+                href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                class="mt-1 block break-words text-sm text-foreground transition-colors hover:text-primary hover:underline"
+              >
+                {link.value}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  </main>
+</BaseLayout>

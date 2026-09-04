@@ -7,8 +7,9 @@ import PageLayout from "@/layouts/PageLayout.astro";
 import PostCard from "@/components/blog/PostCard.astro";
 import { Icon } from "astro-icon/components";
 import { calculateReadingTime } from "@/lib/utils";
-import { useTranslations, defaultLang, type Lang } from "@/i18n";
+import { getLocalizedPath, useTranslations, type Lang } from "@/i18n";
 import type { BlogCollectionEntry } from "@/lib/types";
+import TerminalCommand from "@/components/ui/TerminalCommand.astro";
 
 interface Props {
   lang: Lang;
@@ -18,8 +19,7 @@ interface Props {
 
 const { lang, tag, posts } = Astro.props;
 const t = useTranslations(lang);
-const isDefault = lang === defaultLang;
-const blogPath = isDefault ? '/blog' : `/${lang}/blog`;
+const blogPath = getLocalizedPath('/blog', lang);
 ---
 
 <PageLayout
@@ -28,6 +28,7 @@ const blogPath = isDefault ? '/blog' : `/${lang}/blog`;
   lang={lang}
 >
   <header class="mb-8">
+    <TerminalCommand command={`grep -R "#${tag}" ./articles`} cwd="~/blog" class="mb-4" />
     <a href={blogPath} class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
       <Icon name="mdi:chevron-left" class="w-4 h-4" />
       {t('tags.backToBlog')}

@@ -10,6 +10,7 @@ import { render, type CollectionEntry } from "astro:content";
 import { SITE } from "@/lib/constants";
 
 import { defaultLang, normalizeSlug, type Lang } from "@/i18n";
+import { getBlogPostUrl } from "@/lib/utils";
 
 interface Props {
   post: CollectionEntry<"blog">;
@@ -53,7 +54,7 @@ const jsonLd = {
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": `${SITE.url}/blog/${cleanSlug}`
+  "@id": `${SITE.url}${getBlogPostUrl(cleanSlug, lang)}`
   },
   "keywords": tags?.join(", "),
   "wordCount": readingTime * 200, // Approximate based on reading time
@@ -76,12 +77,12 @@ const jsonLd = {
   <!-- Reading Progress Bar -->
   <ReadingProgress />
 
-  <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
     <div class:list={[
       "grid gap-8",
       hasToC ? "lg:grid-cols-[1fr_220px]" : ""
     ]}>
-      <article>
+      <article class="min-w-0">
         <PostHeader
           title={title}
           description={description}
@@ -93,7 +94,7 @@ const jsonLd = {
         />
 
         {image && (
-          <div class="mt-8 mb-8 rounded-xl overflow-hidden">
+          <div class="my-8 overflow-hidden rounded-sm border border-border/70">
             <img
               src={image}
               alt={title}
@@ -102,7 +103,7 @@ const jsonLd = {
           </div>
         )}
 
-        <div class="prose prose-lg max-w-none mt-8">
+        <div class="prose mt-8 max-w-3xl">
           <slot />
         </div>
 

@@ -1,6 +1,7 @@
 import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { CATEGORY_IDS } from "./lib/categories";
 
 const blog = defineCollection({
   loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
@@ -12,7 +13,7 @@ const blog = defineCollection({
     image: z.string().optional(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
-    categories: z.array(z.enum(["kubernetes", "openshift", "cloud-native", "ia", "comunidad", "devops"])).default([]),
+    categories: z.array(z.enum(CATEGORY_IDS)).default([]),
     featured: z.boolean().default(false),
     lang: z.enum(["es", "en"]).default("es"),
   }),

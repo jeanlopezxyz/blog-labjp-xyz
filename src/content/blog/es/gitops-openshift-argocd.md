@@ -3,7 +3,7 @@ title: "GitOps en OpenShift con ArgoCD"
 description: "Implementa flujos de trabajo GitOps en OpenShift usando ArgoCD para despliegues declarativos y automatizados."
 pubDate: 2026-01-17
 tags: ["openshift", "gitops", "argocd"]
-categories: ["openshift"]
+categories: ["openshift", "gitops"]
 featured: true
 image: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=1200&h=630&fit=crop"
 lang: es

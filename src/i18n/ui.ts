@@ -27,6 +27,7 @@ export const ui = {
     'nav.mainNav': 'Navegación principal',
     'nav.langToggle': 'Cambiar idioma',
     'nav.navigation': 'Navegación',
+    'nav.topics': 'Temas',
     'nav.menu': 'Menú',
     'nav.close': 'Cerrar',
 
@@ -34,6 +35,8 @@ export const ui = {
     'cat.kubernetes': 'Kubernetes',
     'cat.openshift': 'OpenShift',
     'cat.cloud-native': 'Cloud Native',
+    'cat.gitops': 'GitOps',
+    'cat.automation': 'Automatización',
     'cat.devops': 'DevOps',
     'cat.ia': 'IA',
     'cat.comunidad': 'Comunidad',
@@ -207,6 +210,7 @@ export const ui = {
     'nav.mainNav': 'Main navigation',
     'nav.langToggle': 'Change language',
     'nav.navigation': 'Navigation',
+    'nav.topics': 'Topics',
     'nav.menu': 'Menu',
     'nav.close': 'Close',
 
@@ -214,6 +218,8 @@ export const ui = {
     'cat.kubernetes': 'Kubernetes',
     'cat.openshift': 'OpenShift',
     'cat.cloud-native': 'Cloud Native',
+    'cat.gitops': 'GitOps',
+    'cat.automation': 'Automation',
     'cat.devops': 'DevOps',
     'cat.ia': 'AI',
     'cat.comunidad': 'Community',

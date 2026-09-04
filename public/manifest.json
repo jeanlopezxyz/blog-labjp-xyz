@@ -2,7 +2,7 @@
   "name": "blog.labjp.xyz - Kubernetes, OpenShift y Cloud Native",
   "short_name": "blog.labjp.xyz",
   "description": "Blog técnico sobre Kubernetes, OpenShift, DevOps y arquitecturas Cloud Native. Por Jean Paul López, Senior Consultant @ Red Hat.",
-  "start_url": "/",
+  "start_url": "/es/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#22c55e",
@@ -48,19 +48,19 @@
     {
       "name": "Kubernetes",
       "short_name": "K8s",
-      "url": "/category/kubernetes",
+      "url": "/es/category/kubernetes",
       "description": "Artículos sobre Kubernetes"
     },
     {
       "name": "OpenShift",
       "short_name": "OCP",
-      "url": "/category/openshift",
+      "url": "/es/category/openshift",
       "description": "Artículos sobre OpenShift"
     },
     {
       "name": "Cloud Native",
       "short_name": "Cloud",
-      "url": "/category/cloud-native",
+      "url": "/es/category/cloud-native",
       "description": "Artículos sobre Cloud Native"
     }
   ],
