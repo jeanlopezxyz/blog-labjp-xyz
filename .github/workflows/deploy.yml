@@ -45,7 +45,13 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dist
-          path: dist
+          # wrangler pages deploy expects the Pages Functions directory
+          # (functions/) next to the build output dir, not inside it —
+          # both must ship in the artifact or _middleware.ts and /api/*
+          # silently stop being deployed.
+          path: |
+            dist
+            functions
           retention-days: 1
 
   deploy:
@@ -60,7 +66,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
-          path: dist
+          path: .
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
