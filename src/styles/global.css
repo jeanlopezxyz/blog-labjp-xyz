@@ -145,32 +145,6 @@
 
 /* Terminal identity */
 @layer components {
-  .terminal-status {
-    @apply border-b border-primary/20 bg-[#080b0a]/95 font-mono text-[11px] text-muted-foreground;
-  }
-
-  .terminal-status__inner {
-    @apply max-w-screen-2xl mx-auto flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-2;
-  }
-
-  .terminal-status__path,
-  .terminal-status__command {
-    @apply text-primary;
-  }
-
-  .terminal-status__runtime {
-    @apply hidden sm:inline;
-  }
-
-  .terminal-status__online {
-    @apply ml-auto inline-flex items-center gap-1.5 uppercase tracking-widest;
-  }
-
-  .terminal-status__dot {
-    @apply block size-1.5 rounded-full bg-primary;
-    box-shadow: 0 0 10px hsl(var(--primary));
-  }
-
   .terminal-workspace {
     position: relative;
   }
