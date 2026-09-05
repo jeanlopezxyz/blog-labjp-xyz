@@ -150,6 +150,16 @@
 
 .prose h1, .prose h2, .prose h3, .prose h4 {
   text-align: left;
+  /* The sticky header would otherwise cover the heading when jumping here
+     from the TOC or a #hash link: ~56px (h-14) below the xl breakpoint,
+     ~64px (h-16) from lg, plus the category bar (~40px) from xl up. */
+  scroll-margin-top: 4.5rem;
+}
+
+@media (min-width: 1280px) {
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    scroll-margin-top: 7rem;
+  }
 }
 
 .prose h1 {
