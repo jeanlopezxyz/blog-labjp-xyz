@@ -6,6 +6,7 @@
 import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import { calculateReadingTime, getRelativeTime, getBlogPostUrl } from "@/lib/utils";
+import { getThumbnailUrl } from "@/lib/images";
 import { useTranslations, normalizeSlug, isPostForLang, type Lang } from "@/i18n";
 
 interface Props {
@@ -72,7 +73,7 @@ const relatedPosts = scoredPosts.map(({ post }) => post);
           {post.data.image && (
             <div class="aspect-video rounded-lg overflow-hidden mb-3 bg-muted">
               <img
-                src={post.data.image}
+                src={getThumbnailUrl(post.data.image, 800, 450)}
                 alt={post.data.title}
                 width="400"
                 height="225"

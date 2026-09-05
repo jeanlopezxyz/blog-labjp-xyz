@@ -2,6 +2,7 @@
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { getBlogPostUrl } from "@/lib/utils";
+import { getThumbnailUrl } from "@/lib/images";
 import { useTranslations, defaultLang, isPostForLang, normalizeSlug, type Lang } from "@/i18n";
 
 interface Props {
@@ -36,7 +37,7 @@ const posts = (await getCollection("blog", ({ id, data }) => !data.draft && isPo
           {post.data.image && (
             <div class="mb-2 aspect-[16/9] overflow-hidden rounded-sm border border-border/60 bg-muted">
               <img
-                src={post.data.image}
+                src={getThumbnailUrl(post.data.image, 640, 360)}
                 alt={post.data.title}
                 width="320"
                 height="180"
