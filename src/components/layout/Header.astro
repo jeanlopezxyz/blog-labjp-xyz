@@ -167,10 +167,10 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
 
         <a
           href="#subscribe"
-          class="hidden md:inline-flex items-center gap-2 ml-1 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          class="hidden xl:inline-flex items-center gap-2 ml-1 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Icon name="mdi:email-outline" class="w-4 h-4" aria-hidden="true" />
-          <span class="hidden xl:inline">{t('nav.subscribe')}</span>
+          <span>{t('nav.subscribe')}</span>
         </a>
 
       </div>
