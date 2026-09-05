@@ -22,18 +22,7 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 
 <BaseLayout lang={lang}>
   <div class="mx-auto max-w-screen-2xl px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-    <section class="mb-6" aria-labelledby="terminal-intro-title">
-      <h1 id="terminal-intro-title" class="terminal-output sm:whitespace-nowrap">
-        {lang === "es"
-          ? "Cloud native, Kubernetes, IA y automatización."
-          : "Cloud native, Kubernetes, AI, and automation."}
-      </h1>
-      <p class="terminal-description">
-        {lang === "es"
-          ? "Notas de campo sobre Kubernetes, OpenShift, IA, automatización y sistemas en producción."
-          : "Field notes on Kubernetes, OpenShift, AI, automation, and production systems."}
-      </p>
-    </section>
+    <h1 class="sr-only">{t("home.pageTitle")}</h1>
 
     {featuredPost ? (
       <>

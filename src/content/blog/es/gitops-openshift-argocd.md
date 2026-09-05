@@ -1,7 +1,7 @@
 ---
 title: "GitOps en OpenShift con ArgoCD"
 description: "GitOps en OpenShift con el operador OpenShift GitOps: instalación, ApplicationSets, multi-tenancy con AppProjects y RBAC, y troubleshooting de sync, drift y self-heal."
-pubDate: 2026-09-05
+pubDate: 2026-01-17
 updatedDate: 2026-09-05
 tags: ["openshift", "gitops", "argocd"]
 categories: ["openshift", "gitops"]

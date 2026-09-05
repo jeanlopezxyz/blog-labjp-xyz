@@ -46,6 +46,8 @@ export const ui = {
     "cat.backHome": "← Volver al inicio",
 
     // Homepage
+    "home.pageTitle":
+      "blog.labjp.xyz — Cloud native, Kubernetes, OpenShift e IA",
     "home.featured": "Destacado",
     "home.popular": "Populares",
     "home.latest": "Últimos",
@@ -235,6 +237,8 @@ export const ui = {
     "cat.backHome": "← Back to home",
 
     // Homepage
+    "home.pageTitle":
+      "blog.labjp.xyz — Cloud native, Kubernetes, OpenShift, and AI",
     "home.featured": "Featured",
     "home.popular": "Popular",
     "home.latest": "Latest",

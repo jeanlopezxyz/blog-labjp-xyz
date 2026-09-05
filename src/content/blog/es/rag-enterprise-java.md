@@ -1,7 +1,7 @@
 ---
 title: "RAG Enterprise en Java: de la teoría a producción"
 description: "Construye sistemas RAG robustos para entornos empresariales usando Java, pgvector y modelos locales."
-pubDate: 2026-09-05
+pubDate: 2026-01-20
 updatedDate: 2026-09-05
 tags: ["ia", "rag", "java", "enterprise"]
 categories: ["ia"]

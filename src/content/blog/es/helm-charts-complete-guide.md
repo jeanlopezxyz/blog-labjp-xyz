@@ -1,7 +1,7 @@
 ---
 title: "Guía completa de Helm Charts para Kubernetes"
 description: "Helm en producción: estructura de charts, qué cambió con Helm 4, ejemplos empresariales en OpenShift, troubleshooting, rollback y gestión de secrets."
-pubDate: 2026-09-05
+pubDate: 2026-01-18
 updatedDate: 2026-09-05
 tags: ["kubernetes", "helm", "devops"]
 categories: ["kubernetes"]

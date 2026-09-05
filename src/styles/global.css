@@ -119,15 +119,6 @@
     @apply border-none bg-transparent;
   }
 
-  .terminal-output {
-    @apply font-bold leading-tight tracking-tight;
-    font-size: clamp(1.25rem, 0.95rem + 1.6vw, 2.1rem);
-  }
-
-  .terminal-description {
-    @apply mt-2 max-w-2xl text-sm leading-snug text-muted-foreground;
-  }
-
   .terminal-card {
     @apply border-none bg-transparent;
   }
