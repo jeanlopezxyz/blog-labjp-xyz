@@ -18,7 +18,7 @@ No fallaba nada. Ningún error, ningún test en rojo, ningún aviso en los logs.
 
 Ese hallazgo me llevó a revisar los otros siete servidores que tenía escritos, y lo que apareció ahí es peor que un cero. Pero vamos por partes: primero qué cambió en el protocolo, después qué implica para quien mantiene un servidor, y al final lo que salió de la auditoría.
 
-Si buscas cómo desplegar servidores MCP en OpenShift AI, eso ya lo conté en [otro artículo](/es/blog/mcp-servers-genai-studio-openshift-ai). Este va de lo que ocurre dentro del protocolo.
+Si buscas cómo desplegar servidores MCP en OpenShift AI, eso ya lo conté en [otro artículo](/es/blog/2026-02-13-mcp-servers-genai-studio-openshift-ai). Este va de lo que ocurre dentro del protocolo.
 
 ## Las revisiones de MCP no llevan número, llevan fecha
 

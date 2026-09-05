@@ -1,1 +1,26 @@
 / /es/ 301
+
+# Artículos renombrados al esquema fecha-slug (2026-09).
+# Las URL antiguas están indexadas: se mantienen con 301 permanente.
+/en/blog/ansible-execution-environment /en/blog/2025-06-21-ansible-execution-environment 301
+/en/blog/ci-cd-github-actions /en/blog/2026-01-16-ci-cd-github-actions 301
+/en/blog/cloud-native-microservices-quarkus /en/blog/2026-01-15-cloud-native-microservices-quarkus 301
+/en/blog/ebpf-ia-kubernetes-deteccion-amenazas /en/blog/2025-08-22-ebpf-ia-kubernetes-deteccion-amenazas 301
+/en/blog/gitops-openshift-argocd /en/blog/2026-01-17-gitops-openshift-argocd 301
+/en/blog/golden-kubestronaut-experiencia /en/blog/2025-06-21-golden-kubestronaut-experiencia 301
+/en/blog/helm-charts-complete-guide /en/blog/2026-01-18-helm-charts-complete-guide 301
+/en/blog/langchain4j-java-ai /en/blog/2026-01-19-langchain4j-java-ai 301
+/en/blog/mcp-servers-genai-studio-openshift-ai /en/blog/2026-02-13-mcp-servers-genai-studio-openshift-ai 301
+/en/blog/monitoring-prometheus-grafana /en/blog/2026-01-14-monitoring-prometheus-grafana 301
+/en/blog/rag-enterprise-java /en/blog/2026-01-20-rag-enterprise-java 301
+/es/blog/ansible-execution-environment /es/blog/2025-06-21-ansible-execution-environment 301
+/es/blog/ci-cd-github-actions /es/blog/2026-01-16-ci-cd-github-actions 301
+/es/blog/cloud-native-microservices-quarkus /es/blog/2026-01-15-cloud-native-microservices-quarkus 301
+/es/blog/ebpf-ia-kubernetes-deteccion-amenazas /es/blog/2025-08-22-ebpf-ia-kubernetes-deteccion-amenazas 301
+/es/blog/gitops-openshift-argocd /es/blog/2026-01-17-gitops-openshift-argocd 301
+/es/blog/golden-kubestronaut-experiencia /es/blog/2025-06-21-golden-kubestronaut-experiencia 301
+/es/blog/helm-charts-complete-guide /es/blog/2026-01-18-helm-charts-complete-guide 301
+/es/blog/langchain4j-java-ai /es/blog/2026-01-19-langchain4j-java-ai 301
+/es/blog/mcp-servers-genai-studio-openshift-ai /es/blog/2026-02-13-mcp-servers-genai-studio-openshift-ai 301
+/es/blog/monitoring-prometheus-grafana /es/blog/2026-01-14-monitoring-prometheus-grafana 301
+/es/blog/rag-enterprise-java /es/blog/2026-01-20-rag-enterprise-java 301
