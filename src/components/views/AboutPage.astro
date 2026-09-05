@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { Icon } from "astro-icon/components";
 import { SITE, SOCIAL } from "@/lib/constants";
 import type { Lang } from "@/i18n";
 
@@ -77,15 +78,15 @@ const content = {
 
 const copy = content[lang];
 const links = [
-  { label: "GitHub", value: "@jeanlopezxyz", href: SOCIAL.github },
-  { label: "LinkedIn", value: "jean-paul-lopez", href: SOCIAL.linkedin },
-  { label: "X", value: "@jeanlopezxyz", href: SOCIAL.twitter },
-  { label: "RSS", value: "blog.labjp.xyz/rss.xml", href: "/rss.xml" },
-];
+  { label: "GitHub", value: "@jeanlopezxyz", href: SOCIAL.github, icon: "mdi:github" },
+  { label: "LinkedIn", value: "jean-paul-lopez", href: SOCIAL.linkedin, icon: "mdi:linkedin" },
+  { label: "X", value: "@jeanlopezxyz", href: SOCIAL.twitter, icon: "mdi:twitter" },
+  { label: "RSS", value: "blog.labjp.xyz/rss.xml", href: "/rss.xml", icon: "mdi:rss" },
+] as const;
 ---
 
 <BaseLayout title={copy.title} description={copy.description} lang={lang}>
-  <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+  <div class="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
     <header class="mb-8 border-b border-border/70 pb-8">
       <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
         {copy.title}<span class="text-primary">.</span>
@@ -93,7 +94,7 @@ const links = [
       <p class="mt-4 max-w-3xl text-base leading-relaxed text-muted-foreground">{copy.lead}</p>
     </header>
 
-    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+    <div class="grid gap-8 lg:grid-cols-[1fr_18rem] lg:items-start">
       <div class="space-y-9">
         <section aria-labelledby="about-publication">
           <h2 id="about-publication" class="mb-4 text-xl font-semibold">{copy.publicationTitle}</h2>
@@ -143,9 +144,10 @@ const links = [
                 href={link.href}
                 target={link.href.startsWith("http") ? "_blank" : undefined}
                 rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                class="mt-1 block break-words text-sm text-foreground transition-colors hover:text-primary hover:underline"
+                class="mt-1 flex items-center gap-2 text-sm text-foreground transition-colors hover:text-primary hover:underline"
               >
-                {link.value}
+                <Icon name={link.icon} class="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span class="break-words">{link.value}</span>
               </a>
             </li>
           ))}
