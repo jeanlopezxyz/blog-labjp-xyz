@@ -1,0 +1,285 @@
+name: PR review and auto-merge
+
+# Revisa TODOS los pull requests contra main (los de Dependabot y los del
+# autor) con Claude Code y, si el gate técnico pasa y la IA no encuentra
+# bloqueantes, aprueba y mergea sin intervención humana.
+#
+# Dos disparadores para el mismo trabajo, y cada PR usa exactamente uno:
+#
+# - pull_request         → PRs del autor (ramas del propio repo). Corre en el
+#                          contexto del PR y recibe los secretos con normalidad.
+# - pull_request_target  → SOLO PRs de Dependabot. GitHub ejecuta los
+#                          workflows disparados por Dependabot con un
+#                          GITHUB_TOKEN de solo lectura y sin secretos del
+#                          repo, así que bajo `pull_request` este workflow
+#                          nunca podría revisar (necesita CLAUDE_CODE_OAUTH_TOKEN)
+#                          ni aprobar/mergear. `pull_request_target` corre en
+#                          el contexto de main, con secretos y token de
+#                          escritura.
+#
+# Por qué es seguro usar pull_request_target aquí:
+#   1. Solo se activa cuando el actor es dependabot[bot] y el PR nace en este
+#      mismo repo (no forks). Si un humano empuja a una rama dependabot/**, el
+#      actor deja de ser Dependabot y el PR pasa por la vía `pull_request`.
+#   2. El job `gate` es el único que ejecuta código del PR (npm ci, build...)
+#      y lo hace SIN ningún secreto, con GITHUB_TOKEN de solo lectura y sin
+#      credenciales persistidas en el checkout. Es exactamente la misma
+#      exposición que ya tenía el evento `pull_request` de deploy.yml.
+#   3. El job `review`, que sí tiene el token de Claude y permisos de
+#      escritura, NUNCA ejecuta código del PR: monta main en la raíz, deja los
+#      archivos del PR en un subdirectorio como datos de solo lectura, y
+#      Claude solo dispone de herramientas de lectura (Read/Grep/Glob y
+#      `gh pr diff` / `gh pr view`).
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# El nombre del evento va en el grupo a propósito: para un PR de Dependabot se
+# disparan ambos eventos, y si compartieran grupo la ejecución "vacía" (todos
+# los jobs omitidos) cancelaría a la real.
+concurrency:
+  group: pr-review-${{ github.event_name }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+# Sin permisos por defecto: cada job declara los suyos.
+permissions: {}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Gate técnico. Si cualquier paso falla, el job queda en rojo y `review` no
+  # se ejecuta (needs), así que no hay aprobación ni merge posible.
+  # ---------------------------------------------------------------------------
+  gate:
+    name: Build, lint and check
+    # Enrutado de eventos (ver cabecera). Bajo pull_request_target exigimos
+    # además que el PR sea del propio repo.
+    if: >-
+      (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]')
+      || (github.event_name == 'pull_request_target'
+          && github.actor == 'dependabot[bot]'
+          && github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      # SHA exacto del head del PR (no la ref de merge), igual para ambos
+      # eventos. Sin credenciales persistidas: este job ejecuta código del PR.
+      - name: Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.23.2'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm run security:audit
+
+      - name: Validate articles
+        run: node scripts/validate-articles.js
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check (astro check)
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Check internal links
+        run: node scripts/check-dist-links.mjs dist
+
+  # ---------------------------------------------------------------------------
+  # Revisión con IA + aprobación + merge. Solo corre si `gate` terminó en verde.
+  # ---------------------------------------------------------------------------
+  review:
+    name: Claude review and merge
+    needs: gate
+    # Las PRs de forks pasan el gate como CI normal pero nunca se auto-mergean.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write        # merge
+      pull-requests: write   # approve + comentarios
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      # La action exige un repo git en la raíz. Montamos main (confiable) ahí
+      # y NUNCA el head del PR, como pide docs/security.md de la action.
+      - name: Checkout base branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      # Archivos del PR como datos de solo lectura, para que Claude pueda leer
+      # el contexto completo de lo que cambia. No se ejecuta nada de aquí.
+      - name: Checkout PR head (read-only, subdirectory)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr-head
+          persist-credentials: false
+
+      - name: Claude Code review
+        id: review
+        # v1.0.216 — https://github.com/anthropics/claude-code-action/releases/tag/v1.0.216
+        uses: anthropics/claude-code-action@d75b94d5ad426cb8546e6628b6f5f19b84e5cce1 # v1.0.216
+        with:
+          # Token de suscripción (claude setup-token), no API key de facturación.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Con github_token explícito la action no intenta el intercambio
+          # OIDC que requiere tener instalada la GitHub App de Claude.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Sin esto la action rechaza ejecuciones iniciadas por bots.
+          allowed_bots: dependabot[bot]
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Eres el revisor automático de este repositorio. Tu veredicto decide
+            si el PR se mergea sin intervención humana, así que sé riguroso y
+            basa cada hallazgo en evidencia concreta del diff.
+
+            Contexto del proyecto: blog estático con Astro 7 desplegado en
+            Cloudflare Pages. `functions/` contiene Pages Functions (API de
+            likes/views/stats sobre D1, definida en `schema.sql`) y el
+            middleware (`functions/_middleware.ts`) que fija cabeceras de
+            seguridad, CSP con nonces por petición y redirecciones de
+            artículos renombrados. `wrangler.toml` define bindings de D1 por
+            entorno. El build, lint y `astro check` YA pasaron en un job
+            anterior; no repitas esas comprobaciones.
+
+            Cómo trabajar:
+            - Obtén el diff con `gh pr diff ${{ github.event.pull_request.number }}`
+              y los metadatos con `gh pr view ${{ github.event.pull_request.number }}`.
+            - El directorio actual es la rama base (main). Los archivos tal
+              como quedan en el PR están en `pr-head/`; léelos para entender
+              el contexto completo de cada cambio.
+            - No tienes permisos de escritura ni debes intentar comentar en el
+              PR: el workflow publicará tu veredicto.
+
+            Revisa ÚNICAMENTE:
+            1. Bugs reales: lógica incorrecta, errores en tiempo de ejecución,
+               casos límite rotos, condiciones de carrera.
+            2. Vulnerabilidades de seguridad: inyección (SQL en D1, cabeceras,
+               HTML/XSS), secrets o tokens hardcodeados, validación de input
+               insuficiente en las Cloudflare Functions, debilitamiento de la
+               CSP o de las cabeceras de seguridad, exposición de datos.
+            3. Regresiones funcionales: comportamiento existente que deja de
+               funcionar, rutas o redirecciones rotas, breaking changes no
+               intencionales en la API o en los bindings de wrangler.toml.
+
+            En PRs de Dependabot (solo package.json / package-lock.json /
+            workflows): comprueba que el lockfile es coherente con el manifest,
+            que las versiones nuevas de las GitHub Actions fijadas por SHA
+            corresponden al tag que indica el comentario, y busca en `pr-head/`
+            usos de APIs que la nueva versión mayor haya eliminado. Un salto de
+            versión mayor NO es bloqueante por sí mismo si el build pasó; solo
+            lo es si encuentras evidencia concreta de incompatibilidad.
+
+            NO comentes sobre estilo, formato, nombres, preferencias
+            subjetivas, refactors opcionales ni rendimiento hipotético.
+
+            Clasificación:
+            - "blocking": bug real, vulnerabilidad o breaking change no
+              intencional con alta confianza. Un solo hallazgo blocking implica
+              verdict = "block".
+            - "warning": algo que merece mención pero no impide el merge.
+            - Si no hay hallazgos blocking, verdict = "approve".
+
+            Devuelve el resultado estructurado según el esquema JSON indicado.
+            En `summary` escribe 1-3 frases en español. En cada hallazgo
+            indica archivo (y línea si aplica) y una explicación concreta.
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --add-dir pr-head
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["approve","block"]},"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["blocking","warning"]},"file":{"type":"string"},"description":{"type":"string"}},"required":["severity","file","description"]}}},"required":["verdict","summary","findings"]}'
+
+      # El veredicto llega por variable de entorno, nunca interpolado en el
+      # script: su contenido lo generó la IA a partir del PR y no es confiable
+      # como código shell.
+      - name: Evaluate verdict
+        id: verdict
+        env:
+          VERDICT_JSON: ${{ steps.review.outputs.structured_output }}
+          CLAUDE_CONCLUSION: ${{ steps.review.outputs.conclusion }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          # Fail-closed: sin veredicto válido no hay aprobación.
+          if [ "$CLAUDE_CONCLUSION" != "success" ] || [ -z "$VERDICT_JSON" ] \
+             || ! echo "$VERDICT_JSON" | jq -e '.verdict' >/dev/null 2>&1; then
+            echo "::error::La revisión de Claude no produjo un veredicto válido (conclusion=$CLAUDE_CONCLUSION)."
+            exit 1
+          fi
+
+          verdict=$(echo "$VERDICT_JSON" | jq -r '.verdict')
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Revisión automática (Claude Code)"
+            echo ""
+            echo "**Veredicto:** \`$verdict\`"
+            echo ""
+            echo "$VERDICT_JSON" | jq -r '.summary'
+            echo ""
+            if [ "$(echo "$VERDICT_JSON" | jq '.findings | length')" -gt 0 ]; then
+              echo "### Hallazgos"
+              echo ""
+              echo "$VERDICT_JSON" | jq -r '.findings[] | "- **\(.severity)** · \(.file) — \(.description)"'
+              echo ""
+            fi
+            echo "<sub>Gate: build, lint, astro check, audit y enlaces en verde. Ejecución: $RUN_URL</sub>"
+          } > verdict.md
+
+          cat verdict.md >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$verdict" != "approve" ]; then
+            # Bloqueante: dejamos el comentario y fallamos visiblemente para
+            # que un humano intervenga.
+            gh pr comment "$PR_NUMBER" --body-file verdict.md
+            echo "::error::Claude encontró hallazgos bloqueantes. El PR requiere revisión humana."
+            exit 1
+          fi
+
+      # Requiere en Settings → Actions → General: "Allow GitHub Actions to
+      # create and approve pull requests". Si no está activo, este paso falla
+      # y el PR no se mergea.
+      - name: Approve PR
+        if: steps.verdict.outputs.verdict == 'approve'
+        run: |
+          set -euo pipefail
+          gh pr review "$PR_NUMBER" --approve --body-file verdict.md || {
+            echo "::error::No se pudo aprobar el PR. Revisa que 'Allow GitHub Actions to create and approve pull requests' esté habilitado en Settings → Actions → General."
+            exit 1
+          }
+
+      # Squash: el historial de main es lineal, sin merge commits. Merge
+      # directo (no --auto): main no tiene protección ni checks requeridos y el
+      # repo no tiene auto-merge habilitado; el gate ya corrió en este mismo
+      # workflow. El push resultante a main dispara deploy.yml a producción.
+      - name: Merge PR
+        if: steps.verdict.outputs.verdict == 'approve'
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR_NUMBER" --squash --delete-branch

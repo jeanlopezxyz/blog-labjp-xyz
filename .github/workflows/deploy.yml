@@ -10,9 +10,9 @@ on:
       # despliegue fallaría en rojo cada semana sin motivo.
       - '**'
       - '!dependabot/**'
-  pull_request:
-    branches:
-      - main
+  # Sin `pull_request`: la validación de los PRs (audit, artículos, lint,
+  # astro check, build y enlaces) vive en pr-review.yml, que además cubre los
+  # PRs de Dependabot. Tenerlo aquí también compilaría cada PR dos veces.
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -52,7 +52,6 @@ jobs:
         run: node scripts/check-dist-links.mjs dist
 
       - name: Upload build output
-        if: github.event_name == 'push'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist
@@ -67,7 +66,6 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
