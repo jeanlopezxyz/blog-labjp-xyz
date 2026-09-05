@@ -132,36 +132,6 @@ jobs:
 
           echo "Todo correcto."
 
-      - name: Purge Cloudflare cache
-        # Solo producción: las previsualizaciones viven en su propio
-        # subdominio *.pages.dev y no comparten caché con blog.labjp.xyz.
-        # Sin esto, una actualización de contenido puede tardar hasta 7
-        # días en verse (s-maxage=604800 por defecto de Cloudflare Pages).
-        if: github.ref_name == 'main'
-        run: |
-          ZONE_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=blog.labjp.xyz" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json")
-          ZONE_ID=$(echo "$ZONE_RESPONSE" | jq -r '.result[0].id')
-
-          if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "null" ]; then
-            echo "::warning::No se pudo resolver el zone ID de blog.labjp.xyz — se omite la purga. Respuesta: $ZONE_RESPONSE"
-            exit 0
-          fi
-
-          RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}')
-
-          SUCCESS=$(echo "$RESPONSE" | jq -r '.success')
-          if [ "$SUCCESS" != "true" ]; then
-            echo "::warning::Falló la purga de caché: $RESPONSE"
-            exit 0
-          fi
-
-          echo "Caché purgada correctamente para blog.labjp.xyz"
-
       - name: Resumen
         if: always()
         run: |

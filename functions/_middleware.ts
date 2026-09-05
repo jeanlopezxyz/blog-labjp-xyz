@@ -81,6 +81,20 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
       newResponse.headers.set(key, value);
     });
+
+    // Cloudflare Pages defaults to a 7-day edge cache (s-maxage=604800) for
+    // HTML served through Functions, with no way to purge just this site's
+    // subdomain on the Free plan (only the whole zone or exact URLs). A
+    // short edge TTL means published edits show up in minutes without
+    // needing a zone-wide purge on every deploy.
+    const contentType = newResponse.headers.get("Content-Type") || "";
+    if (contentType.includes("text/html")) {
+      newResponse.headers.set(
+        "Cache-Control",
+        "public, max-age=0, s-maxage=300, must-revalidate",
+      );
+    }
+
     return newResponse;
   };
 
