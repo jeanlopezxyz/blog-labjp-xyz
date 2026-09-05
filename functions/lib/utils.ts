@@ -8,8 +8,8 @@ export interface Env {
   DB: D1Database;
 }
 
-/** Site domain for CORS */
-const SITE_ORIGIN = "https://blog.labjp.xyz";
+/** Site domain, used for CORS and CSP */
+export const SITE_ORIGIN = "https://blog.labjp.xyz";
 
 /**
  * Normalize slug by removing language prefixes (en/, es/)

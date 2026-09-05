@@ -3,7 +3,7 @@
  * Handles geolocation-based language redirect and security headers
  */
 
-import type { Env } from "./lib/utils";
+import { SITE_ORIGIN, type Env } from "./lib/utils";
 
 // script-src uses a per-request nonce instead of 'unsafe-inline' (see
 // injectScriptNonces below). style-src keeps 'unsafe-inline': Astro's
@@ -18,7 +18,7 @@ const CSP_DIRECTIVES = (nonce: string) =>
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://blog.labjp.xyz https://api.github.com https://cloudflareinsights.com",
+    `connect-src 'self' ${SITE_ORIGIN} https://api.github.com https://cloudflareinsights.com`,
     "frame-ancestors 'none'",
     "form-action 'self'",
     "base-uri 'self'",
