@@ -40,7 +40,21 @@ HTTP/2 307
 location: /specification/2026-07-28
 ```
 
-Los cambios no salieron de una ocurrencia. La especificación solo evoluciona a través de propuestas escritas y discutidas en abierto, las Specification Enhancement Proposals. Las que sostienen casi todo lo que sigue son SEP-2575 (quitar el saludo), SEP-2567 (quitar las sesiones), SEP-2322 (el reintento), SEP-2549 (los tiempos de caché) y SEP-2577 (lo que quedó obsoleto). Cuando una regla de la especificación te parezca arbitraria, el porqué está en la SEP correspondiente.
+Los cambios no salieron de una ocurrencia. La especificación solo evoluciona a través de propuestas escritas y discutidas en abierto, las **Specification Enhancement Proposals**. Y esto tiene una utilidad práctica que conviene conocer: la especificación dice *qué* hay que hacer, pero casi nunca *por qué*. Ese razonamiento —con los casos que lo motivaron y las alternativas descartadas— está en la SEP. Cuando una regla te parezca arbitraria, ahí encontrarás el motivo.
+
+Las que sostienen casi todo lo que sigue:
+
+| SEP | Qué propuso |
+|---|---|
+| [SEP-2575](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2575-stateless-mcp.md) | Quitar el saludo `initialize` |
+| [SEP-2567](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2567-sessionless-mcp.md) | Quitar las sesiones |
+| [SEP-2322](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2322-MRTR.md) | El patrón de reintento |
+| [SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2549-TTL-for-list-results.md) | Los tiempos de caché en los listados |
+| [SEP-2577](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2577-deprecate-roots-sampling-and-logging.md) | Lo que quedó obsoleto |
+
+Todas viven en [`seps/`](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/main/seps) dentro del repositorio de la especificación. Un aviso por si vas a buscar otra: el nombre del archivo mezcla el número con un título abreviado —`2549-TTL-for-list-results.md`—, así que no puedes componer la URL de memoria. Lo práctico es abrir el directorio y buscar por número. El proceso de propuesta está descrito en las [directrices de SEP](https://modelcontextprotocol.io/community/sep-guidelines).
+
+Y la especificación en sí, para consultarla directamente: [`modelcontextprotocol.io/specification/2026-07-28`](https://modelcontextprotocol.io/specification/2026-07-28). El [changelog](https://modelcontextprotocol.io/specification/2026-07-28/changelog) lista los cambios uno a uno, que es la lectura más rentable si ya conoces la revisión anterior.
 
 ## El cambio central: el protocolo se queda sin estado
 
@@ -150,7 +164,7 @@ Sin `resultType`, el cliente no distingue una respuesta definitiva de una a medi
 
 Si el cliente ya no pregunta cada vez, alguien tiene que decidir cuánto tiempo puede reutilizar lo que le contestaste. Cada respuesta cacheable lleva su `ttlMs`, y el que importa de verdad es el del listado de herramientas, la respuesta a `tools/list`. Con un valor razonable, el cliente deja de preguntar y la primera fase de cada conversación ni siquiera toca la red.
 
-La propuesta que lo introdujo, SEP-2549, buscaba que mantener una conexión abierta para recibir avisos dejara de ser obligatorio y pasara a ser una optimización. Si el catálogo rara vez cambia, decir "esto vale una hora" resuelve el problema sin conexión permanente.
+La propuesta que lo introdujo, [SEP-2549](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/seps/2549-TTL-for-list-results.md), buscaba que mantener una conexión abierta para recibir avisos dejara de ser obligatorio y pasara a ser una optimización. Si el catálogo rara vez cambia, decir "esto vale una hora" resuelve el problema sin conexión permanente.
 
 Hay un segundo motivo menos evidente. Los clientes también cachean el prompt que mandan al modelo, y esa caché se rompe en cuanto una sola letra cambia. Como los esquemas de las herramientas van dentro de ese prompt, basta con que el catálogo llegue en distinto orden para invalidarla entera. Por eso la revisión también pide que `tools/list` devuelva siempre las herramientas en el mismo orden.
 
