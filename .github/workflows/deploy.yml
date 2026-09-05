@@ -40,6 +40,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Ninguna otra validación mira el HTML generado: el esquema revisa el
+      # frontmatter y el build compila aunque una plantilla enlace a un 404.
+      - name: Check internal links
+        run: node scripts/check-dist-links.mjs dist
+
       - name: Upload build output
         if: github.event_name == 'push'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

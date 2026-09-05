@@ -6,7 +6,7 @@ import ViewTracker from "@/components/effects/ViewTracker.astro";
 import ReadingProgress from "@/components/effects/ReadingProgress.astro";
 import CommentsSection from "@/components/ui/CommentsSection.astro";
 import RelatedPosts from "@/components/blog/RelatedPosts.astro";
-import { render, type CollectionEntry } from "astro:content";
+import { getCollection, render, type CollectionEntry } from "astro:content";
 import { SITE } from "@/lib/constants";
 
 import { defaultLang, normalizeSlug, type Lang } from "@/i18n";
@@ -25,6 +25,14 @@ const hasToC = headings.length > 0;
 
 // Normalize slug for tracking (remove any language prefix)
 const cleanSlug = normalizeSlug(post.id);
+
+// Un artículo puede no estar traducido todavía. Sin esto, el selector de idioma
+// y el hreflang apuntan a una URL que no existe: 404 para el lector y un enlace
+// muerto que Search Console penaliza.
+const otroIdioma = lang === "es" ? "en" : "es";
+const hasTranslation = (await getCollection("blog", ({ id, data }) =>
+  id.startsWith(`${otroIdioma}/`) && !data.draft
+)).some((p) => normalizeSlug(p.id) === cleanSlug);
 
 // Use updatedDate if available, otherwise use pubDate
 const modifiedDate = updatedDate || pubDate;
@@ -70,6 +78,7 @@ const jsonLd = {
   publishedTime={pubDate.toISOString()}
   showCategories={false}
   lang={lang}
+  hasTranslation={hasTranslation}
 >
   <!-- JSON-LD Structured Data -->
   <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} slot="head" />

@@ -6,7 +6,9 @@ import { getLangFromUrl, getLocalizedPath } from "@/i18n";
 const lang = getLangFromUrl(Astro.url);
 ---
 
-<BaseLayout title="404 - Página no encontrada" description="La página que buscas no existe" lang={lang}>
+<!-- Hay una sola página 404 para todo el sitio: no existe /es/404 ni /en/404,
+     así que el selector de idioma debe llevar al inicio, no traducir la ruta. -->
+<BaseLayout title="404 - Página no encontrada" description="La página que buscas no existe" lang={lang} hasTranslation={false}>
   <div class="min-h-[60vh] flex items-center justify-center px-4">
     <div class="text-center max-w-md">
       <div class="mb-8">
