@@ -8,3 +8,14 @@ pages_build_output_dir = "dist"
 binding = "DB"
 database_name = "blog-analytics"
 database_id = "0f5e7fb3-24dd-4498-a6a4-9b27e3264748"
+
+# Los despliegues de previsualización usan su propia base. Sin esto, cada vez
+# que se abre una rama para revisar, las visitas, «me gusta» y comentarios de
+# prueba se escriben en la base de producción y ensucian las estadísticas
+# reales. El binding se sigue llamando DB: las Functions no cambian.
+[env.preview]
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "blog-analytics-preview"
+database_id = "c772daed-8435-4de3-8142-cf4b88b57cbd"

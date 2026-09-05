@@ -16,8 +16,14 @@ const NAV_ICONS = {
   "/about": "mdi:account-outline",
 } as const;
 
-// Función para obtener URL del idioma alternativo (mantiene la página actual)
-function getLangSwitchUrl(targetLang: string, pathname: string): string {
+// URL del idioma alternativo. Traducir el prefijo a ciegas produce 404 cuando
+// la página no existe en el otro idioma: las etiquetas están traducidas (/es/…/ia
+// frente a /en/…/ai), /projects solo existe en español y un artículo puede no
+// tener aún su versión. En esos casos se cae al inicio del idioma destino.
+function getLangSwitchUrl(targetLang: string, pathname: string, traducida: boolean): string {
+  if (!traducida) {
+    return `/${targetLang}/`;
+  }
   // Normalizar pathname (quitar trailing slash excepto para root)
   const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
 
@@ -33,9 +39,12 @@ function getLangSwitchUrl(targetLang: string, pathname: string): string {
 
 interface Props {
   currentCategory?: string;
+  /** Si esta página existe en el otro idioma. Cuando es falso, el selector
+   *  lleva al inicio de ese idioma en vez de a una URL traducida que da 404. */
+  hasTranslation?: boolean;
 }
 
-const { currentCategory } = Astro.props;
+const { currentCategory, hasTranslation = true } = Astro.props;
 const pathname = Astro.url.pathname;
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
@@ -133,7 +142,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
           >
             {Object.entries(languages).map(([langCode, langName]) => (
               <a
-                href={getLangSwitchUrl(langCode, pathname)}
+                href={getLangSwitchUrl(langCode, pathname, hasTranslation)}
                 class:list={[
                   "flex items-center justify-between px-4 py-2 text-sm transition-colors",
                   lang === langCode ? "text-primary font-medium bg-muted/50" : "text-muted-foreground hover:text-foreground hover:bg-muted",

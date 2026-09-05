@@ -146,6 +146,37 @@ function findArticles(dir) {
   return articles;
 }
 
+/**
+ * Comprueba que cada artículo exista en los dos idiomas.
+ *
+ * Un artículo publicado en un solo idioma deja el selector de idioma y la
+ * etiqueta hreflang apuntando a una URL que no existe. Se avisa en vez de
+ * fallar: traducir lleva tiempo y no debe bloquear la publicación. Con
+ * PARITY_STRICT=1 pasa a ser error, para cuando no queden pendientes.
+ */
+function checkTranslationParity(articles) {
+  const strict = process.env.PARITY_STRICT === '1';
+  const bySlug = new Map();
+
+  for (const file of articles) {
+    const lang = path.basename(path.dirname(file));
+    const slug = path.basename(file, '.md');
+    const draft = /^draft:\s*true/m.test(fs.readFileSync(file, 'utf8'));
+    bySlug.set(slug, { ...(bySlug.get(slug) ?? {}), [lang]: { draft } });
+  }
+
+  for (const [slug, langs] of bySlug) {
+    for (const lang of VALID_LANGS) {
+      if (langs[lang]) continue;
+      const otro = langs[lang === 'es' ? 'en' : 'es'];
+      const msg = `src/content/blog/${lang}/${slug}.md: falta la traducción en '${lang}'`;
+      // Un borrador sin traducir no molesta a nadie: no está publicado.
+      if (strict && otro && !otro.draft) errors.push(msg);
+      else warnings.push(msg);
+    }
+  }
+}
+
 // Main
 console.log('🔍 Validating blog articles...\n');
 
@@ -157,6 +188,8 @@ console.log(`Found ${articles.length} articles\n`);
 for (const article of articles) {
   validateArticle(article);
 }
+
+checkTranslationParity(articles);
 
 // Print results
 if (warnings.length > 0) {

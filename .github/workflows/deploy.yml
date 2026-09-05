@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+      # Cualquier otra rama se despliega como previsualización, con su propia
+      # URL y su propia base de datos. Las de Dependabot se excluyen: sus
+      # ejecuciones no reciben los secretos del repositorio, así que el
+      # despliegue fallaría en rojo cada semana sin motivo.
+      - '**'
+      - '!dependabot/**'
   pull_request:
     branches:
       - main
@@ -40,6 +46,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Ninguna otra validación mira el HTML generado: el esquema revisa el
+      # frontmatter y el build compila aunque una plantilla enlace a un 404.
+      - name: Check internal links
+        run: node scripts/check-dist-links.mjs dist
+
       - name: Upload build output
         if: github.event_name == 'push'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -58,19 +69,76 @@ jobs:
     needs: build
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
+    # Distingue los dos destinos en la interfaz de GitHub y expone la URL
+    # desplegada en la pestaña de despliegues, sin código extra.
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.deployment-url }}
 
     steps:
+      # wrangler.toml no viaja en el artefacto y hace falta para resolver el
+      # binding de base de datos que corresponde a cada entorno.
+      - name: Checkout config
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: wrangler.toml
+          sparse-checkout-cone-mode: false
+
       - name: Download build output
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist
           path: .
 
+      # main va a producción; cualquier otra rama genera una previsualización
+      # en <rama>.labjp-blog.pages.dev, con la base de datos de preview.
       - name: Deploy to Cloudflare Pages
+        id: deploy
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=labjp-blog
+          command: >-
+            pages deploy dist --project-name=labjp-blog
+            --branch=${{ github.ref_name }}
+            --commit-hash=${{ github.sha }}
+
+      # El 4 de septiembre las Functions dejaron de desplegarse y el workflow
+      # siguió en verde: nada comprobaba el sitio ya desplegado. Estas tres
+      # peticiones cubren justo eso — que la página responda, que el
+      # middleware esté vivo (cabecera CSP) y que la API conteste.
+      - name: Smoke test
+        env:
+          BASE: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          set -euo pipefail
+          echo "Comprobando $BASE"
+
+          for intento in 1 2 3 4 5 6; do
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' -L "$BASE/es/" || echo 000)
+            [ "$codigo" = 200 ] && break
+            echo "  propagando… ($codigo)"; sleep 10
+          done
+          [ "$codigo" = 200 ] || { echo "::error::/es/ devolvió $codigo"; exit 1; }
+
+          curl -sI -L "$BASE/es/" | grep -qi '^content-security-policy:' \
+            || { echo "::error::sin cabecera CSP: _middleware.ts no se desplegó"; exit 1; }
+
+          curl -s "$BASE/api/stats?slugs=helm-charts-complete-guide" | grep -q 'likes' \
+            || { echo "::error::/api/stats no responde: las Functions no se desplegaron"; exit 1; }
+
+          echo "Todo correcto."
+
+      - name: Resumen
+        if: always()
+        run: |
+          {
+            echo "### Despliegue de \`${{ github.ref_name }}\`"
+            echo ""
+            echo "- Entorno: **${{ github.ref_name == 'main' && 'producción' || 'previsualización' }}**"
+            echo "- URL: ${{ steps.deploy.outputs.deployment-url }}"
+            echo "- Alias de rama: ${{ steps.deploy.outputs.pages-deployment-alias-url }}"
+          } >> "$GITHUB_STEP_SUMMARY"
