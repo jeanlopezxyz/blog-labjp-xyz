@@ -4,6 +4,8 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import icon from 'astro-icon';
+import { satteri } from '@astrojs/markdown-satteri';
+import { enlacesExternos } from './src/lib/enlaces-externos.mjs';
 
 export default defineConfig({
   site: 'https://blog.labjp.xyz',
@@ -72,5 +74,8 @@ export default defineConfig({
       theme: 'github-dark',
       wrap: true,
     },
+    // Los enlaces a otros sitios abren en pestaña nueva, con rel de seguridad.
+    // Los internos se dejan como están: ahí romper el botón de volver molesta.
+    processor: satteri({ hastPlugins: [enlacesExternos()] }),
   },
 });

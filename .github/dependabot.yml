@@ -21,3 +21,12 @@ updates:
         dependency-type: development
         patterns:
           - "*"
+
+  # Las acciones del workflow van fijadas por SHA, así que sin esto se quedan
+  # congeladas y sin recibir parches de seguridad.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
