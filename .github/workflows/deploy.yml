@@ -139,12 +139,13 @@ jobs:
         # días en verse (s-maxage=604800 por defecto de Cloudflare Pages).
         if: github.ref_name == 'main'
         run: |
-          ZONE_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=blog.labjp.xyz" \
+          ZONE_RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=blog.labjp.xyz" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id')
+            -H "Content-Type: application/json")
+          ZONE_ID=$(echo "$ZONE_RESPONSE" | jq -r '.result[0].id')
 
           if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "null" ]; then
-            echo "::warning::No se pudo resolver el zone ID de blog.labjp.xyz — se omite la purga. Verifica que CLOUDFLARE_API_TOKEN tenga permisos Zone:Read y Cache Purge."
+            echo "::warning::No se pudo resolver el zone ID de blog.labjp.xyz — se omite la purga. Respuesta: $ZONE_RESPONSE"
             exit 0
           fi
 
