@@ -87,7 +87,7 @@ const jsonLd = {
   <!-- Reading Progress Bar -->
   <ReadingProgress />
 
-  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+  <div class="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
     <div class:list={[
       "grid gap-8",
       hasToC ? "lg:grid-cols-[1fr_220px]" : ""
@@ -104,7 +104,7 @@ const jsonLd = {
         />
 
         {image && (
-          <div class="mx-auto my-8 aspect-video w-full max-w-4xl overflow-hidden rounded-sm border border-border/70">
+          <div class="mx-auto my-8 aspect-video w-full overflow-hidden rounded-sm border border-border/70">
             <img
               src={getThumbnailUrl(image, THUMBNAIL_SIZES.hero)}
               alt={title}
@@ -117,7 +117,7 @@ const jsonLd = {
           </div>
         )}
 
-        <div class:list={["prose mt-8", hasToC ? "max-w-3xl" : "max-w-4xl"]}>
+        <div class="prose mt-8 max-w-none">
           <slot />
         </div>
 
