@@ -230,6 +230,16 @@ The D1 database tables are auto-created on first API call. Tables:
 - `newsletter_subscribers` - Newsletter subscriptions
 - `contact_submissions` - Contact form data
 
+### CI: PR Review and Auto-Merge
+
+Every pull request against `main` (including Dependabot updates) goes through
+`.github/workflows/pr-review.yml`: a technical gate (build, lint, `astro
+check`, dependency audit, article validation, dead-link check) runs first,
+then Claude Code reviews the diff for real bugs, security issues, and
+functional regressions. Only if both pass does the workflow approve and
+squash-merge the PR automatically; any blocking finding leaves a comment and
+fails the check instead.
+
 ---
 
 ## i18n (Internationalization)
