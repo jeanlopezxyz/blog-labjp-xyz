@@ -142,6 +142,13 @@ const jsonLd = {
         initCodeBlocks();
       </script>
 
+      <!-- Click an article image to view it full-size -->
+      <script>
+        import { initLightbox } from '@/scripts/lightbox';
+        initLightbox();
+        document.addEventListener('astro:after-swap', initLightbox);
+      </script>
+
       {hasToC && (
         <aside class="hidden lg:block">
           <div class="sticky top-24">

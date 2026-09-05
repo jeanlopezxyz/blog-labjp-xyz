@@ -146,7 +146,6 @@
 .prose {
   @apply max-w-none text-foreground;
   text-align: left;
-  max-width: 70ch;
 }
 
 .prose h1, .prose h2, .prose h3, .prose h4 {
