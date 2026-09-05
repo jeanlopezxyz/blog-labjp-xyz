@@ -163,6 +163,9 @@ export const ui = {
     "search.result": "resultado",
     "search.results": "resultados",
 
+    // Lightbox
+    "lightbox.close": "Cerrar imagen ampliada",
+
     // Subscribe / Newsletter
     "subscribe.title": "Suscríbete al newsletter",
     "subscribe.description":
@@ -352,6 +355,9 @@ export const ui = {
     "search.close": "Close search",
     "search.result": "result",
     "search.results": "results",
+
+    // Lightbox
+    "lightbox.close": "Close enlarged image",
 
     // Subscribe / Newsletter
     "subscribe.title": "Subscribe to newsletter",
