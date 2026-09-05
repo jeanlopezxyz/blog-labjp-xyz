@@ -5,6 +5,7 @@
  * Accessible with proper alt text and keyboard support
  */
 import { getRelativeTime, getBlogPostUrl } from "@/lib/utils";
+import { getThumbnailUrl } from "@/lib/images";
 import { useTranslations, defaultLang, normalizeSlug, slugToPostId, type Lang } from "@/i18n";
 import SocialActions from "@/components/ui/SocialActions.astro";
 
@@ -51,7 +52,7 @@ const postId = slugToPostId(slug);
         <p class="text-muted-foreground text-xs leading-snug mb-1.5 line-clamp-2">
           {description}
         </p>
-        <div class="flex items-center gap-2 text-xs text-muted-foreground/80">
+        <div class="flex items-center gap-2 text-xs text-muted-foreground">
           <time datetime={pubDate.toISOString()}>
             {getRelativeTime(pubDate, lang)}
           </time>
@@ -81,7 +82,7 @@ const postId = slugToPostId(slug);
     {image && (
       <a href={postUrl} class="flex-shrink-0 w-20 h-16 sm:w-24 sm:h-16 rounded-lg overflow-hidden bg-muted">
         <img
-          src={image}
+          src={getThumbnailUrl(image, 192, 128)}
           alt={title}
           width="96"
           height="64"

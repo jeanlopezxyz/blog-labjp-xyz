@@ -1,6 +1,7 @@
 ---
 import SocialActions from "@/components/ui/SocialActions.astro";
 import { calculateReadingTime, getBlogPostUrl, getRelativeTime } from "@/lib/utils";
+import { getThumbnailUrl } from "@/lib/images";
 import { normalizeSlug, slugToPostId, type Lang } from "@/i18n";
 
 interface Props {
@@ -23,7 +24,7 @@ const { title, description, pubDate, slug, body = "", image, lang } = Astro.prop
         {title}
       </h2>
       <p class="mb-1.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{description}</p>
-      <div class="flex items-center gap-2 text-xs text-muted-foreground/80">
+      <div class="flex items-center gap-2 text-xs text-muted-foreground">
         <time datetime={pubDate.toISOString()}>{getRelativeTime(pubDate, lang)}</time>
         <span aria-hidden="true">·</span>
         <span>{calculateReadingTime(body)} min</span>
@@ -32,7 +33,7 @@ const { title, description, pubDate, slug, body = "", image, lang } = Astro.prop
     {image && (
       <div class="h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24">
         <img
-          src={image}
+          src={getThumbnailUrl(image, 192, 128)}
           alt={title}
           width="96"
           height="64"

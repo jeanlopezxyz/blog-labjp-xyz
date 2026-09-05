@@ -4,7 +4,10 @@ import { getCollection, type CollectionEntry } from "astro:content";
 type BlogPost = CollectionEntry<"blog">;
 
 export const GET: APIRoute = async () => {
-  const posts: BlogPost[] = await getCollection("blog", ({ data }: BlogPost) => !data.draft);
+  const posts: BlogPost[] = await getCollection(
+    "blog",
+    ({ data }: BlogPost) => !data.draft,
+  );
 
   const searchData = posts.map((post: BlogPost) => ({
     title: post.data.title,
@@ -16,6 +19,7 @@ export const GET: APIRoute = async () => {
   return new Response(JSON.stringify(searchData), {
     headers: {
       "Content-Type": "application/json",
+      "Cache-Control": "public, max-age=3600",
     },
   });
 };
