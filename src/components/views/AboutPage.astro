@@ -105,8 +105,15 @@ const links = [
         <section class="border-t border-border/60 pt-8" aria-labelledby="about-focus">
           <h2 id="about-focus" class="mb-4 text-xl font-semibold">{copy.focusTitle}</h2>
           <ul class="grid gap-3 sm:grid-cols-2">
-            {copy.focus.map((item) => (
-              <li class="border-l border-primary/50 pl-3 text-sm leading-relaxed text-foreground/85">{item}</li>
+            {copy.focus.map((item, index) => (
+              <li
+                class:list={[
+                  "border-l border-primary/50 pl-3 text-sm leading-relaxed text-foreground/85",
+                  { "sm:col-span-2": index === copy.focus.length - 1 && copy.focus.length % 2 !== 0 },
+                ]}
+              >
+                {item}
+              </li>
             ))}
           </ul>
         </section>
