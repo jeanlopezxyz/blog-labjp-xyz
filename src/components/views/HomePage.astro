@@ -5,7 +5,7 @@ import SocialActions from "@/components/ui/SocialActions.astro";
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { calculateReadingTime, getBlogPostUrl, getRelativeTime } from "@/lib/utils";
-import { getThumbnailUrl } from "@/lib/images";
+import { getThumbnailUrl, THUMBNAIL_SIZES } from "@/lib/images";
 import { getLocalizedPath, isPostForLang, normalizeSlug, slugToPostId, useTranslations, type Lang } from "@/i18n";
 
 interface Props {
@@ -32,7 +32,7 @@ const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
             <a href={getBlogPostUrl(featuredPost.id, lang)} class="block order-1 lg:order-2 w-full">
               <div class="aspect-[16/9] w-full overflow-hidden rounded-md bg-muted">
                 <img
-                  src={getThumbnailUrl(featuredPost.data.image, 1600, 900)}
+                  src={getThumbnailUrl(featuredPost.data.image, THUMBNAIL_SIZES.hero)}
                   alt={featuredPost.data.title}
                   width="800"
                   height="450"

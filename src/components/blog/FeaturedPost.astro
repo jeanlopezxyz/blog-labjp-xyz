@@ -1,7 +1,7 @@
 ---
 import SocialActions from "@/components/ui/SocialActions.astro";
 import { calculateReadingTime, getBlogPostUrl, getRelativeTime } from "@/lib/utils";
-import { getThumbnailUrl } from "@/lib/images";
+import { getThumbnailUrl, THUMBNAIL_SIZES } from "@/lib/images";
 import { normalizeSlug, slugToPostId, type Lang } from "@/i18n";
 
 interface Props {
@@ -33,7 +33,7 @@ const { title, description, pubDate, slug, body = "", image, lang } = Astro.prop
     {image && (
       <div class="h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24">
         <img
-          src={getThumbnailUrl(image, 192, 128)}
+          src={getThumbnailUrl(image, THUMBNAIL_SIZES.card)}
           alt={title}
           width="96"
           height="64"

@@ -11,7 +11,7 @@ import { SITE } from "@/lib/constants";
 
 import { defaultLang, normalizeSlug, type Lang } from "@/i18n";
 import { getBlogPostUrl } from "@/lib/utils";
-import { getThumbnailUrl } from "@/lib/images";
+import { getThumbnailUrl, THUMBNAIL_SIZES } from "@/lib/images";
 
 interface Props {
   post: CollectionEntry<"blog">;
@@ -106,7 +106,7 @@ const jsonLd = {
         {image && (
           <div class="mx-auto my-8 aspect-video w-full max-w-4xl overflow-hidden rounded-sm border border-border/70">
             <img
-              src={getThumbnailUrl(image, 1600, 900)}
+              src={getThumbnailUrl(image, THUMBNAIL_SIZES.hero)}
               alt={title}
               width="800"
               height="450"
