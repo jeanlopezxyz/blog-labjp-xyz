@@ -145,10 +145,8 @@
 /* Prose styling for blog - Clean & Professional */
 .prose {
   @apply max-w-none text-foreground;
-  text-align: justify;
-  text-justify: inter-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
+  text-align: left;
+  max-width: 70ch;
 }
 
 .prose h1, .prose h2, .prose h3, .prose h4 {
@@ -184,7 +182,7 @@
 }
 
 .prose p {
-  @apply leading-6 mb-4 text-foreground/90;
+  @apply leading-6 mb-4 text-foreground;
 }
 
 .prose a {
@@ -227,7 +225,7 @@
 }
 
 .prose li {
-  @apply text-foreground/90 leading-relaxed;
+  @apply text-foreground leading-relaxed;
 }
 
 .prose li > ul, .prose li > ol {
@@ -331,7 +329,7 @@
 }
 
 .prose td {
-  @apply px-4 py-3 text-foreground/90;
+  @apply px-4 py-3 text-foreground;
   @apply border-b border-border/30;
 }
 

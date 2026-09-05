@@ -3,14 +3,14 @@
  * Import this in component scripts to avoid code duplication
  */
 
-import { STORAGE_KEYS, type LikesStore } from '@/lib/types';
+import { STORAGE_KEYS, type LikesStore } from "@/lib/types";
 
 /**
  * Get all likes from localStorage
  */
 function getLikes(): LikesStore {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.LIKES) || '{}');
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.LIKES) || "{}");
   } catch {
     return {};
   }
@@ -49,24 +49,36 @@ export function toggleLike(postId: string): boolean {
 }
 
 /**
- * Update like button UI based on liked status
+ * Update like button UI based on liked status. `count`, when given, keeps
+ * the button's accessible name in sync with the visible counter — WCAG
+ * 2.5.3 requires the accessible name to contain the visible text, and the
+ * count is the only visible text this button has.
  */
-export function updateLikeUI(btn: HTMLElement, isLiked: boolean): void {
-  const outlineIcon = btn.querySelector('.like-icon-outline');
-  const filledIcon = btn.querySelector('.like-icon-filled');
+export function updateLikeUI(
+  btn: HTMLElement,
+  isLiked: boolean,
+  count?: number,
+): void {
+  const outlineIcon = btn.querySelector(".like-icon-outline");
+  const filledIcon = btn.querySelector(".like-icon-filled");
 
-  btn.setAttribute('aria-pressed', String(isLiked));
+  btn.setAttribute("aria-pressed", String(isLiked));
+
+  if (count !== undefined) {
+    const baseLabel =
+      btn.getAttribute("aria-label")?.replace(/\s*\(\d+\)$/, "") || "";
+    btn.setAttribute("aria-label", `${baseLabel} (${count})`);
+  }
 
   if (isLiked) {
-    outlineIcon?.classList.add('hidden');
-    filledIcon?.classList.remove('hidden');
-    btn.classList.add('text-red-500');
-    btn.classList.remove('text-muted-foreground');
+    outlineIcon?.classList.add("hidden");
+    filledIcon?.classList.remove("hidden");
+    btn.classList.add("text-red-500");
+    btn.classList.remove("text-muted-foreground");
   } else {
-    outlineIcon?.classList.remove('hidden');
-    filledIcon?.classList.add('hidden');
-    btn.classList.remove('text-red-500');
-    btn.classList.add('text-muted-foreground');
+    outlineIcon?.classList.remove("hidden");
+    filledIcon?.classList.add("hidden");
+    btn.classList.remove("text-red-500");
+    btn.classList.add("text-muted-foreground");
   }
 }
-

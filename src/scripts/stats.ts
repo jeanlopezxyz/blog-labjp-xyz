@@ -2,7 +2,7 @@
  * Client-side utilities for loading and displaying post stats
  */
 
-import { API_ENDPOINTS, type PostStats } from '@/lib/types';
+import { API_ENDPOINTS, type PostStats } from "@/lib/types";
 
 export type { PostStats };
 
@@ -14,7 +14,7 @@ async function loadPostStats(slug: string): Promise<PostStats | null> {
     const response = await fetch(`${API_ENDPOINTS.STATS}?slug=${slug}`);
     if (!response.ok) return null;
 
-    const stats = await response.json() as Record<string, PostStats>;
+    const stats = (await response.json()) as Record<string, PostStats>;
     return stats[slug] || null;
   } catch {
     // Silently fail - stats will show defaults
@@ -25,14 +25,18 @@ async function loadPostStats(slug: string): Promise<PostStats | null> {
 /**
  * Load stats for multiple posts
  */
-async function loadMultiplePostStats(slugs: string[]): Promise<Record<string, PostStats>> {
+async function loadMultiplePostStats(
+  slugs: string[],
+): Promise<Record<string, PostStats>> {
   if (slugs.length === 0) return {};
 
   try {
-    const response = await fetch(`${API_ENDPOINTS.STATS}?slugs=${slugs.join(',')}`);
+    const response = await fetch(
+      `${API_ENDPOINTS.STATS}?slugs=${slugs.join(",")}`,
+    );
     if (!response.ok) return {};
 
-    return await response.json() as Record<string, PostStats>;
+    return (await response.json()) as Record<string, PostStats>;
   } catch {
     // Silently fail - stats will show defaults
     return {};
@@ -45,12 +49,22 @@ async function loadMultiplePostStats(slugs: string[]): Promise<Record<string, Po
 function updateStatsDisplay(
   container: Element,
   stats: PostStats,
-  selectors = { likes: '.like-count', comments: '.comment-count' }
+  selectors = { likes: ".like-count", comments: ".comment-count" },
 ): void {
   const likeCount = container.querySelector(selectors.likes);
   const commentCount = container.querySelector(selectors.comments);
 
-  if (likeCount) likeCount.textContent = String(stats.likes || 0);
+  if (likeCount) {
+    likeCount.textContent = String(stats.likes || 0);
+    // Keep the like button's accessible name (WCAG 2.5.3) in sync with the
+    // count this endpoint just loaded — updateLikeUI only runs on click/init.
+    const likeBtn = likeCount.closest(".like-btn");
+    if (likeBtn) {
+      const baseLabel =
+        likeBtn.getAttribute("aria-label")?.replace(/\s*\(\d+\)$/, "") || "";
+      likeBtn.setAttribute("aria-label", `${baseLabel} (${stats.likes || 0})`);
+    }
+  }
   if (commentCount) commentCount.textContent = String(stats.comments || 0);
 }
 
@@ -63,8 +77,8 @@ export async function initPostStats(options?: {
   multipleSelector?: string;
 }): Promise<void> {
   const {
-    singleSelector = '[data-post-header-stats]',
-    multipleSelector = '[data-post-stats]'
+    singleSelector = "[data-post-header-stats]",
+    multipleSelector = "[data-post-stats]",
   } = options || {};
 
   // Handle single post stats (e.g., in PostHeader)
@@ -83,7 +97,7 @@ export async function initPostStats(options?: {
   const multipleContainers = document.querySelectorAll(multipleSelector);
   if (multipleContainers.length > 0) {
     const slugs = Array.from(multipleContainers)
-      .map(el => (el as HTMLElement).dataset.postStats)
+      .map((el) => (el as HTMLElement).dataset.postStats)
       .filter((slug): slug is string => !!slug);
 
     if (slugs.length > 0) {

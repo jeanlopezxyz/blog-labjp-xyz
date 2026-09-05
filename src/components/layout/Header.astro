@@ -84,7 +84,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
         </button>
 
         <a href={getLocalizedPath('/', lang)} class="flex items-center gap-2 sm:gap-3 shrink-0" aria-label={`labjp.xyz - ${t('a11y.goToHome')}`}>
-          <span class="font-mono font-bold text-xl sm:text-2xl text-primary">&gt;_</span>
+          <span class="font-mono font-bold text-xl sm:text-2xl text-primary" aria-hidden="true">&gt;_</span>
           <span class="font-semibold text-lg sm:text-xl text-foreground">labjp.xyz</span>
         </a>
       </div>
@@ -121,12 +121,21 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
           <Icon name="mdi:magnify" class="w-5 h-5" aria-hidden="true" />
         </button>
 
+        <button
+          id="theme-toggle"
+          class="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+          aria-label={t('nav.theme')}
+        >
+          <Icon name="mdi:weather-sunny" class="theme-icon-light w-5 h-5" aria-hidden="true" />
+          <Icon name="mdi:weather-night" class="theme-icon-dark hidden w-5 h-5" aria-hidden="true" />
+        </button>
+
         <!-- Language Switcher Dropdown -->
         <div class="relative" id="lang-dropdown-container">
           <button
             id="lang-toggle"
             class="flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-            aria-label={t('nav.langToggle')}
+            aria-label={`${LANG_CODES[lang as keyof typeof LANG_CODES]} - ${t('nav.langToggle')}`}
             aria-expanded="false"
             aria-haspopup="menu"
             aria-controls="lang-dropdown"
@@ -202,6 +211,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
   role="dialog"
   aria-modal="true"
   aria-label={t('nav.menu')}
+  inert
 >
   <div class="flex flex-col h-full">
     <!-- Sidebar Header -->
@@ -303,7 +313,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
 </aside>
 
 <!-- Search Modal -->
-<div id="search-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-title" aria-hidden="true">
+<div id="search-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-title" aria-hidden="true" inert>
   <div class="relative bg-card border border-border rounded-2xl p-6 max-w-xl w-full mx-4 shadow-2xl">
     <button id="close-search" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={t('search.close')}>
       <Icon name="mdi:close" class="w-5 h-5" aria-hidden="true" />
@@ -315,6 +325,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
         type="search"
         id="search-input"
         placeholder={t('search.placeholder')}
+        aria-label={t('search.placeholder')}
         class="w-full pl-10 pr-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
         autocomplete="off"
       />
@@ -326,7 +337,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
 </div>
 
 <!-- Subscribe Modal -->
-<div id="subscribe-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="subscribe-title" aria-hidden="true">
+<div id="subscribe" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="subscribe-title" aria-hidden="true" inert>
   <div class="relative mx-4 w-full max-w-md rounded-sm border border-border bg-card p-5 shadow-xl">
     <button id="close-modal" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary rounded" aria-label={t('subscribe.close')}>
       <Icon name="mdi:close" class="w-5 h-5" aria-hidden="true" />
@@ -341,7 +352,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
 <script>
   function initHeader() {
     const subscribeLinks = document.querySelectorAll('a[href="#subscribe"]');
-    const subscribeModal = document.getElementById("subscribe-modal");
+    const subscribeModal = document.getElementById("subscribe");
     const closeSubscribe = document.getElementById("close-modal");
     const searchButton = document.getElementById("search-button");
     const searchModal = document.getElementById("search-modal");
@@ -350,6 +361,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
     const searchResults = document.getElementById("search-results");
     const langToggle = document.getElementById("lang-toggle");
     const langDropdown = document.getElementById("lang-dropdown");
+    const themeToggle = document.getElementById("theme-toggle");
 
     // Mobile sidebar elements
     const mobileMenuButton = document.getElementById("mobile-menu-button");
@@ -360,6 +372,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
     // Mobile sidebar functions
     const openSidebar = () => {
       mobileSidebar?.classList.remove("-translate-x-full");
+      mobileSidebar?.removeAttribute("inert");
       mobileSidebarOverlay?.classList.remove("hidden");
       mobileMenuButton?.setAttribute("aria-expanded", "true");
       document.body.style.overflow = "hidden";
@@ -367,6 +380,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
 
     const closeSidebarFn = () => {
       mobileSidebar?.classList.add("-translate-x-full");
+      mobileSidebar?.setAttribute("inert", "");
       mobileSidebarOverlay?.classList.add("hidden");
       mobileMenuButton?.setAttribute("aria-expanded", "false");
       document.body.style.overflow = "";
@@ -386,6 +400,7 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
       modal.classList.toggle("hidden", !show);
       modal.classList.toggle("flex", show);
       modal.setAttribute("aria-hidden", String(!show));
+      modal.toggleAttribute("inert", !show);
 
       // Manage body scroll and focus trap
       if (show) {
@@ -396,6 +411,22 @@ const getCategoryLabel = (id: string) => t(`cat.${id}` as Parameters<typeof t>[0
         document.body.style.overflow = "";
       }
     };
+
+    // Theme toggle: shows the icon for the theme it switches TO, not the
+    // current one (sun while dark = "go light", moon while light = "go dark").
+    const syncThemeIcon = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      themeToggle?.querySelector(".theme-icon-light")?.classList.toggle("hidden", !isDark);
+      themeToggle?.querySelector(".theme-icon-dark")?.classList.toggle("hidden", isDark);
+    };
+    syncThemeIcon();
+
+    themeToggle?.addEventListener("click", () => {
+      const isDark = !document.documentElement.classList.contains("dark");
+      document.documentElement.classList.toggle("dark", isDark);
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      syncThemeIcon();
+    });
 
     // Language dropdown
     langToggle?.addEventListener("click", (e) => {
