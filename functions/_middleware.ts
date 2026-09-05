@@ -5,20 +5,53 @@
 
 import type { Env } from "./lib/utils";
 
-// Content Security Policy - strict but allows necessary resources
-const CSP_DIRECTIVES = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: https: blob:",
-  "connect-src 'self' https://blog.labjp.xyz https://api.github.com https://cloudflareinsights.com",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "upgrade-insecure-requests",
-].join("; ");
+// script-src uses a per-request nonce instead of 'unsafe-inline' (see
+// injectScriptNonces below). style-src keeps 'unsafe-inline': Astro's
+// View Transitions and a couple of components (e.g. ReadingProgress) set
+// inline `style="..."` attributes directly, and nonces don't cover
+// attribute-level styles anyway (only <style> tags) — CSP has no
+// equivalent of "nonce this one inline style attribute".
+const CSP_DIRECTIVES = (nonce: string) =>
+  [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' https://static.cloudflareinsights.com`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://blog.labjp.xyz https://api.github.com https://cloudflareinsights.com",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+  ].join("; ");
+
+/**
+ * Adds a matching `nonce` attribute to every inline <script> that isn't
+ * JSON-LD and doesn't load an external file — those are unaffected by
+ * script-src's nonce (JSON-LD isn't executable, and src="..." scripts are
+ * same-origin under 'self'). Runs via HTMLRewriter because this middleware
+ * only sees the rendered response body; Astro has no per-request hook to
+ * stamp the nonce onto its own <script is:inline> output.
+ */
+class ScriptNonceInjector {
+  constructor(private nonce: string) {}
+
+  element(element: Element) {
+    const type = element.getAttribute("type");
+    const hasSrc = element.hasAttribute("src");
+    if (type === "application/ld+json" || hasSrc) return;
+    element.setAttribute("nonce", this.nonce);
+  }
+}
+
+function injectScriptNonces(response: Response, nonce: string): Response {
+  const contentType = response.headers.get("Content-Type") || "";
+  if (!contentType.includes("text/html")) return response;
+  return new HTMLRewriter()
+    .on("script", new ScriptNonceInjector(nonce))
+    .transform(response);
+}
 
 // Comprehensive security headers
 const SECURITY_HEADERS = {
@@ -30,8 +63,6 @@ const SECURITY_HEADERS = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
   // HTTP Strict Transport Security (2 years + subdomains + preload)
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-  // Content Security Policy
-  "Content-Security-Policy": CSP_DIRECTIVES,
   // Restrict browser features
   "Permissions-Policy":
     "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(self), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(self), xr-spatial-tracking=()",
@@ -120,12 +151,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const { request, next } = context;
   const url = new URL(request.url);
 
+  // A fresh nonce per request: it only needs to be unguessable for the
+  // lifetime of this one response, so crypto.randomUUID() (native to the
+  // Workers runtime) is plenty.
+  const nonce = crypto.randomUUID();
+
   // Helper to add security headers to response
   const addSecurityHeaders = (response: Response): Response => {
-    const newResponse = new Response(response.body, response);
+    const rewritten = injectScriptNonces(response, nonce);
+    const newResponse = new Response(rewritten.body, rewritten);
     Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
       newResponse.headers.set(key, value);
     });
+    newResponse.headers.set("Content-Security-Policy", CSP_DIRECTIVES(nonce));
 
     // Cloudflare Pages defaults to a 7-day edge cache (s-maxage=604800) for
     // HTML served through Functions, with no way to purge just this site's

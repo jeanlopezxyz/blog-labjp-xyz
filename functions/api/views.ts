@@ -10,6 +10,7 @@ import {
   jsonResponse,
   errorResponse,
   corsResponse,
+  isTrustedOrigin,
   type Env,
 } from "../lib/utils";
 
@@ -44,6 +45,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 // POST: Increment view count for a slug
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { DB } = context.env;
+
+  // View tracking is only ever called from this site's own client-side JS,
+  // so a real browser always sends Origin. Reject cross-site calls that
+  // would otherwise let anyone inflate a post's view count.
+  if (!isTrustedOrigin(context.request)) {
+    return errorResponse("Forbidden", 403);
+  }
 
   try {
     const allowed = await checkRateLimit(DB, context.request, "views", {

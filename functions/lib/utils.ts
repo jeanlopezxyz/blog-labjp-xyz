@@ -28,6 +28,16 @@ export function isValidSlug(slug: string): boolean {
 }
 
 /**
+ * Check that a mutating request's Origin header matches this site.
+ * Browsers always send Origin on cross-origin fetch/XHR POSTs, so a
+ * missing or mismatched Origin means the call isn't coming from our
+ * own client-side code.
+ */
+export function isTrustedOrigin(request: Request): boolean {
+  return request.headers.get("Origin") === SITE_ORIGIN;
+}
+
+/**
  * Validate email format
  */
 export function isValidEmail(email: string): boolean {
@@ -93,15 +103,15 @@ export const CORS_HEADERS = {
  */
 export function jsonResponse(
   data: unknown,
-  options: { status?: number; cache?: boolean } = {},
+  options: { status?: number; cache?: boolean; maxAge?: number } = {},
 ): Response {
-  const { status = 200, cache = false } = options;
+  const { status = 200, cache = false, maxAge = 60 } = options;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": SITE_ORIGIN,
   };
 
-  headers["Cache-Control"] = cache ? "public, max-age=60" : "no-store";
+  headers["Cache-Control"] = cache ? `public, max-age=${maxAge}` : "no-store";
 
   return new Response(JSON.stringify(data), { status, headers });
 }

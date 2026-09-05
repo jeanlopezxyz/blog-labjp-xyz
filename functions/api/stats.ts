@@ -6,6 +6,7 @@
 
 import {
   normalizeSlug,
+  isValidSlug,
   jsonResponse,
   errorResponse,
   corsResponse,
@@ -35,6 +36,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   if (slugs.length === 0) {
     return errorResponse("slug or slugs parameter is required");
+  }
+
+  // Defense in depth: queries below are parameterized, but filtering out
+  // malformed slugs up front avoids wasting a D1 round-trip on garbage input.
+  slugs = slugs.filter(isValidSlug);
+
+  if (slugs.length === 0) {
+    return errorResponse("Invalid slug format");
   }
 
   try {
@@ -78,7 +87,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       };
     }
 
-    return jsonResponse(stats, { cache: true });
+    return jsonResponse(stats, { cache: true, maxAge: 300 });
   } catch {
     return errorResponse("Failed to get stats", 500);
   }
