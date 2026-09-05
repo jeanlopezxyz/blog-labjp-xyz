@@ -10,7 +10,7 @@ import Sidebar from "@/components/layout/Sidebar.astro";
 import { Icon } from "astro-icon/components";
 import { getCollection } from "astro:content";
 import { calculateReadingTime, getCategoryInfo } from "@/lib/utils";
-import { useTranslations, isPostForLang, type Lang } from "@/i18n";
+import { useTranslations, isPostForLang, getLocalizedPath, type Lang } from "@/i18n";
 
 interface Props {
   lang: Lang;
@@ -19,7 +19,7 @@ interface Props {
 
 const { lang, category } = Astro.props;
 const t = useTranslations(lang);
-const homePath = `/${lang}`;
+const homePath = getLocalizedPath("/", lang);
 
 const { color, icon, label } = getCategoryInfo(category);
 

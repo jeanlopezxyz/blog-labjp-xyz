@@ -43,11 +43,23 @@ const i18n = getClientI18n(lang);
 const localizedPath = Astro.url.pathname.replace(/^\/(?:es|en)(?=\/|$)/, '') || '/';
 const canonical = canonicalUrl || new URL(getLocalizedPath(localizedPath, lang), SITE.url).href;
 const siteLocale = SITE.locales[lang];
+// og:locale wants underscore-separated locale codes (es_ES), while
+// siteLocale.locale is BCP-47 (es-ES) for Intl.DateTimeFormat elsewhere.
+const ogLocale = siteLocale.locale.replace('-', '_');
+const ogLocaleAlternate = (lang === 'es' ? SITE.locales.en : SITE.locales.es).locale.replace('-', '_');
 const defaultTitle = siteLocale.title;
 const defaultDescription = siteLocale.description;
 const finalTitle = title || defaultTitle;
 const finalDescription = description || defaultDescription;
-const fullTitle = finalTitle === defaultTitle ? finalTitle : `${finalTitle} | ${SITE.name}`;
+// Google truncates titles past ~60-65 chars, so long post titles get
+// shortened before the " | labjp.xyz" suffix is appended.
+const TITLE_LIMIT = 60;
+const suffix = ` | ${SITE.name}`;
+const truncatedTitle =
+  finalTitle.length > TITLE_LIMIT
+    ? `${finalTitle.slice(0, TITLE_LIMIT - 1).trimEnd()}…`
+    : finalTitle;
+const fullTitle = finalTitle === defaultTitle ? finalTitle : `${truncatedTitle}${suffix}`;
 
 // JSON-LD Schema for Organization
 const organizationSchema = {
@@ -154,26 +166,23 @@ const personSchema = {
 ---
 
 <!doctype html>
-<html lang={lang} class="dark">
+<html lang={lang}>
   <head>
+    <!-- Applied before anything else paints, so the saved theme (or the
+         dark default) is set before first render instead of flashing. -->
+    <script is:inline>
+      (function () {
+        const stored = localStorage.getItem('theme');
+        const isDark = stored === null || stored === 'dark';
+        document.documentElement.classList.toggle('dark', isDark);
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- DNS Prefetch & Preconnect for performance -->
-    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml" />
 
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
-
-    <!-- Fonts with display=swap for better CLS -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
     <!-- Sitemap & Feeds -->
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -229,8 +238,8 @@ const personSchema = {
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={finalTitle} />
     <meta property="og:site_name" content={SITE.name} />
-    <meta property="og:locale" content={siteLocale.locale} />
-    <meta property="og:locale:alternate" content={lang === 'es' ? 'en_US' : 'es_ES'} />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale:alternate" content={ogLocaleAlternate} />
     {publishedTime && <meta property="article:published_time" content={publishedTime} />}
     {publishedTime && <meta property="article:author" content={SITE.author} />}
 

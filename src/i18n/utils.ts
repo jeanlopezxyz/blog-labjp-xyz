@@ -1,23 +1,25 @@
-import { ui, defaultLang, languages, locales } from './ui';
+import { ui, defaultLang, languages, locales } from "./ui";
 
 /**
  * Regex pattern to match language prefixes in paths (e.g., /en/, /es/)
  * Built dynamically from the languages object for extensibility
  */
-export const LANG_PREFIX_PATTERN = `^/(${Object.keys(languages).join('|')})`;
+export const LANG_PREFIX_PATTERN = `^/(${Object.keys(languages).join("|")})`;
 export const LANG_PREFIX_REGEX = new RegExp(LANG_PREFIX_PATTERN);
 
 /**
  * Regex to match language prefixes in slugs (e.g., en/, es/)
  * For normalizing content slugs
  */
-export const SLUG_LANG_PREFIX_REGEX = new RegExp(`^(${Object.keys(languages).join('|')})/`);
+export const SLUG_LANG_PREFIX_REGEX = new RegExp(
+  `^(${Object.keys(languages).join("|")})/`,
+);
 
 /**
  * Removes language prefix from a slug
  */
 export function normalizeSlug(slug: string): string {
-  return slug.replace(SLUG_LANG_PREFIX_REGEX, '');
+  return slug.replace(SLUG_LANG_PREFIX_REGEX, "");
 }
 
 /**
@@ -25,11 +27,11 @@ export function normalizeSlug(slug: string): string {
  * Normalizes the slug and replaces slashes with dashes
  */
 export function slugToPostId(slug: string): string {
-  return normalizeSlug(slug).replace(/\//g, '-');
+  return normalizeSlug(slug).replace(/\//g, "-");
 }
 
 export function getLangFromUrl(url: URL) {
-  const [, lang] = url.pathname.split('/');
+  const [, lang] = url.pathname.split("/");
   if (lang in ui) return lang as keyof typeof ui;
   return defaultLang;
 }
@@ -50,14 +52,20 @@ export function getClientI18n(lang: keyof typeof ui) {
 
 export function getLocalizedPath(path: string, lang: keyof typeof ui) {
   // Always use language prefix for all languages (including default)
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `/${lang}${cleanPath === '/' ? '' : cleanPath}`;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const prefixed = `/${lang}${cleanPath === "/" ? "" : cleanPath}`;
+  // Cloudflare Pages serves every route with a trailing slash and 308s
+  // anything without one, so every generated href must already end in "/".
+  return prefixed.endsWith("/") ? prefixed : `${prefixed}/`;
 }
 
 export function getAlternateLinks(currentPath: string) {
   return Object.keys(languages).map((lang) => ({
     lang,
-    href: getLocalizedPath(currentPath.replace(LANG_PREFIX_REGEX, ''), lang as keyof typeof ui),
+    href: getLocalizedPath(
+      currentPath.replace(LANG_PREFIX_REGEX, ""),
+      lang as keyof typeof ui,
+    ),
   }));
 }
 
