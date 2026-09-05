@@ -46,6 +46,51 @@ const SECURITY_HEADERS = {
   "X-Permitted-Cross-Domain-Policies": "none",
 };
 
+// Articles renamed to the date-slug scheme (2026-09). Old URLs are indexed,
+// so they keep a permanent redirect. public/_redirects can't do this: Pages
+// Functions run before _redirects, so any request under /es/ or /en/ never
+// reaches it — this table is the only place these redirects actually work.
+const RENAMED_POSTS: Record<string, string> = {
+  "/en/blog/ansible-execution-environment":
+    "/en/blog/2025-06-21-ansible-execution-environment",
+  "/en/blog/ci-cd-github-actions": "/en/blog/2026-01-16-ci-cd-github-actions",
+  "/en/blog/cloud-native-microservices-quarkus":
+    "/en/blog/2026-01-15-cloud-native-microservices-quarkus",
+  "/en/blog/ebpf-ia-kubernetes-deteccion-amenazas":
+    "/en/blog/2025-08-22-ebpf-ia-kubernetes-deteccion-amenazas",
+  "/en/blog/gitops-openshift-argocd":
+    "/en/blog/2026-01-17-gitops-openshift-argocd",
+  "/en/blog/golden-kubestronaut-experiencia":
+    "/en/blog/2025-06-21-golden-kubestronaut-experiencia",
+  "/en/blog/helm-charts-complete-guide":
+    "/en/blog/2026-01-18-helm-charts-complete-guide",
+  "/en/blog/langchain4j-java-ai": "/en/blog/2026-01-19-langchain4j-java-ai",
+  "/en/blog/mcp-servers-genai-studio-openshift-ai":
+    "/en/blog/2026-02-13-mcp-servers-genai-studio-openshift-ai",
+  "/en/blog/monitoring-prometheus-grafana":
+    "/en/blog/2026-01-14-monitoring-prometheus-grafana",
+  "/en/blog/rag-enterprise-java": "/en/blog/2026-01-20-rag-enterprise-java",
+  "/es/blog/ansible-execution-environment":
+    "/es/blog/2025-06-21-ansible-execution-environment",
+  "/es/blog/ci-cd-github-actions": "/es/blog/2026-01-16-ci-cd-github-actions",
+  "/es/blog/cloud-native-microservices-quarkus":
+    "/es/blog/2026-01-15-cloud-native-microservices-quarkus",
+  "/es/blog/ebpf-ia-kubernetes-deteccion-amenazas":
+    "/es/blog/2025-08-22-ebpf-ia-kubernetes-deteccion-amenazas",
+  "/es/blog/gitops-openshift-argocd":
+    "/es/blog/2026-01-17-gitops-openshift-argocd",
+  "/es/blog/golden-kubestronaut-experiencia":
+    "/es/blog/2025-06-21-golden-kubestronaut-experiencia",
+  "/es/blog/helm-charts-complete-guide":
+    "/es/blog/2026-01-18-helm-charts-complete-guide",
+  "/es/blog/langchain4j-java-ai": "/es/blog/2026-01-19-langchain4j-java-ai",
+  "/es/blog/mcp-servers-genai-studio-openshift-ai":
+    "/es/blog/2026-02-13-mcp-servers-genai-studio-openshift-ai",
+  "/es/blog/monitoring-prometheus-grafana":
+    "/es/blog/2026-01-14-monitoring-prometheus-grafana",
+  "/es/blog/rag-enterprise-java": "/es/blog/2026-01-20-rag-enterprise-java",
+};
+
 // Spanish-speaking countries (ISO 3166-1 alpha-2)
 const SPANISH_COUNTRIES = new Set([
   "ES", // Spain
@@ -103,6 +148,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (url.pathname.startsWith("/api/")) {
     const response = await next();
     return addSecurityHeaders(response);
+  }
+
+  // Renamed post: permanent redirect before anything tries to serve the old path.
+  const renamedTarget = RENAMED_POSTS[url.pathname.replace(/\/$/, "")];
+  if (renamedTarget) {
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: `${renamedTarget}/${url.search}`,
+        ...SECURITY_HEADERS,
+      },
+    });
   }
 
   // Already localized paths - just add security headers
