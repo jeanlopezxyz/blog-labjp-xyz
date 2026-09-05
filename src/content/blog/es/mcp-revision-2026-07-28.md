@@ -4,7 +4,6 @@ description: "El protocolo se quedó sin saludo, sin sesiones y sin conexión pe
 pubDate: 2026-09-04
 tags: ["mcp", "agentic-ai", "quarkus", "oauth", "protocolos", "arquitectura"]
 categories: ["ia"]
-draft: true
 featured: false
 lang: "es"
 ---
