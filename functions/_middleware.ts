@@ -63,9 +63,12 @@ const SECURITY_HEADERS = {
   "Referrer-Policy": "strict-origin-when-cross-origin",
   // HTTP Strict Transport Security (2 years + subdomains + preload)
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-  // Restrict browser features
+  // Restrict browser features. Limited to directives Chrome still
+  // recognizes — ambient-light-sensor, battery, document-domain,
+  // execution-while-(not-rendered|out-of-viewport), and navigation-override
+  // were dropped from the spec and log "Unrecognized feature" warnings.
   "Permissions-Policy":
-    "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(self), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(self), xr-spatial-tracking=()",
+    "accelerometer=(), autoplay=(), camera=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(self), xr-spatial-tracking=()",
   // Cross-Origin policies
   "Cross-Origin-Opener-Policy": "same-origin",
   "Cross-Origin-Resource-Policy": "same-origin",
