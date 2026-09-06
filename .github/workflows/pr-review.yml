@@ -294,9 +294,14 @@ jobs:
           }
 
       # Squash: el historial de main es lineal, sin merge commits. Merge
-      # directo (no --auto): el repo no tiene auto-merge habilitado y ambos
-      # checks requeridos por la protección de main (gate y esta misma
-      # revisión) ya están en verde en este punto del workflow. El push
+      # directo (no --auto): el repo no tiene auto-merge habilitado. Este
+      # mismo job NO puede ser un status check requerido por la protección de
+      # main: mientras corre está "in progress", así que branch protection
+      # bloquearía su propio intento de merge en un ciclo irresoluble — por
+      # eso solo "Build, lint and check" está en la lista de checks
+      # requeridos; el veredicto de Claude ya gatea el merge más arriba
+      # (steps.verdict.outputs.verdict == 'approve'), sin depender de que
+      # GitHub lo reconozca como check formal. El push
       # resultante a main dispara deploy.yml a producción.
       - name: Merge PR
         if: steps.verdict.outputs.verdict == 'approve'
