@@ -31,10 +31,15 @@ jobs:
 
           since=$(date -u -d '7 days ago' +%Y-%m-%d)
 
-          # gh pr list no filtra por autor del merge (solo por autor del PR),
-          # así que se trae todo lo mergeado en la ventana y se cruza con los
-          # eventos de timeline para quedarse solo con lo que aprobó y
-          # mergeó github-actions[bot] — nunca lo que mergeaste vos a mano.
+          # gh pr list no filtra por quién aprobó, así que se trae todo lo
+          # mergeado en la ventana y se cruza con las reviews para quedarse
+          # solo con lo que APROBÓ github-actions[bot] — nunca lo que
+          # aprobaste/mergeaste vos a mano. Se mira la aprobación y no
+          # `merged_by`: pr-review.yml mergea con PR_MERGE_PAT (un PAT del
+          # dueño, necesario para que el push a main dispare deploy.yml), así
+          # que `merged_by` es el dueño incluso en un auto-merge; la
+          # aprobación, en cambio, sigue hecha con GITHUB_TOKEN y aparece
+          # como github-actions[bot].
           gh pr list --repo "${{ github.repository }}" --state merged \
             --search "merged:>=${since}" \
             --json number,title,author,mergedAt,url \
@@ -45,8 +50,9 @@ jobs:
           echo "[]" > auto-merged.json
           while IFS= read -r row; do
             number=$(echo "$row" | jq -r '.number')
-            merged_by=$(gh api "repos/${{ github.repository }}/pulls/${number}" --jq '.merged_by.login')
-            if [ "$merged_by" = "github-actions[bot]" ]; then
+            bot_approvals=$(gh api "repos/${{ github.repository }}/pulls/${number}/reviews" \
+              --jq '[.[] | select(.user.login == "github-actions[bot]" and .state == "APPROVED")] | length')
+            if [ "$bot_approvals" -gt 0 ]; then
               jq --argjson row "$row" '. + [$row]' auto-merged.json > tmp.json
               mv tmp.json auto-merged.json
             fi

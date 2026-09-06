@@ -119,6 +119,9 @@ jobs:
       pull-requests: write   # approve + comentarios
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
+      # Token por defecto para gh (comentarios, approve). El step "Merge PR"
+      # lo SOBREESCRIBE con PR_MERGE_PAT a propósito: un push a main hecho
+      # con GITHUB_TOKEN no dispara deploy.yml (ver comentario de ese step).
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Dependabot solo toca package.json/package-lock.json/workflows: una
       # revisión bastante más acotada que un PR de código real. Menos turnos
@@ -317,12 +320,41 @@ jobs:
       # eso solo "Build, lint and check" está en la lista de checks
       # requeridos; el veredicto de Claude ya gatea el merge más arriba
       # (steps.verdict.outputs.verdict == 'approve'), sin depender de que
-      # GitHub lo reconozca como check formal. El push
-      # resultante a main dispara deploy.yml a producción.
+      # GitHub lo reconozca como check formal.
+      #
+      # ESTE STEP USA PR_MERGE_PAT, NO GITHUB_TOKEN — y es lo que hace que el
+      # push resultante a main dispare deploy.yml a producción. Causa raíz:
+      # GitHub, de forma intencional y documentada, NUNCA dispara workflows
+      # `on: push` / `on: pull_request` a partir de un push hecho con el
+      # GITHUB_TOKEN efímero de otro workflow (evita loops recursivos entre
+      # workflows). Con GITHUB_TOKEN el merge "funciona" — el PR se cierra y
+      # el código llega a main — pero deploy.yml no corre y producción queda
+      # desactualizada SIN ningún error visible. Se comprobó en producción:
+      # ~10 merges automáticos en un día y ni un solo run de "Deploy to
+      # Cloudflare Pages" sobre main. Un PAT vinculado a una cuenta de usuario
+      # real no tiene esa restricción, así que el push sí dispara deploy.yml.
+      #
+      # PR_MERGE_PAT: fine-grained PAT del dueño, limitado a este repo, con
+      # Contents: read/write y Pull requests: read/write, sin expiración.
+      # Riesgo conocido: si se revoca, expira o alguien lo "simplifica" de
+      # vuelta a GITHUB_TOKEN, el síntoma es el mismo que se arregló aquí —
+      # merges en verde y producción congelada, sin fallo en ningún run.
+      # Si el secret está vacío, `gh` falla con error de autenticación y el
+      # PR queda sin mergear (mejor eso que un merge silencioso sin deploy).
+      #
+      # El PAT se limita a ESTE step: "Approve PR" y los comentarios siguen
+      # con GITHUB_TOKEN, que para eso funciona bien (comprobado en
+      # producción) y no necesita disparar nada.
       - name: Merge PR
         if: steps.verdict.outputs.verdict == 'approve'
+        env:
+          GH_TOKEN: ${{ secrets.PR_MERGE_PAT }}
         run: |
           set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::El secret PR_MERGE_PAT está vacío o no existe. Sin él el merge no dispararía deploy.yml (ver comentario de este step). No se mergea."
+            exit 1
+          fi
           gh pr merge "$PR_NUMBER" --squash --delete-branch
 
   # ---------------------------------------------------------------------------
