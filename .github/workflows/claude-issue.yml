@@ -1,0 +1,88 @@
+name: Claude implement from issue
+
+# Menciona a @claude en un Issue (o en un comentario de un Issue) para que
+# implemente lo que describís. Claude NUNCA abre el PR por su cuenta — empuja
+# los commits a una rama y deja un comentario con un link de "Create pull
+# request" prellenado, para que el clic de abrir el PR sea siempre tuyo. Una
+# vez que ese PR exista, entra al mismo pipeline de pr-review.yml (gate +
+# revisión + auto-merge) que ya corre sobre cualquier otro PR del repo.
+#
+# Sin la GitHub App oficial de Claude instalada: usamos github_token (igual
+# que pr-review.yml) en vez de OIDC, así los comentarios de Claude aparecen
+# bajo la identidad del propio workflow en vez de "claude[bot]".
+
+on:
+  issues:
+    types: [opened, assigned]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  claude:
+    name: Claude implement
+    # Solo Issues (no comentarios de PR, que ya cubre pr-review.yml) y solo
+    # cuando quien escribe @claude es el dueño del repo — evita que cualquier
+    # cuenta externa que comente en un Issue público dispare una ejecución
+    # con permisos de escritura. Este repo no tiene colaboradores además del
+    # dueño; si en el futuro los hay, cambiar esta condición por una lista
+    # explícita de usuarios de confianza.
+    if: >-
+      github.actor == github.event.repository.owner.login
+      && (
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
+        || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
+            && contains(github.event.comment.body, '@claude'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@d75b94d5ad426cb8546e6628b6f5f19b84e5cce1 # v1.0.216
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Sin trigger_phrase custom: reacciona al "@claude" por defecto,
+          # tanto en el cuerpo del Issue como en comentarios posteriores.
+          prompt: |
+            Contexto del proyecto: blog estático con Astro 7 desplegado en
+            Cloudflare Pages. `functions/` contiene Pages Functions (API de
+            likes/views/stats sobre D1, definida en `schema.sql`) y el
+            middleware (`functions/_middleware.ts`) que fija cabeceras de
+            seguridad, CSP con nonces por petición y redirecciones de
+            artículos renombrados. `wrangler.toml` define bindings de D1 por
+            entorno.
+
+            Implementa lo que se describe en este Issue (título, cuerpo y
+            comentarios). Reglas:
+            - Antes de escribir código, si la petición es ambigua o se puede
+              resolver de más de una forma razonable, comenta en el Issue
+              explicando la ambigüedad y las opciones, y detente ahí —no
+              adivines una decisión de producto o arquitectura importante.
+            - Sigue las convenciones ya existentes en el repo (Tailwind,
+              componentes Astro, i18n en src/i18n/, helpers en src/lib/) en
+              vez de introducir patrones nuevos.
+            - Después de cada cambio corre `npm run build`, `npm run lint` y
+              `npm run check`; no dejes el repo en un estado que no compile.
+            - No toques `.github/workflows/**` (Claude no tiene permisos de
+              escritura sobre workflows de todos modos) ni la configuración
+              de seguridad (CSP, permisos de `functions/`, `wrangler.toml`)
+              salvo que el Issue lo pida explícitamente.
+            - No hagas commit de secrets, tokens ni credenciales.
+          claude_args: >-
+            --model sonnet
+            --effort medium
+            --max-turns 60
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci)"
