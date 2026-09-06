@@ -95,9 +95,6 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # TEMPORAL: diagnosticando permission_denials repetidos que no se
-          # reproducen en local. Sacar antes de mergear a main.
-          show_full_output: true
           # Sin trigger_phrase custom: reacciona al "@claude" por defecto,
           # tanto en el cuerpo del Issue como en comentarios posteriores.
           prompt: |
@@ -137,4 +134,4 @@ jobs:
             --model sonnet
             --effort medium
             --max-turns 60
-            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci),Bash(git status),Bash(git diff:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin ${{ env.BRANCH_NAME }}),Bash(git push origin ${{ env.BRANCH_NAME }})"
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci),Bash(git status),Bash(git diff:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin ${{ env.BRANCH_NAME }}),Bash(git push origin ${{ env.BRANCH_NAME }}),Bash(gh issue view ${{ github.event.issue.number }}:*)"
