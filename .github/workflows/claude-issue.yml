@@ -1,30 +1,39 @@
 name: Claude implement from issue
 
-# Menciona a @claude en un Issue (o en un comentario de un Issue) para que
-# implemente lo que describís. Claude NUNCA abre el PR por su cuenta — empuja
-# los commits a una rama y deja un comentario con un link de "Create pull
-# request" prellenado, para que el clic de abrir el PR sea siempre tuyo. Una
-# vez que ese PR exista, entra al mismo pipeline de pr-review.yml (gate +
-# revisión + auto-merge) que ya corre sobre cualquier otro PR del repo.
+# Flujo en dos fases (patrón "spec-first"), separadas por una confirmación
+# tuya explícita:
+#
+# 1. Mencionás "@claude" en un Issue (o en un comentario) → Claude lee el
+#    pedido y responde con un comentario de SPEC: qué va a hacer, qué
+#    archivos va a tocar, cómo se prueba, y cualquier ambigüedad que
+#    encuentre. No toca código ni crea rama en esta fase.
+# 2. Si estás de acuerdo, comentás "@claude implementa" en el mismo Issue →
+#    recién ahí Claude crea la rama, edita el código, corre build/lint/check,
+#    y hace push. Deja un comentario con el link para crear el PR (nunca lo
+#    abre solo). Una vez que ese PR exista, entra al mismo pipeline de
+#    pr-review.yml (gate + revisión + auto-merge).
+#
+# La spec vive como comentario del propio Issue — no como archivo nuevo en
+# el repo — para no agregar convenciones ni carpetas para un blog de un solo
+# dueño. Todo el historial (pedido → spec → aprobación → implementación)
+# queda en un único lugar: el Issue.
 #
 # Sin la GitHub App oficial de Claude instalada: usamos github_token (igual
 # que pr-review.yml) en vez de OIDC, así los comentarios de Claude aparecen
 # bajo la identidad del propio workflow en vez de "claude[bot]".
 #
 # La rama de trabajo (claude/issue-N) la crea el workflow ANTES de invocar a
-# Claude, y --allowedTools solo permite git push a ese nombre exacto — nunca
-# un comodín tipo "git push:*", que también dejaría empujar a main. Esto es
-# defensa en profundidad: aunque el contenido del Issue intente instruir a
-# Claude para que empuje a otro lugar (inyección de prompt), la tool para
-# hacerlo no existe en este job.
+# Claude en la fase de implementación, y --allowedTools solo permite git
+# push a ese nombre exacto — nunca un comodín tipo "git push:*", que también
+# dejaría empujar a main. Esto es defensa en profundidad: aunque el
+# contenido del Issue intente instruir a Claude para que empuje a otro lugar
+# (inyección de prompt), la tool para hacerlo no existe en este job.
 
-# PAUSADO (2026-09-06): funciona (probado end-to-end una vez, issue #10),
-# pero costó 6 iteraciones de bugs reales para llegar ahí (comandos
-# encadenados con &&, falta de git config, reintentos que recreaban la rama,
-# exploración normal del modelo bloqueada por --allowedTools) y es la pieza
-# del sistema con menos rodaje: 1 corrida exitosa contra las ~16 de
-# pr-review.yml. Se prefiere no dejarlo disparándose solo hasta tener más
-# confianza. Para reactivarlo: descomentar los dos triggers de abajo.
+# PAUSADO (2026-09-06): la versión anterior (una sola fase, implementaba
+# directo) funcionó end-to-end una vez (issue #10) tras 6 iteraciones de
+# bugs, y es la pieza del sistema con menos rodaje: 1 corrida exitosa contra
+# las ~16 de pr-review.yml. Esta versión de dos fases todavía no se probó en
+# absoluto. Para reactivarlo: descomentar los dos triggers de abajo.
 on:
   workflow_dispatch: {}
   # issues:
@@ -35,25 +44,119 @@ on:
 permissions: {}
 
 jobs:
-  claude:
-    name: Claude implement
-    # Solo Issues (no comentarios de PR, que ya cubre pr-review.yml). Exige
-    # DOS condiciones de confianza, no solo una: quien escribe "@claude" debe
-    # ser el dueño del repo, Y el propio Issue debe haberlo abierto el dueño.
-    # Sin la segunda condición, cualquiera podría abrir un Issue público con
-    # instrucciones maliciosas ocultas en el cuerpo — ese texto se pasa
-    # literalmente al prompt de Claude más abajo — y bastaría con que el
-    # dueño comentara "@claude" (sin releer el cuerpo completo) para que se
-    # ejecuten con permisos de escritura reales sobre el repo. Este repo no
-    # tiene colaboradores además del dueño; si en el futuro los hay, cambiar
-    # ambas comparaciones por una lista explícita de usuarios de confianza.
+  # ---------------------------------------------------------------------------
+  # Fase 1: spec. Se dispara con cualquier mención a "@claude" que NO sea
+  # "@claude implementa" — lee el pedido y comenta un plan, sin tocar código.
+  # ---------------------------------------------------------------------------
+  spec:
+    name: Claude propose spec
+    # Mismas dos condiciones de confianza que la fase de implementación (ver
+    # comentario detallado en el job "implement" más abajo). "@claude
+    # implementa" NO dispara este job — va directo a "implement".
     if: >-
       github.actor == github.event.repository.owner.login
       && github.event.issue.user.login == github.event.repository.owner.login
       && (
-        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')
+          && !contains(github.event.issue.body, '@claude implementa'))
         || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
-            && contains(github.event.comment.body, '@claude'))
+            && contains(github.event.comment.body, '@claude')
+            && !contains(github.event.comment.body, '@claude implementa'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      # Solo lectura: la fase de spec nunca necesita escribir código, así que
+      # ni siquiera se le da Edit/Write a Claude en este job (ver
+      # --allowedTools abajo).
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@d75b94d5ad426cb8546e6628b6f5f19b84e5cce1 # v1.0.216
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Contexto del proyecto: blog estático con Astro 7 desplegado en
+            Cloudflare Pages. `functions/` contiene Pages Functions (API de
+            likes/views/stats sobre D1, definida en `schema.sql`) y el
+            middleware (`functions/_middleware.ts`) que fija cabeceras de
+            seguridad, CSP con nonces por petición y redirecciones de
+            artículos renombrados. `wrangler.toml` define bindings de D1 por
+            entorno.
+
+            NO implementes nada todavía. Tu única tarea es leer este Issue
+            (título, cuerpo y comentarios) y el código del repo relevante, y
+            responder con UN solo comentario en el Issue (usa `gh issue
+            comment ${{ github.event.issue.number }} --body-file` con un
+            archivo que armes, no imprimas el comentario como salida de
+            texto) con esta estructura exacta:
+
+            ## Qué voy a hacer
+            (2-4 frases, en español, describiendo el cambio en términos
+            concretos, no genéricos)
+
+            ## Archivos que voy a tocar
+            (lista de rutas de archivo, con una frase de qué cambia en cada
+            uno)
+
+            ## Cómo se prueba
+            (pasos concretos y verificables: un comando, una URL a revisar,
+            un valor esperado — no "probarlo manualmente" sin más detalle)
+
+            ## Ambigüedades o decisiones abiertas
+            (si el pedido es claro y no hay nada que decidir, escribí "Ninguna".
+            Si hay algo que requiere una decisión de producto o arquitectura
+            que no se puede inferir del Issue, pregúntalo aquí explícitamente
+            en vez de asumir una respuesta)
+
+            Al final del comentario, agrega esta línea exacta (para que quede
+            claro cómo continuar):
+
+            ---
+            Si estás de acuerdo, comentá `@claude implementa` en este Issue.
+
+            No uses ninguna otra herramienta de escritura: no edites archivos,
+            no corras git, no hagas commits. Esta fase es de solo lectura y
+            un único comentario.
+          claude_args: >-
+            --model sonnet
+            --effort medium
+            --max-turns 30
+            --allowedTools "Read,Grep,Glob,Bash(gh issue view ${{ github.event.issue.number }}:*),Bash(gh issue comment ${{ github.event.issue.number }}:*)"
+
+  # ---------------------------------------------------------------------------
+  # Fase 2: implementación. Se dispara SOLO con "@claude implementa" — recién
+  # aquí Claude toca código.
+  # ---------------------------------------------------------------------------
+  implement:
+    name: Claude implement
+    # Solo Issues (no comentarios de PR, que ya cubre pr-review.yml). Exige
+    # DOS condiciones de confianza, no solo una: quien escribe "@claude
+    # implementa" debe ser el dueño del repo, Y el propio Issue debe haberlo
+    # abierto el dueño. Sin la segunda condición, cualquiera podría abrir un
+    # Issue público con instrucciones maliciosas ocultas en el cuerpo — ese
+    # texto se pasa literalmente al prompt de Claude más abajo — y bastaría
+    # con que el dueño comentara "@claude implementa" (sin releer el cuerpo
+    # completo) para que se ejecuten con permisos de escritura reales sobre
+    # el repo. Este repo no tiene colaboradores además del dueño; si en el
+    # futuro los hay, cambiar ambas comparaciones por una lista explícita de
+    # usuarios de confianza.
+    if: >-
+      github.actor == github.event.repository.owner.login
+      && github.event.issue.user.login == github.event.repository.owner.login
+      && (
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude implementa'))
+        || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
+            && contains(github.event.comment.body, '@claude implementa'))
       )
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -74,7 +177,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Trae también refs remotas ya existentes, para el caso de un
-          # segundo "@claude" en el mismo Issue (ver step siguiente).
+          # segundo "@claude implementa" en el mismo Issue (ver step
+          # siguiente).
           fetch-depth: 0
 
       # Requerido antes de cualquier "git commit": un runner ubuntu-latest
@@ -85,9 +189,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # Si ya existe la rama remota (un "@claude" posterior en el mismo
-      # Issue, iterando sobre un intento previo), seguimos sobre ella en vez
-      # de recrearla desde main — evita un push rechazado por non-fast-forward.
+      # Si ya existe la rama remota (un "@claude implementa" posterior en el
+      # mismo Issue, iterando sobre un intento previo), seguimos sobre ella
+      # en vez de recrearla desde main — evita un push rechazado por
+      # non-fast-forward.
       - name: Create or resume branch for Claude to work on
         run: |
           set -euo pipefail
@@ -103,8 +208,6 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Sin trigger_phrase custom: reacciona al "@claude" por defecto,
-          # tanto en el cuerpo del Issue como en comentarios posteriores.
           prompt: |
             Contexto del proyecto: blog estático con Astro 7 desplegado en
             Cloudflare Pages. `functions/` contiene Pages Functions (API de
@@ -115,12 +218,15 @@ jobs:
             entorno.
 
             Ya estás en la rama "${{ env.BRANCH_NAME }}" (creada por el
-            workflow antes de invocarte). Implementa lo que se describe en
-            este Issue (título, cuerpo y comentarios). Reglas:
-            - Antes de escribir código, si la petición es ambigua o se puede
-              resolver de más de una forma razonable, comenta en el Issue
-              explicando la ambigüedad y las opciones, y detente ahí —no
-              adivines una decisión de producto o arquitectura importante.
+            workflow antes de invocarte). Ya existe una spec propuesta en un
+            comentario anterior de este Issue (buscá el comentario que
+            empieza con "## Qué voy a hacer") — esa spec fue aprobada por el
+            dueño del repo al comentar "@claude implementa". Implementa
+            EXACTAMENTE esa spec, no reinterpretes el Issue original desde
+            cero. Reglas:
+            - Si al implementar encontrás que la spec aprobada no es viable
+              tal cual, comenta explicando por qué y detente — no cambies de
+              rumbo en silencio.
             - Sigue las convenciones ya existentes en el repo (Tailwind,
               componentes Astro, i18n en src/i18n/, helpers en src/lib/) en
               vez de introducir patrones nuevos.
@@ -129,7 +235,7 @@ jobs:
             - No toques `.github/workflows/**` (Claude no tiene permisos de
               escritura sobre workflows de todos modos) ni la configuración
               de seguridad (CSP, permisos de `functions/`, `wrangler.toml`)
-              salvo que el Issue lo pida explícitamente.
+              salvo que la spec aprobada lo pida explícitamente.
             - No hagas commit de secrets, tokens ni credenciales.
             - Cuando termines, ejecuta estos tres comandos como invocaciones
               de Bash SEPARADAS (no los encadenes con && en una sola línea,
