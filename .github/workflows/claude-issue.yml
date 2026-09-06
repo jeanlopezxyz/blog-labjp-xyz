@@ -85,4 +85,4 @@ jobs:
             --model sonnet
             --effort medium
             --max-turns 60
-            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci)"
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*)"
