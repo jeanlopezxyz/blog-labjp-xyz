@@ -95,10 +95,11 @@ jobs:
 
             NO implementes nada todavía. Tu única tarea es leer este Issue
             (título, cuerpo y comentarios) y el código del repo relevante, y
-            responder con UN solo comentario en el Issue (usa `gh issue
-            comment ${{ github.event.issue.number }} --body-file` con un
-            archivo que armes, no imprimas el comentario como salida de
-            texto) con esta estructura exacta:
+            responder con UN solo comentario en el Issue usando
+            `gh issue comment ${{ github.event.issue.number }} --body "..."`
+            (no tienes acceso a Write/Edit en esta fase, así que pasa el
+            texto directo al flag --body, no armes un archivo intermedio)
+            con esta estructura exacta:
 
             ## Qué voy a hacer
             (2-4 frases, en español, describiendo el cambio en términos
