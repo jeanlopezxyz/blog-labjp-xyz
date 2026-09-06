@@ -1,0 +1,92 @@
+name: Weekly auto-merge summary
+
+# Lista, una vez por semana, qué PRs aprobó y mergeó pr-review.yml sin
+# intervención humana — visibilidad sobre lo que el bot hizo solo, sin tener
+# que revisar cada PR en tiempo real. Se publica como un Issue (no requiere
+# ningún canal externo); cuando haya un webhook de Telegram configurado, este
+# mismo cuerpo de texto puede reenviarse ahí también.
+
+on:
+  schedule:
+    # Todos los lunes a las 09:00 UTC (04:00 America/Lima), antes de que
+    # Dependabot abra sus PRs de la semana a las 10:00 hora Lima.
+    - cron: '0 9 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: List auto-merged PRs from the last 7 days
+        id: list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          since=$(date -u -d '7 days ago' +%Y-%m-%d)
+
+          # gh pr list no filtra por autor del merge (solo por autor del PR),
+          # así que se trae todo lo mergeado en la ventana y se cruza con los
+          # eventos de timeline para quedarse solo con lo que aprobó y
+          # mergeó github-actions[bot] — nunca lo que mergeaste vos a mano.
+          gh pr list --repo "${{ github.repository }}" --state merged \
+            --search "merged:>=${since}" \
+            --json number,title,author,mergedAt,url \
+            --limit 100 > all-merged.json
+
+          # `while read` en vez de `for row in $(...)`: un título de PR con
+          # espacios (el caso normal) rompería el word-splitting del `for`.
+          echo "[]" > auto-merged.json
+          while IFS= read -r row; do
+            number=$(echo "$row" | jq -r '.number')
+            merged_by=$(gh api "repos/${{ github.repository }}/pulls/${number}" --jq '.merged_by.login')
+            if [ "$merged_by" = "github-actions[bot]" ]; then
+              jq --argjson row "$row" '. + [$row]' auto-merged.json > tmp.json
+              mv tmp.json auto-merged.json
+            fi
+          done < <(jq -c '.[]' all-merged.json)
+
+          count=$(jq 'length' auto-merged.json)
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+      - name: Build summary body
+        id: body
+        run: |
+          {
+            echo "PRs aprobados y mergeados automáticamente por \`pr-review.yml\`"
+            echo "en los últimos 7 días, sin intervención humana."
+            echo ""
+            if [ "${{ steps.list.outputs.count }}" = "0" ]; then
+              echo "Ninguno esta semana."
+            else
+              jq -r '.[] | "- [#\(.number)](\(.url)) \(.title) — \(.author.login), mergeado \(.mergedAt)"' auto-merged.json
+            fi
+          } > summary-body.md
+          cat summary-body.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open weekly summary issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # --force no falla si el label ya existe, y lo crea en la primera
+          # corrida si todavía no está en el repo.
+          gh label create "automated-report" \
+            --repo "${{ github.repository }}" \
+            --color "ededed" \
+            --description "Reporte generado automáticamente por un workflow" \
+            --force
+
+          week=$(date -u +'%Y-W%V')
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "Auto-merge semanal: $week (${{ steps.list.outputs.count }} PRs)" \
+            --label "automated-report" \
+            --body-file summary-body.md

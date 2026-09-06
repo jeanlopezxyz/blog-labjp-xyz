@@ -120,6 +120,10 @@ jobs:
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Dependabot solo toca package.json/package-lock.json/workflows: una
+      # revisión bastante más acotada que un PR de código real. Menos turnos
+      # ahorra cuota de la suscripción sin perder rigor donde sí hace falta.
+      MAX_TURNS: ${{ github.event_name == 'pull_request_target' && '15' || '40' }}
 
     steps:
       # La action exige un repo git en la raíz. Montamos main (confiable) ahí
@@ -195,6 +199,15 @@ jobs:
             versión mayor NO es bloqueante por sí mismo si el build pasó; solo
             lo es si encuentras evidencia concreta de incompatibilidad.
 
+            Si el PR añade o edita un artículo en `src/content/blog/**/*.md`
+            (o `.mdx`): lee el contenido completo en `pr-head/` y marca como
+            "warning" errores ortográficos u gramaticales evidentes en el
+            idioma del artículo (`lang` en el frontmatter). Marca como
+            "blocking" solo si un error de contenido es lo bastante grave como
+            para publicar información técnica incorrecta (un comando
+            equivocado, una versión de API que no existe, una afirmación
+            falsa) — nunca por estilo de escritura o preferencia de redacción.
+
             NO comentes sobre estilo, formato, nombres, preferencias
             subjetivas, refactors opcionales ni rendimiento hipotético.
 
@@ -215,7 +228,7 @@ jobs:
           claude_args: >-
             --model sonnet
             --effort medium
-            --max-turns 40
+            --max-turns ${{ env.MAX_TURNS }}
             --allowedTools "Read,Grep,Glob,Bash(gh pr diff:*),Bash(gh pr view:*)"
             --add-dir pr-head
             --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["approve","block"]},"summary":{"type":"string"},"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["blocking","warning"]},"file":{"type":"string"},"description":{"type":"string"}},"required":["severity","file","description"]}}},"required":["verdict","summary","findings"]}'
@@ -281,9 +294,10 @@ jobs:
           }
 
       # Squash: el historial de main es lineal, sin merge commits. Merge
-      # directo (no --auto): main no tiene protección ni checks requeridos y el
-      # repo no tiene auto-merge habilitado; el gate ya corrió en este mismo
-      # workflow. El push resultante a main dispara deploy.yml a producción.
+      # directo (no --auto): el repo no tiene auto-merge habilitado y ambos
+      # checks requeridos por la protección de main (gate y esta misma
+      # revisión) ya están en verde en este punto del workflow. El push
+      # resultante a main dispara deploy.yml a producción.
       - name: Merge PR
         if: steps.verdict.outputs.verdict == 'approve'
         run: |
