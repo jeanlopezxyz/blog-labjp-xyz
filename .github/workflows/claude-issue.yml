@@ -64,9 +64,30 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Trae también refs remotas ya existentes, para el caso de un
+          # segundo "@claude" en el mismo Issue (ver step siguiente).
+          fetch-depth: 0
 
-      - name: Create branch for Claude to work on
-        run: git checkout -b "$BRANCH_NAME"
+      # Requerido antes de cualquier "git commit": un runner ubuntu-latest
+      # limpio no trae identidad configurada, y sin esto Claude no podría
+      # arreglarlo por su cuenta ("git config" no está en --allowedTools).
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Si ya existe la rama remota (un "@claude" posterior en el mismo
+      # Issue, iterando sobre un intento previo), seguimos sobre ella en vez
+      # de recrearla desde main — evita un push rechazado por non-fast-forward.
+      - name: Create or resume branch for Claude to work on
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null; then
+            git checkout -b "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          else
+            git checkout -b "$BRANCH_NAME"
+          fi
 
       - name: Claude Code
         id: claude
