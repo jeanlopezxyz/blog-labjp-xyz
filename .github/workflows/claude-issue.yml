@@ -18,11 +18,19 @@ name: Claude implement from issue
 # Claude para que empuje a otro lugar (inyección de prompt), la tool para
 # hacerlo no existe en este job.
 
+# PAUSADO (2026-09-06): funciona (probado end-to-end una vez, issue #10),
+# pero costó 6 iteraciones de bugs reales para llegar ahí (comandos
+# encadenados con &&, falta de git config, reintentos que recreaban la rama,
+# exploración normal del modelo bloqueada por --allowedTools) y es la pieza
+# del sistema con menos rodaje: 1 corrida exitosa contra las ~16 de
+# pr-review.yml. Se prefiere no dejarlo disparándose solo hasta tener más
+# confianza. Para reactivarlo: descomentar los dos triggers de abajo.
 on:
-  issues:
-    types: [opened, assigned]
-  issue_comment:
-    types: [created]
+  workflow_dispatch: {}
+  # issues:
+  #   types: [opened, assigned]
+  # issue_comment:
+  #   types: [created]
 
 permissions: {}
 
