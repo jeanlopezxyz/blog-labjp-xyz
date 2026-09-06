@@ -123,8 +123,13 @@ jobs:
               de seguridad (CSP, permisos de `functions/`, `wrangler.toml`)
               salvo que el Issue lo pida explícitamente.
             - No hagas commit de secrets, tokens ni credenciales.
-            - Cuando termines, haz commit y push con:
-              `git add -A && git commit -m "..." && git push -u origin ${{ env.BRANCH_NAME }}`
+            - Cuando termines, ejecuta estos tres comandos como invocaciones
+              de Bash SEPARADAS (no los encadenes con && en una sola línea,
+              cada patrón de --allowedTools solo matchea el comando exacto,
+              no una cadena compuesta):
+              1. `git add -A`
+              2. `git commit -m "tu mensaje aquí"`
+              3. `git push -u origin ${{ env.BRANCH_NAME }}`
           claude_args: >-
             --model sonnet
             --effort medium
