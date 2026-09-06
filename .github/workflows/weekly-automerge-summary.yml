@@ -40,15 +40,17 @@ jobs:
             --json number,title,author,mergedAt,url \
             --limit 100 > all-merged.json
 
+          # `while read` en vez de `for row in $(...)`: un título de PR con
+          # espacios (el caso normal) rompería el word-splitting del `for`.
           echo "[]" > auto-merged.json
-          for row in $(jq -c '.[]' all-merged.json); do
+          while IFS= read -r row; do
             number=$(echo "$row" | jq -r '.number')
             merged_by=$(gh api "repos/${{ github.repository }}/pulls/${number}" --jq '.merged_by.login')
             if [ "$merged_by" = "github-actions[bot]" ]; then
               jq --argjson row "$row" '. + [$row]' auto-merged.json > tmp.json
               mv tmp.json auto-merged.json
             fi
-          done
+          done < <(jq -c '.[]' all-merged.json)
 
           count=$(jq 'length' auto-merged.json)
           echo "count=$count" >> "$GITHUB_OUTPUT"
