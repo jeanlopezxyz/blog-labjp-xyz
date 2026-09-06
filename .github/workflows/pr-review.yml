@@ -274,12 +274,28 @@ jobs:
           cat verdict.md >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$verdict" != "approve" ]; then
-            # Bloqueante: dejamos el comentario y fallamos visiblemente para
-            # que un humano intervenga.
+            # Bloqueante con veredicto VÁLIDO (a diferencia del fail-closed de
+            # arriba, que es un fallo técnico sin hallazgos reales). Guardamos
+            # el JSON crudo como artifact para que "autofix" lo consuma sin
+            # tener que re-parsear comentarios del PR.
+            echo "$VERDICT_JSON" > findings.json
             gh pr comment "$PR_NUMBER" --body-file verdict.md
             echo "::error::Claude encontró hallazgos bloqueantes. El PR requiere revisión humana."
             exit 1
           fi
+
+      - name: Upload findings for autofix
+        # Corre siempre que el step anterior haya llegado a escribir
+        # findings.json (bloqueo con veredicto VÁLIDO), incluso si ese mismo
+        # step terminó en `exit 1`. hashFiles no falla si el archivo no
+        # existe: en el camino feliz (approve) o en el fail-closed técnico
+        # (sin JSON válido) simplemente no sube nada.
+        if: always() && hashFiles('findings.json') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: blocking-findings
+          path: findings.json
+          retention-days: 1
 
       # Requiere en Settings → Actions → General: "Allow GitHub Actions to
       # create and approve pull requests". Si no está activo, este paso falla
@@ -308,3 +324,164 @@ jobs:
         run: |
           set -euo pipefail
           gh pr merge "$PR_NUMBER" --squash --delete-branch
+
+  # ---------------------------------------------------------------------------
+  # Auto-fix. Se dispara cada vez que `review` termina en failure (bloqueo
+  # real O fallo técnico), pero el propio job descarta la corrida temprano si
+  # no encuentra el artifact `blocking-findings` — así solo actúa cuando hay
+  # un veredicto "block" válido con hallazgos concretos que corregir.
+  # Un único intento por PR: si ya existe un commit de autofix en el historial,
+  # no se reintenta — evita un loop de reescrituras si el primer intento no
+  # resuelve bien el problema, y deja el PR para revisión humana.
+  # ---------------------------------------------------------------------------
+  autofix:
+    name: Claude auto-fix
+    needs: [gate, review]
+    if: >-
+      always() && needs.review.result == 'failure'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+
+    steps:
+      # Si "review" falló por un motivo que no sea un veredicto "block"
+      # válido (fallo técnico de la acción, timeout, error de red...), el job
+      # "review" nunca subió este artifact — continue-on-error evita que la
+      # ausencia del artifact tumbe este job entero, y el step siguiente
+      # decide en base a si la descarga realmente trajo algo.
+      - name: Download blocking findings
+        id: precheck
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: blocking-findings
+
+      # Evita gastar un intento de autofix en un problema técnico que un
+      # simple reintento manual del job "review" podría resolver solo.
+      - name: Check download succeeded
+        id: has_findings
+        run: |
+          if [ "${{ steps.precheck.outcome }}" != "success" ] || [ ! -f findings.json ]; then
+            echo "::notice::No hay findings.json (probablemente un fallo técnico de la revisión, no un hallazgo real). No se intenta autofix."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # actions/checkout borra el contenido del directorio de destino en su
+      # primer checkout de la sesión (siempre, exista o no ya un repo git
+      # ahí) — findings.json debe salir del árbol de trabajo ANTES del
+      # siguiente checkout, o desaparece.
+      - name: Move findings out of the workspace
+        if: steps.has_findings.outputs.should_run == 'true'
+        run: mv findings.json /tmp/findings.json
+
+      # Único intento: si ya hay un commit de autofix en la rama, nos
+      # rendimos y dejamos el PR para revisión humana. --repo explícito: sin
+      # un checkout todavía no hay `.git` local del que `gh` pueda inferir
+      # el repositorio.
+      - name: Check retry budget
+        id: budget
+        if: steps.has_findings.outputs.should_run == 'true'
+        run: |
+          set -euo pipefail
+          already_tried=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json commits \
+            --jq '[.commits[] | select(.messageHeadline | startswith("autofix:"))] | length')
+          if [ "$already_tried" -gt 0 ]; then
+            echo "::warning::Ya se intentó un autofix en este PR. No se reintenta; requiere revisión humana."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout PR branch
+        if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.HEAD_REF }}
+          # Sí persistimos credenciales aquí: este job necesita hacer push
+          # del fix de vuelta a la rama del PR.
+
+      - name: Setup Node.js
+        if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.23.2'
+          cache: 'npm'
+
+      # Instalado por adelantado, no dejado para que Claude lo corra: así
+      # "npm ci" no necesita estar en --allowedTools (evita que reescriba
+      # package-lock.json por accidente al correrlo con otros flags).
+      - name: Install dependencies
+        if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
+        run: npm ci
+
+      # A diferencia del job "review" (solo lectura), este sí necesita
+      # escribir código: le damos Edit/Write acotado al propio checkout y
+      # permiso de ejecutar el mismo gate técnico para autoverificarse antes
+      # de hacer push, pero SIN permisos de git/gh (el push lo hace el
+      # workflow, no Claude, para no darle un token de escritura directo).
+      - name: Claude auto-fix
+        id: fix
+        if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
+        uses: anthropics/claude-code-action@d75b94d5ad426cb8546e6628b6f5f19b84e5cce1 # v1.0.216
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: dependabot[bot]
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            La revisión automática de este PR encontró hallazgos bloqueantes.
+            Lee el archivo `/tmp/findings.json` (JSON con "verdict", "summary"
+            y "findings": un array de {severity, file, description}) y
+            corrige ÚNICAMENTE los hallazgos con severity "blocking", con el
+            cambio más pequeño y directo posible — nunca refactors, nunca
+            cambios de estilo, nunca tocar código que el hallazgo no menciona.
+
+            Reglas:
+            - Edita solo los archivos que los hallazgos señalan.
+            - Después de cada cambio corre \`npm run build\`, \`npm run lint\`
+              y \`npm run check\` para confirmar que sigue compilando.
+            - Si un hallazgo no tiene una corrección clara y segura (por
+              ejemplo, requiere una decisión de producto o arquitectura), NO
+              inventes una solución: deja ese hallazgo sin tocar y repórtalo
+              en el resumen final para que quede para revisión humana.
+            - No toques configuración de seguridad (CSP, permisos de
+              functions/, wrangler.toml) salvo que el hallazgo bloqueante sea
+              exactamente sobre eso.
+
+            Al terminar, resume en 1-2 frases qué arreglaste y si algún
+            hallazgo quedó sin resolver.
+          claude_args: >-
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check)"
+
+      - name: Commit and push fix
+        if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "::warning::Claude no hizo ningún cambio. Requiere revisión humana."
+            gh pr comment "$PR_NUMBER" --body "El intento de autofix no produjo cambios — el hallazgo bloqueante requiere revisión humana."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "autofix: address blocking findings from automated review"
+          git push origin "HEAD:${HEAD_REF}"
+
+          gh pr comment "$PR_NUMBER" --body "Se intentó un autofix automático para los hallazgos bloqueantes de arriba. El gate y la revisión van a correr de nuevo sobre este nuevo commit."
