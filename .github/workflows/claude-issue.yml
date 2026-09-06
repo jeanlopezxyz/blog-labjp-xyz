@@ -10,6 +10,13 @@ name: Claude implement from issue
 # Sin la GitHub App oficial de Claude instalada: usamos github_token (igual
 # que pr-review.yml) en vez de OIDC, así los comentarios de Claude aparecen
 # bajo la identidad del propio workflow en vez de "claude[bot]".
+#
+# La rama de trabajo (claude/issue-N) la crea el workflow ANTES de invocar a
+# Claude, y --allowedTools solo permite git push a ese nombre exacto — nunca
+# un comodín tipo "git push:*", que también dejaría empujar a main. Esto es
+# defensa en profundidad: aunque el contenido del Issue intente instruir a
+# Claude para que empuje a otro lugar (inyección de prompt), la tool para
+# hacerlo no existe en este job.
 
 on:
   issues:
@@ -22,14 +29,19 @@ permissions: {}
 jobs:
   claude:
     name: Claude implement
-    # Solo Issues (no comentarios de PR, que ya cubre pr-review.yml) y solo
-    # cuando quien escribe @claude es el dueño del repo — evita que cualquier
-    # cuenta externa que comente en un Issue público dispare una ejecución
-    # con permisos de escritura. Este repo no tiene colaboradores además del
-    # dueño; si en el futuro los hay, cambiar esta condición por una lista
-    # explícita de usuarios de confianza.
+    # Solo Issues (no comentarios de PR, que ya cubre pr-review.yml). Exige
+    # DOS condiciones de confianza, no solo una: quien escribe "@claude" debe
+    # ser el dueño del repo, Y el propio Issue debe haberlo abierto el dueño.
+    # Sin la segunda condición, cualquiera podría abrir un Issue público con
+    # instrucciones maliciosas ocultas en el cuerpo — ese texto se pasa
+    # literalmente al prompt de Claude más abajo — y bastaría con que el
+    # dueño comentara "@claude" (sin releer el cuerpo completo) para que se
+    # ejecuten con permisos de escritura reales sobre el repo. Este repo no
+    # tiene colaboradores además del dueño; si en el futuro los hay, cambiar
+    # ambas comparaciones por una lista explícita de usuarios de confianza.
     if: >-
       github.actor == github.event.repository.owner.login
+      && github.event.issue.user.login == github.event.repository.owner.login
       && (
         (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
         || (github.event_name == 'issue_comment' && !github.event.issue.pull_request
@@ -43,10 +55,39 @@ jobs:
       pull-requests: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Nombre de rama determinístico calculado por el workflow, no dejado a
+      # elección de Claude — así --allowedTools puede restringir el checkout
+      # y el push a esta única rama por nombre exacto, en vez de un
+      # comodín "git push:*" que también permitiría empujar a main.
+      BRANCH_NAME: claude/issue-${{ github.event.issue.number }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Trae también refs remotas ya existentes, para el caso de un
+          # segundo "@claude" en el mismo Issue (ver step siguiente).
+          fetch-depth: 0
+
+      # Requerido antes de cualquier "git commit": un runner ubuntu-latest
+      # limpio no trae identidad configurada, y sin esto Claude no podría
+      # arreglarlo por su cuenta ("git config" no está en --allowedTools).
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Si ya existe la rama remota (un "@claude" posterior en el mismo
+      # Issue, iterando sobre un intento previo), seguimos sobre ella en vez
+      # de recrearla desde main — evita un push rechazado por non-fast-forward.
+      - name: Create or resume branch for Claude to work on
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" > /dev/null; then
+            git checkout -b "$BRANCH_NAME" "origin/$BRANCH_NAME"
+          else
+            git checkout -b "$BRANCH_NAME"
+          fi
 
       - name: Claude Code
         id: claude
@@ -65,8 +106,9 @@ jobs:
             artículos renombrados. `wrangler.toml` define bindings de D1 por
             entorno.
 
-            Implementa lo que se describe en este Issue (título, cuerpo y
-            comentarios). Reglas:
+            Ya estás en la rama "${{ env.BRANCH_NAME }}" (creada por el
+            workflow antes de invocarte). Implementa lo que se describe en
+            este Issue (título, cuerpo y comentarios). Reglas:
             - Antes de escribir código, si la petición es ambigua o se puede
               resolver de más de una forma razonable, comenta en el Issue
               explicando la ambigüedad y las opciones, y detente ahí —no
@@ -81,8 +123,10 @@ jobs:
               de seguridad (CSP, permisos de `functions/`, `wrangler.toml`)
               salvo que el Issue lo pida explícitamente.
             - No hagas commit de secrets, tokens ni credenciales.
+            - Cuando termines, haz commit y push con:
+              `git add -A && git commit -m "..." && git push -u origin ${{ env.BRANCH_NAME }}`
           claude_args: >-
             --model sonnet
             --effort medium
             --max-turns 60
-            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci)"
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npm run build),Bash(npm run lint),Bash(npm run check),Bash(npm ci),Bash(git status),Bash(git diff:*),Bash(git add:*),Bash(git commit:*),Bash(git push -u origin ${{ env.BRANCH_NAME }}),Bash(git push origin ${{ env.BRANCH_NAME }})"
