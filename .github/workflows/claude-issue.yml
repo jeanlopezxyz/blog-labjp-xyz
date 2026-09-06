@@ -95,6 +95,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # TEMPORAL: diagnosticando permission_denials repetidos que no se
+          # reproducen en local. Sacar antes de mergear a main.
+          show_full_output: true
           # Sin trigger_phrase custom: reacciona al "@claude" por defecto,
           # tanto en el cuerpo del Issue como en comentarios posteriores.
           prompt: |
