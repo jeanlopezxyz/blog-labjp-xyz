@@ -375,14 +375,24 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # actions/checkout borra el contenido del directorio de destino en su
+      # primer checkout de la sesión (siempre, exista o no ya un repo git
+      # ahí) — findings.json debe salir del árbol de trabajo ANTES del
+      # siguiente checkout, o desaparece.
+      - name: Move findings out of the workspace
+        if: steps.has_findings.outputs.should_run == 'true'
+        run: mv findings.json /tmp/findings.json
+
       # Único intento: si ya hay un commit de autofix en la rama, nos
-      # rendimos y dejamos el PR para revisión humana.
+      # rendimos y dejamos el PR para revisión humana. --repo explícito: sin
+      # un checkout todavía no hay `.git` local del que `gh` pueda inferir
+      # el repositorio.
       - name: Check retry budget
         id: budget
         if: steps.has_findings.outputs.should_run == 'true'
         run: |
           set -euo pipefail
-          already_tried=$(gh pr view "$PR_NUMBER" --json commits \
+          already_tried=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json commits \
             --jq '[.commits[] | select(.messageHeadline | startswith("autofix:"))] | length')
           if [ "$already_tried" -gt 0 ]; then
             echo "::warning::Ya se intentó un autofix en este PR. No se reintenta; requiere revisión humana."
@@ -398,12 +408,6 @@ jobs:
           ref: ${{ env.HEAD_REF }}
           # Sí persistimos credenciales aquí: este job necesita hacer push
           # del fix de vuelta a la rama del PR.
-
-      # findings.json quedó en el workspace desde "Download blocking
-      # findings" (checkout no borra archivos sueltos fuera del repo git).
-      - name: Move findings into the checked-out repo
-        if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
-        run: mv findings.json /tmp/findings.json
 
       - name: Setup Node.js
         if: steps.has_findings.outputs.should_run == 'true' && steps.budget.outputs.should_run == 'true'
