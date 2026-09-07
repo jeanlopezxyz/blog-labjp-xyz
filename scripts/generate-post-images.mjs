@@ -9,8 +9,11 @@
  * With no arguments, scans every post under src/content/blog and generates
  * images for the ones missing an `image` field. Passing one or more slugs
  * (the filename without extension, e.g. "2026-09-04-mcp-sin-estado-revision")
- * limits it to just those files, regardless of whether they already have an
- * image — useful for regenerating one manually.
+ * limits the scan to just those files — but still skips any of them that
+ * already have an `image` set. Set FORCE_REGENERATE=1 to regenerate a listed
+ * slug even if it already has an image (manual use only: CI never sets this,
+ * or every push that re-triggers the workflow would regenerate the image
+ * again, looping indefinitely).
  */
 
 import fs from 'fs';
@@ -107,11 +110,13 @@ async function main() {
   }
 
   const requestedSlugs = process.argv.slice(2);
+  const forceRegenerate = process.env.FORCE_REGENERATE === '1';
   const allFiles = findMarkdownFiles(BLOG_DIR);
 
   const targets = allFiles.filter((file) => {
     const base = path.basename(file).replace(/\.mdx?$/, '');
-    if (requestedSlugs.length > 0) return requestedSlugs.includes(base);
+    if (requestedSlugs.length > 0 && !requestedSlugs.includes(base)) return false;
+    if (forceRegenerate && requestedSlugs.length > 0) return true;
     const content = fs.readFileSync(file, 'utf8');
     const fm = parseFrontmatter(content);
     return fm && !fm.fields.image;

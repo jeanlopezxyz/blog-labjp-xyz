@@ -92,6 +92,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Un único intento por PR: si ya hay un commit "chore: generate cover
+      # image" en el historial, no se vuelve a generar. Barrera de seguridad
+      # adicional a que el script ya no regenera posts con `image` seteado —
+      # así, aunque esa lógica fallara de nuevo, esto corta cualquier loop de
+      # generate → commit → synchronize → generate antes de que gaste más
+      # llamadas a la API de OpenAI de las necesarias.
+      - name: Check retry budget
+        id: budget
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          already_tried=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json commits \
+            --jq '[.commits[] | select(.messageHeadline | startswith("chore: generate cover image"))] | length')
+          if [ "$already_tried" -gt 0 ]; then
+            echo "::notice::Ya se generó una imagen en este PR. No se vuelve a intentar."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       # Sin OPENAI_API_KEY (ej. un fork o antes de configurar el secret) este
       # paso no debe tumbar el PR: simplemente no genera nada y el post queda
       # sin imagen, como pasaba antes de esta automatización.
@@ -102,6 +124,7 @@ jobs:
       # `image`, aunque el PR no tenga nada que ver con contenido — ruido y
       # gasto de la API de OpenAI fuera del alcance del PR.
       - name: Generate cover images for new/changed posts
+        if: steps.budget.outputs.should_run == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -128,6 +151,7 @@ jobs:
       # de una cuenta real, el push sí dispara `synchronize` normalmente y
       # "gate"/"review" corren sobre el commit con la imagen ya incluida.
       - name: Commit generated images
+        if: steps.budget.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ secrets.PR_MERGE_PAT }}
         run: |
