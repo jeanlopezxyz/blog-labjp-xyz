@@ -51,26 +51,164 @@ permissions: {}
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Genera la imagen de portada (OpenAI) para posts nuevos/editados que no
+  # traigan `image` en el frontmatter, y la comitea de vuelta al PR ANTES del
+  # gate — así build/validate-articles ya ven el campo `image` presente.
+  # Nunca corre en PRs de Dependabot (no tocan contenido) ni de forks (no hay
+  # forma de comitear de vuelta sin exponer el secret de OpenAI a un fork).
+  # ---------------------------------------------------------------------------
+  generate-images:
+    name: Generate missing cover images
+    if: >-
+      github.event_name == 'pull_request'
+      && github.actor != 'dependabot[bot]'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read   # gh pr diff --name-only, para acotar qué posts generar
+    env:
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+    steps:
+      # persist-credentials: false — sin esto, actions/checkout deja el
+      # GITHUB_TOKEN por defecto guardado en el remote de git, y ese
+      # credential guardado tiene prioridad sobre la URL con PR_MERGE_PAT que
+      # "Commit generated images" configura más abajo. Resultado real visto
+      # en CI: git usa igual el GITHUB_TOKEN de solo lectura y el push falla
+      # con 403 aunque el token en la URL sea el correcto.
+      - name: Checkout PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.HEAD_REF }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.23.2'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Un único intento por PR: si ya hay un commit "chore: generate cover
+      # image" en el historial, no se vuelve a generar. Barrera de seguridad
+      # adicional a que el script ya no regenera posts con `image` seteado —
+      # así, aunque esa lógica fallara de nuevo, esto corta cualquier loop de
+      # generate → commit → synchronize → generate antes de que gaste más
+      # llamadas a la API de OpenAI de las necesarias.
+      - name: Check retry budget
+        id: budget
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          already_tried=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json commits \
+            --jq '[.commits[] | select(.messageHeadline | startswith("chore: generate cover image"))] | length')
+          if [ "$already_tried" -gt 0 ]; then
+            echo "::notice::Ya se generó una imagen en este PR. No se vuelve a intentar."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Sin OPENAI_API_KEY (ej. un fork o antes de configurar el secret) este
+      # paso no debe tumbar el PR: simplemente no genera nada y el post queda
+      # sin imagen, como pasaba antes de esta automatización.
+      #
+      # Solo se le pasan al script los posts que el PR realmente toca. Sin
+      # esto, el script (que por defecto escanea TODO src/content/blog)
+      # generaría y comitearía imágenes para cualquier post legado sin
+      # `image`, aunque el PR no tenga nada que ver con contenido — ruido y
+      # gasto de la API de OpenAI fuera del alcance del PR.
+      - name: Generate cover images for new/changed posts
+        if: steps.budget.outputs.should_run == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::warning::OPENAI_API_KEY no está configurado. Se omite la generación de imágenes."
+            exit 0
+          fi
+          changed_slugs=$(gh pr diff "$PR_NUMBER" --repo "${{ github.repository }}" --name-only \
+            | grep -E '^src/content/blog/.*\.mdx?$' \
+            | xargs -n1 basename 2>/dev/null | sed -E 's/\.mdx?$//' | sort -u)
+          if [ -z "$changed_slugs" ]; then
+            echo "Este PR no añade ni modifica posts. Nada que generar."
+            exit 0
+          fi
+          npm run generate:images -- $changed_slugs
+
+      # PR_MERGE_PAT, no GITHUB_TOKEN: un push hecho con el token efímero de
+      # Actions no dispara un nuevo evento `synchronize` de forma utilizable
+      # (el run queda en "action_required" sin ejecutar ningún job, la misma
+      # restricción que documenta el step "Merge PR" más abajo). Con el PAT
+      # de una cuenta real, el push sí dispara `synchronize` normalmente y
+      # "gate"/"review" corren sobre el commit con la imagen ya incluida.
+      - name: Commit generated images
+        if: steps.budget.outputs.should_run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PR_MERGE_PAT }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::El secret PR_MERGE_PAT está vacío o no existe. Sin él el push no dispararía un nuevo synchronize (ver comentario de este step). No se comitea la imagen."
+            exit 1
+          fi
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          git add -A
+          git commit -m "chore: generate cover image with OpenAI"
+          git push origin "HEAD:${HEAD_REF}"
+
+  # ---------------------------------------------------------------------------
   # Gate técnico. Si cualquier paso falla, el job queda en rojo y `review` no
   # se ejecuta (needs), así que no hay aprobación ni merge posible.
   # ---------------------------------------------------------------------------
   gate:
     name: Build, lint and check
-    # Enrutado de eventos (ver cabecera). Bajo pull_request_target exigimos
-    # además que el PR sea del propio repo.
+    needs: generate-images
+    # Siempre corre (needs.generate-images.result puede ser 'skipped' en PRs de
+    # Dependabot o forks, y eso no debe bloquear el gate). Enrutado de eventos
+    # (ver cabecera): bajo pull_request_target exigimos además que el PR sea
+    # del propio repo.
     if: >-
-      (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]')
+      always() &&
+      (needs.generate-images.result == 'success' || needs.generate-images.result == 'skipped') &&
+      ((github.event_name == 'pull_request' && github.actor != 'dependabot[bot]')
       || (github.event_name == 'pull_request_target'
           && github.actor == 'dependabot[bot]'
-          && github.event.pull_request.head.repo.full_name == github.repository)
+          && github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
 
     steps:
-      # SHA exacto del head del PR (no la ref de merge), igual para ambos
-      # eventos. Sin credenciales persistidas: este job ejecuta código del PR.
+      # SHA exacto del head del PR (no la ref de merge ni el nombre de rama):
+      # para PRs de forks, actions/checkout sin `repository:` explícito busca
+      # la ref por nombre en el repo BASE, donde la rama del fork no existe
+      # ("couldn't find remote ref"). El SHA sí es resoluble porque GitHub
+      # expone los commits de PRs abiertos (incluso de forks) bajo
+      # refs/pull/<n>/head en el repo base.
+      #
+      # El job "generate-images" pudo haber empujado un nuevo commit (la
+      # imagen generada) usando PR_MERGE_PAT — ese push SÍ dispara un
+      # `synchronize` nuevo (a diferencia de un push con GITHUB_TOKEN, que no
+      # re-dispara nada), y el `concurrency: cancel-in-progress` de este
+      # workflow cancela automáticamente cualquier run anterior en vuelo
+      # sobre el mismo PR. Así que este run, si sigue vivo hasta aquí, ya está
+      # validando el SHA correcto — no puede haber quedado obsoleto.
       - name: Checkout PR head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -138,6 +276,8 @@ jobs:
 
       # Archivos del PR como datos de solo lectura, para que Claude pueda leer
       # el contexto completo de lo que cambia. No se ejecuta nada de aquí.
+      # SHA exacto, no la rama: ver el comentario de "Checkout PR head" en el
+      # job "gate" — usar la rama rompe el checkout en PRs de forks.
       - name: Checkout PR head (read-only, subdirectory)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

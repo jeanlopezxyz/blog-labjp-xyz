@@ -1,6 +1,7 @@
 ---
 title: "MCP por dentro: qué cambió en la revisión 2026-07-28 y qué apareció al auditar ocho servidores propios"
 description: "El protocolo se quedó sin saludo, sin sesiones y sin conexión permanente. Qué significa para quien mantiene un servidor MCP, el fallo silencioso del ttlMs a cero y los hallazgos de contrastar la especificación con código real."
+image: "/images/blog/mcp-sin-estado-revision.png"
 pubDate: 2026-09-04
 tags: ["mcp", "agentic-ai", "quarkus", "oauth", "protocolos", "arquitectura"]
 categories: ["ia"]

@@ -17,6 +17,7 @@
     "lint": "eslint src functions scripts",
     "lint:fix": "eslint src functions scripts --fix",
     "format": "prettier --write src",
+    "generate:images": "node scripts/generate-post-images.mjs",
     "astro": "astro"
   },
   "dependencies": {
