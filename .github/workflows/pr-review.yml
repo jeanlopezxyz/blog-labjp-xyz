@@ -71,10 +71,17 @@ jobs:
     env:
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
     steps:
+      # persist-credentials: false — sin esto, actions/checkout deja el
+      # GITHUB_TOKEN por defecto guardado en el remote de git, y ese
+      # credential guardado tiene prioridad sobre la URL con PR_MERGE_PAT que
+      # "Commit generated images" configura más abajo. Resultado real visto
+      # en CI: git usa igual el GITHUB_TOKEN de solo lectura y el push falla
+      # con 403 aunque el token en la URL sea el correcto.
       - name: Checkout PR branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ env.HEAD_REF }}
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
