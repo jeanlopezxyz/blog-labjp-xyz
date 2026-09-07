@@ -51,30 +51,101 @@ permissions: {}
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Genera la imagen de portada (OpenAI) para posts nuevos/editados que no
+  # traigan `image` en el frontmatter, y la comitea de vuelta al PR ANTES del
+  # gate — así build/validate-articles ya ven el campo `image` presente.
+  # Nunca corre en PRs de Dependabot (no tocan contenido) ni de forks (no hay
+  # forma de comitear de vuelta sin exponer el secret de OpenAI a un fork).
+  # ---------------------------------------------------------------------------
+  generate-images:
+    name: Generate missing cover images
+    if: >-
+      github.event_name == 'pull_request'
+      && github.actor != 'dependabot[bot]'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.HEAD_REF }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.23.2'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Sin OPENAI_API_KEY (ej. un fork o antes de configurar el secret) este
+      # paso no debe tumbar el PR: simplemente no genera nada y el post queda
+      # sin imagen, como pasaba antes de esta automatización.
+      - name: Generate cover images for new/changed posts
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::warning::OPENAI_API_KEY no está configurado. Se omite la generación de imágenes."
+            exit 0
+          fi
+          npm run generate:images
+
+      - name: Commit generated images
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git add -A
+          git commit -m "chore: generate cover image with OpenAI"
+          git push origin "HEAD:${HEAD_REF}"
+
+  # ---------------------------------------------------------------------------
   # Gate técnico. Si cualquier paso falla, el job queda en rojo y `review` no
   # se ejecuta (needs), así que no hay aprobación ni merge posible.
   # ---------------------------------------------------------------------------
   gate:
     name: Build, lint and check
-    # Enrutado de eventos (ver cabecera). Bajo pull_request_target exigimos
-    # además que el PR sea del propio repo.
+    needs: generate-images
+    # Siempre corre (needs.generate-images.result puede ser 'skipped' en PRs de
+    # Dependabot o forks, y eso no debe bloquear el gate). Enrutado de eventos
+    # (ver cabecera): bajo pull_request_target exigimos además que el PR sea
+    # del propio repo.
     if: >-
-      (github.event_name == 'pull_request' && github.actor != 'dependabot[bot]')
+      always() &&
+      (needs.generate-images.result == 'success' || needs.generate-images.result == 'skipped') &&
+      ((github.event_name == 'pull_request' && github.actor != 'dependabot[bot]')
       || (github.event_name == 'pull_request_target'
           && github.actor == 'dependabot[bot]'
-          && github.event.pull_request.head.repo.full_name == github.repository)
+          && github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
 
     steps:
-      # SHA exacto del head del PR (no la ref de merge), igual para ambos
-      # eventos. Sin credenciales persistidas: este job ejecuta código del PR.
+      # El job "generate-images" pudo haber empujado un nuevo commit (la
+      # imagen generada). Ese push dispara un nuevo evento `synchronize` que
+      # vuelve a correr este mismo workflow desde cero sobre el commit nuevo,
+      # así que ESTE run (el que arrancó antes del push) puede quedarse
+      # validando un estado ya obsoleto del PR si usa el SHA fijo del evento.
+      # Usamos la rama, no el SHA, para que el checkout siempre traiga lo
+      # último que hay en el PR en el momento en que este step corre.
       - name: Checkout PR head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: Setup Node.js
@@ -138,10 +209,12 @@ jobs:
 
       # Archivos del PR como datos de solo lectura, para que Claude pueda leer
       # el contexto completo de lo que cambia. No se ejecuta nada de aquí.
+      # Misma razón que en "gate" para usar la rama en vez del SHA fijo del
+      # evento: "generate-images" pudo haber empujado un commit nuevo.
       - name: Checkout PR head (read-only, subdirectory)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
           path: pr-head
           persist-credentials: false
 

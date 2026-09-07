@@ -17,7 +17,7 @@ const t = useTranslations(lang);
 const allPosts = (await getCollection("blog", ({ id, data }) => !data.draft && isPostForLang(id, lang)))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-const featuredPost = allPosts.find((post) => post.data.featured) ?? allPosts[0];
+const featuredPost = allPosts[0];
 const restPosts = allPosts.filter((post) => post.id !== featuredPost?.id);
 ---
 
