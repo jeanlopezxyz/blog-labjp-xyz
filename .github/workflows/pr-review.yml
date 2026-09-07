@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
     env:
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
     steps:
@@ -98,7 +98,15 @@ jobs:
           fi
           npm run generate:images
 
+      # PR_MERGE_PAT, no GITHUB_TOKEN: un push hecho con el token efímero de
+      # Actions no dispara un nuevo evento `synchronize` de forma utilizable
+      # (el run queda en "action_required" sin ejecutar ningún job, la misma
+      # restricción que documenta el step "Merge PR" más abajo). Con el PAT
+      # de una cuenta real, el push sí dispara `synchronize` normalmente y
+      # "gate"/"review" corren sobre el commit con la imagen ya incluida.
       - name: Commit generated images
+        env:
+          GH_TOKEN: ${{ secrets.PR_MERGE_PAT }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -107,6 +115,11 @@ jobs:
             echo "Nothing to commit."
             exit 0
           fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::El secret PR_MERGE_PAT está vacío o no existe. Sin él el push no dispararía un nuevo synchronize (ver comentario de este step). No se comitea la imagen."
+            exit 1
+          fi
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           git add -A
           git commit -m "chore: generate cover image with OpenAI"
           git push origin "HEAD:${HEAD_REF}"
