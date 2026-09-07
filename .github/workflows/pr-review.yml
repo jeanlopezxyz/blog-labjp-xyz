@@ -67,6 +67,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      pull-requests: read   # gh pr diff --name-only, para acotar qué posts generar
     env:
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
     steps:
@@ -87,16 +88,31 @@ jobs:
       # Sin OPENAI_API_KEY (ej. un fork o antes de configurar el secret) este
       # paso no debe tumbar el PR: simplemente no genera nada y el post queda
       # sin imagen, como pasaba antes de esta automatización.
+      #
+      # Solo se le pasan al script los posts que el PR realmente toca. Sin
+      # esto, el script (que por defecto escanea TODO src/content/blog)
+      # generaría y comitearía imágenes para cualquier post legado sin
+      # `image`, aunque el PR no tenga nada que ver con contenido — ruido y
+      # gasto de la API de OpenAI fuera del alcance del PR.
       - name: Generate cover images for new/changed posts
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
           if [ -z "$OPENAI_API_KEY" ]; then
             echo "::warning::OPENAI_API_KEY no está configurado. Se omite la generación de imágenes."
             exit 0
           fi
-          npm run generate:images
+          changed_slugs=$(gh pr diff "$PR_NUMBER" --repo "${{ github.repository }}" --name-only \
+            | grep -E '^src/content/blog/.*\.mdx?$' \
+            | xargs -n1 basename 2>/dev/null | sed -E 's/\.mdx?$//' | sort -u)
+          if [ -z "$changed_slugs" ]; then
+            echo "Este PR no añade ni modifica posts. Nada que generar."
+            exit 0
+          fi
+          npm run generate:images -- $changed_slugs
 
       # PR_MERGE_PAT, no GITHUB_TOKEN: un push hecho con el token efímero de
       # Actions no dispara un nuevo evento `synchronize` de forma utilizable
@@ -148,17 +164,24 @@ jobs:
       contents: read
 
     steps:
+      # SHA exacto del head del PR (no la ref de merge ni el nombre de rama):
+      # para PRs de forks, actions/checkout sin `repository:` explícito busca
+      # la ref por nombre en el repo BASE, donde la rama del fork no existe
+      # ("couldn't find remote ref"). El SHA sí es resoluble porque GitHub
+      # expone los commits de PRs abiertos (incluso de forks) bajo
+      # refs/pull/<n>/head en el repo base.
+      #
       # El job "generate-images" pudo haber empujado un nuevo commit (la
-      # imagen generada). Ese push dispara un nuevo evento `synchronize` que
-      # vuelve a correr este mismo workflow desde cero sobre el commit nuevo,
-      # así que ESTE run (el que arrancó antes del push) puede quedarse
-      # validando un estado ya obsoleto del PR si usa el SHA fijo del evento.
-      # Usamos la rama, no el SHA, para que el checkout siempre traiga lo
-      # último que hay en el PR en el momento en que este step corre.
+      # imagen generada) usando PR_MERGE_PAT — ese push SÍ dispara un
+      # `synchronize` nuevo (a diferencia de un push con GITHUB_TOKEN, que no
+      # re-dispara nada), y el `concurrency: cancel-in-progress` de este
+      # workflow cancela automáticamente cualquier run anterior en vuelo
+      # sobre el mismo PR. Así que este run, si sigue vivo hasta aquí, ya está
+      # validando el SHA correcto — no puede haber quedado obsoleto.
       - name: Checkout PR head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: Setup Node.js
@@ -222,12 +245,12 @@ jobs:
 
       # Archivos del PR como datos de solo lectura, para que Claude pueda leer
       # el contexto completo de lo que cambia. No se ejecuta nada de aquí.
-      # Misma razón que en "gate" para usar la rama en vez del SHA fijo del
-      # evento: "generate-images" pudo haber empujado un commit nuevo.
+      # SHA exacto, no la rama: ver el comentario de "Checkout PR head" en el
+      # job "gate" — usar la rama rompe el checkout en PRs de forks.
       - name: Checkout PR head (read-only, subdirectory)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           path: pr-head
           persist-credentials: false
 
